@@ -76,7 +76,8 @@ public class FieldTest extends RobotBase {
             f.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             f.setHint("password");
             final ViewGroup column = (ViewGroup) ((ViewGroup) a.findViewById(R.id.ntk_root)).getChildAt(0);
-            column.addView(f, 4, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            // Near the top, so the keyboard does not cover it (the screen's layout may change).
+            column.addView(f, Math.min(2, column.getChildCount()), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             f.requestFocus();
             ((InputMethodManager) a.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(f, 0);
             return f;
