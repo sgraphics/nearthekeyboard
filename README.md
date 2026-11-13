@@ -30,11 +30,11 @@ Updated 2026-11-13. What is still open is in [TODO.md](TODO.md).
 |---|---|---|
 | Enclave v0.2.0 (Rust, wasm32-wasip2) | `enclave/` | Live on OutLayer testnet as `nearthekeyboard.testnet/ntk`; 16 unit tests |
 | Protocol client, end-to-end suite | `client/` | 36 of 36 checks against the live enclave (2026-11-13), synthetic typists |
-| Verify page, demo feed, web embed | `web/` | Live at <https://ntk.tools>; 57 tests |
-| Relay (holds the payment key) | `relay/` | Live at `https://ntk.tools/api`; 22 tests |
-| Android keyboard | `android/` | Works on the Android emulator: a fresh testnet account enrolled and got MATCH (`[NTK 4420c168c8]`) through the live relay; 16 unit tests, robot typist tests |
-| Log in with a NEAR wallet | `web/login/`, `android/` | In progress (MyNearWallet no longer accepts new app connections; the testnet faucet account works) |
-| Stamp buttons in other Android apps | `android/` | In progress |
+| Verify page, demo feed, web embed, privacy page | `web/` | Live at <https://ntk.tools> |
+| Relay (holds the payment key) | `relay/` | Live at `https://ntk.tools/api`; web and relay: 107 tests |
+| Android keyboard | `android/` | Works on the Android emulator: a fresh testnet account enrolled and got MATCH (`[NTK 4420c168c8]`) through the live relay; 28 unit tests, robot typist tests |
+| Log in with a NEAR wallet | `web/login/`, `android/` | Login page live at <https://ntk.tools/login/> (NEAR Connect: Meteor, Intear). The app side works with a function-call key added from a script; not yet tried with a real wallet. The testnet faucet account also works |
+| Stamp buttons in other Android apps | `android/` | Works in Chrome on the emulator: a button over each tag opens the verify page; also "Verify NTK stamp" in the text selection menu. Not tried in the X app |
 | NEAR AI Cloud: composed or copied | — | Not started; needs an API key |
 
 The typing data in the tests is synthetic (invented typists). It shows that
@@ -98,7 +98,7 @@ contains the text or any timing.
 
 ```bash
 cd enclave && cargo test --release          # 16 passed
-cd .. && node --test web/test/ relay/test/  # 79 tests: 78 pass, 1 live test skipped
+cd .. && node --test web/test/ relay/test/  # 107 tests: 106 pass, 1 live test skipped
 ```
 
 ### 6. Rebuild the binary that is live
@@ -191,7 +191,21 @@ timing; real human typing has not been tested yet (TODO.md 2.6).
 
 ![The NTK keyboard, light](android/docs/screenshots/keyboard-light.png) ![The NTK keyboard, dark](android/docs/screenshots/keyboard-dark.png)
 
-### 9. Run the site and relay locally
+### 9. See the stamp buttons in other apps
+
+With the app installed on an emulator (step 8):
+
+```bash
+bash scripts/device/a11y-on.sh        # switch on the "NTK stamp buttons" service
+bash scripts/device/button-test.sh    # opens https://ntk.tools/feed/ in Chrome
+```
+
+See: an orange "NTK ✓" button sits on the tag of each stamped reply; tapping
+it opens the verify page with MATCH. On a phone, switch the service on in
+Settings > Accessibility (sideloaded apps may first need "Allow restricted
+settings" in the app's info screen).
+
+### 10. Run the site and relay locally
 
 ```bash
 NTK_ENV_FILE=~/.ntk/testnet.env STATIC_DIR=web node relay/server.mjs
@@ -281,6 +295,7 @@ keyboard all check themselves against. In short:
 | OutLayer public storage | Stamp records: account, text hash, character and tap counts, scores, time, call id. No text and no timing. |
 | The relay | Nothing. It forwards sealed, signed requests and logs method, operation, account, status and duration. |
 | The verify page | Nothing. The text to check stays in the browser; only the stamp id is fetched. |
+| The stamp-button layer on the phone | Nothing. It reads screen text on the phone to find tags; nothing leaves the phone until you tap a button, which opens the verify page with the text in the address fragment. |
 
 ## Guarantees and limits
 
@@ -345,9 +360,10 @@ Limits, not solved:
   approved worker builds that OutLayer's admin maintains, and the NEAR RPC
   answer to `view_access_key`.
 
-## Planned user flow
+## User flow
 
-Being built; this is the target for the hackathon demo.
+What the demo shows. Steps 1 and 5 with a real wallet and the X app have not
+been tried yet; everything else runs on the emulator.
 
 1. Install NTK, switch the phone to it, and log in with NEAR. The wallet adds a
    key that can only speak to NTK.
@@ -371,7 +387,9 @@ client/    Node client and tests: ntk.mjs (protocol, async calls), verify.mjs (c
            stamps), e2e.mjs (end-to-end suite), synth.mjs and synth-export.mjs
            (synthetic typists), vectors.mjs (writes docs/test-vectors/)
 web/       ntk.tools: the verify page (/, /<id>), the demo feed (/feed/), the web
-           embed (/embed/), lib/ntk-verify.js (the reference verifier), vendor/
+           embed (/embed/), the app's wallet login (/login/, bundled with esbuild),
+           the privacy page (/privacy/), lib/ntk-verify.js (the reference verifier),
+           tools/version-assets.mjs (cache-safe asset links), vendor/
 relay/     server.mjs: holds the payment key, forwards the five operations; smoke.mjs
 deploy/    deploy.sh, nginx site and systemd unit for the server
 docs/      protocol.md and the shared test vectors
@@ -400,7 +418,8 @@ TODO.md    Everything still to build, with priorities
   and dalek crates, `serde`, `hex`, `base64`, `bs58`, `@noble/*` (MIT; the
   verify page vendors `@noble/ed25519` 3.2.0), `near-api-js` (MIT/Apache-2.0),
   Inter (SIL Open Font License, in `brand/fonts/`), `@resvg/resvg-js`
-  (MPL-2.0, brand build only). OutLayer's documentation:
+  (MPL-2.0, brand build only), `@hot-labs/near-connect` 0.12.0 (MIT, the login
+  page's wallet connector), esbuild (MIT, build only). OutLayer's documentation:
   <https://app.outlayer.ai/docs/getting-started>.
 - The code was written with AI coding agents (Claude Code).
 - No keys are in this repository. Secrets are read from files outside it or
