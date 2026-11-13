@@ -1,0 +1,16 @@
+{
+  "name": "ntk-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "NTK (Near The Keyboard) test client: talks to the NTK enclave on OutLayer",
+  "scripts": {
+    "e2e": "node e2e.mjs"
+  },
+  "dependencies": {
+    "@noble/ciphers": "^2.4.0",
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
+    "near-api-js": "^7.5.3"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "display": {
+    "name": "NTK - Near The Keyboard (typing fingerprint enclave)"
+  },
+  "operations": ["info", "enroll", "stamp", "status", "forget"],
+  "capabilities": {
+    "network": []
+  },
+  "signing_keys": [
+    { "path": "stamp", "type": "ed25519", "caller": "none" }
+  ],
+  "encryption_keys": [
+    { "path": "vault" }
+  ]
+}

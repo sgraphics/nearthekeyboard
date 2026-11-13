@@ -1,0 +1,49 @@
+# Local tooling folders: never part of the project
+.bl0x/
+.claude/
+
+# Secrets. Keys live outside the repo (~/.ntk, ~/.near-credentials) or in
+# environment variables; nothing below may ever be committed.
+.env
+.env.*
+*.env
+!.env.example
+*.pem
+*.key
+*.jks
+*.keystore
+keystore.properties
+local.properties
+
+# Real typing sessions are biometric data: collected for tuning, never committed
+typing-data/
+
+# Build output
+node_modules/
+target/
+build/
+dist/
+.gradle/
+.kotlin/
+.cxx/
+captures/
+*.apk
+*.aab
+*.wasm
+
+# Test run output
+client/e2e-report.json
+
+# Video working files (scripts, storyboard and captions are tracked; raw
+# screen captures, rendered frames and exports are not)
+video/raw/
+video/frames/
+video/out/
+
+# IDE and OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
