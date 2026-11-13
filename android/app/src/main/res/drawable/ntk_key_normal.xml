@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<drawable xmlns:app="http://schemas.android.com/apk/res-auto"
+    class="tools.ntk.ui.PixelKeyDrawable"
+    app:ntkFace="@color/ntk_key_face"
+    app:ntkEdge="@color/ntk_key_edge"
+    app:ntkShadow="@color/ntk_key_shadow"
+    app:ntkStep="1.5dp"  />

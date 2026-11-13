@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ntk_root"
+    android:importantForAutofill="noExcludeDescendants"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/ntk_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="24dp">
+
+        <tools.ntk.ui.BadgeView
+            android:layout_width="wrap_content"
+            android:layout_height="20dp" />
+
+        <TextView
+            style="@style/NtkTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="NEAR THE\nKEYBOARD" />
+
+        <TextView
+            style="@style/NtkBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="A keyboard that lets you prove you typed a text by hand. Testnet only." />
+
+        <TextView
+            android:id="@+id/ntk_busy"
+            style="@style/NtkSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+        <!-- 1. Keyboard -->
+        <TextView style="@style/NtkHeading" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="1. Keyboard" />
+        <TextView android:id="@+id/ntk_kb_status" style="@style/NtkBody"
+            android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <Button android:id="@+id/ntk_btn_enable" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Turn on NTK in system settings" />
+        <Button android:id="@+id/ntk_btn_pick" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Switch to the NTK keyboard" />
+
+        <!-- 2. NEAR account -->
+        <TextView style="@style/NtkHeading" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="2. NEAR account" />
+        <TextView android:id="@+id/ntk_account_status" style="@style/NtkBody"
+            android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <Button android:id="@+id/ntk_btn_wallet" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Log in with a NEAR wallet" />
+        <Button android:id="@+id/ntk_btn_faucet" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Create a testnet account for me" />
+        <Button android:id="@+id/ntk_btn_logout" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Log out (deletes this phone's key)" />
+
+        <!-- 3. Fingerprint -->
+        <TextView style="@style/NtkHeading" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="3. Typing fingerprint" />
+        <TextView android:id="@+id/ntk_enroll_status" style="@style/NtkBody"
+            android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <Button android:id="@+id/ntk_btn_enroll" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Enroll: type three short texts" />
+        <Button android:id="@+id/ntk_btn_status" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Ask the enclave for my status" />
+        <Button android:id="@+id/ntk_btn_forget" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Delete my fingerprint" />
+
+        <!-- 4. Try it -->
+        <TextView style="@style/NtkHeading" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="4. Try it" />
+        <TextView style="@style/NtkSmall" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Type at least 40 keys here with NTK, then tap Sign on the keyboard. On a match the keyboard adds a tag like [NTK e65ee28db5] after your text." />
+        <EditText
+            android:id="@+id/ntk_try_field"
+            style="@style/NtkField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Type here"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine|textCapSentences" />
+
+        <!-- What is sent -->
+        <TextView style="@style/NtkHeading" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="What NTK sends, and when" />
+        <TextView style="@style/NtkSmall" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="While you type in a text field, the keyboard keeps, in memory only, per key tap: the key, how long it was held, the time since the previous key, and where your finger landed on it. Nothing leaves the phone until you tap Enroll or Sign. Then that one session is sealed on the phone to the NTK enclave's key (NEAR OutLayer, Intel TDX) and sent, signed with your NEAR account's key; only the enclave can open it. Your typing fingerprint stays inside the enclave. Password fields and incognito fields are never recorded. Delete my fingerprint removes it from the enclave." />
+
+        <!-- Debug builds only -->
+        <LinearLayout
+            android:id="@+id/ntk_debug"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/NtkHeading" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Debug build" />
+            <TextView android:id="@+id/ntk_debug_transport" style="@style/NtkSmall"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+            <EditText
+                android:id="@+id/ntk_debug_relay"
+                style="@style/NtkField"
+                android:minHeight="48dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:inputType="textUri"
+                android:hint="Relay URL, for example http://localhost:3970/api" />
+            <Button android:id="@+id/ntk_btn_use_relay" style="@style/NtkButton"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Use this relay" />
+            <Button android:id="@+id/ntk_btn_use_direct" style="@style/NtkButton"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Call OutLayer directly (payment key from local.properties)" />
+        </LinearLayout>
+
+        <Button android:id="@+id/ntk_btn_settings" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Keyboard settings" />
+        <TextView style="@style/NtkSmall" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Built on Simple Keyboard (Apache-2.0). Stamps are signed by the NTK enclave on NEAR OutLayer testnet." />
+    </LinearLayout>
+</ScrollView>

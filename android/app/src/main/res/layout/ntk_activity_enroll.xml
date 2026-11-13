@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ntk_root"
+    android:importantForAutofill="noExcludeDescendants"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/ntk_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="24dp">
+
+        <tools.ntk.ui.BadgeView
+            android:layout_width="wrap_content"
+            android:layout_height="18dp" />
+
+        <!-- Consent -->
+        <LinearLayout
+            android:id="@+id/ntk_consent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView style="@style/NtkTitle" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:text="Before you enroll" />
+            <TextView style="@style/NtkBody" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="NTK learns how you type: for each key tap, how long you hold the key, how long your finger travels to the next key, and where on the key your finger lands. Not what you type: the enclave keeps only these measurements, as running averages." />
+            <TextView style="@style/NtkBody" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="This is biometric data. It is sealed on this phone to a key that exists only inside the NTK enclave on NEAR OutLayer (Intel TDX), and stored there sealed. Nobody can read it: not us, not OutLayer, not you." />
+            <TextView style="@style/NtkBody" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="You can delete it at any time: NTK app, Delete my fingerprint. Testnet only." />
+            <Button android:id="@+id/ntk_btn_agree" style="@style/NtkButton"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="I agree. Start enrolling" />
+            <Button android:id="@+id/ntk_btn_cancel" style="@style/NtkButton"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Not now" />
+        </LinearLayout>
+
+        <!-- Prompts -->
+        <LinearLayout
+            android:id="@+id/ntk_prompts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView android:id="@+id/ntk_step" style="@style/NtkSmall"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" />
+            <TextView android:id="@+id/ntk_prompt" style="@style/NtkTitle"
+                android:textSize="19sp"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" />
+            <TextView android:id="@+id/ntk_copy_text" style="@style/NtkBody"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/ntk_card"
+                android:visibility="gone" />
+            <EditText
+                android:id="@+id/ntk_field_1"
+                style="@style/NtkField"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Type with NTK"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textCapSentences"
+                android:privateImeOptions="tools.ntk.enroll=compose" />
+            <EditText
+                android:id="@+id/ntk_field_2"
+                style="@style/NtkField"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Copy the sentence above"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textCapSentences"
+                android:privateImeOptions="tools.ntk.enroll=copy"
+                android:visibility="gone" />
+            <EditText
+                android:id="@+id/ntk_field_3"
+                style="@style/NtkField"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Type with NTK"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textCapSentences"
+                android:privateImeOptions="tools.ntk.enroll=compose"
+                android:visibility="gone" />
+            <TextView style="@style/NtkSmall" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Type at least 30 keys, then tap Enroll on the keyboard's strip. The session is sealed and sent to the enclave; that can take a minute." />
+            <TextView android:id="@+id/ntk_enroll_result" style="@style/NtkBody"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" />
+        </LinearLayout>
+
+        <!-- Done -->
+        <LinearLayout
+            android:id="@+id/ntk_done"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/NtkTitle" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:text="Fingerprint created, sealed in the enclave" />
+            <TextView android:id="@+id/ntk_done_detail" style="@style/NtkBody"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" />
+            <Button android:id="@+id/ntk_btn_done" style="@style/NtkButton"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Done" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

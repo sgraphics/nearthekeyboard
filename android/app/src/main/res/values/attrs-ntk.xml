@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- tools.ntk.ui.PixelKeyDrawable -->
+    <declare-styleable name="NtkPixelKey">
+        <attr name="ntkFace" format="color" />
+        <attr name="ntkEdge" format="color" />
+        <attr name="ntkShadow" format="color" />
+        <attr name="ntkStep" format="dimension" />
+        <attr name="ntkInset" format="dimension" />
+        <attr name="ntkPaddingLeft" format="dimension" />
+        <attr name="ntkPaddingTop" format="dimension" />
+        <attr name="ntkPaddingRight" format="dimension" />
+        <attr name="ntkPaddingBottom" format="dimension" />
+    </declare-styleable>
+</resources>

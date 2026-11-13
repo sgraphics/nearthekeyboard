@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- NTK: the light theme, from brand/palette.json ("keyboard.light"). Paper
+     background, white keys, soft grey stepped edges, black legends; orange only
+     on the Sign key and in the badge (TODO.md 3.7, 8). A press darkens face and
+     edge by one step. -->
+<resources>
+    <color name="ntk_background">#FFF4F4F1</color>
+    <color name="ntk_legend">#FF0A0A0A</color>
+    <color name="ntk_muted">#FF6E6E69</color>
+    <color name="ntk_orange">#FFFF4F00</color>
+    <color name="ntk_orange_shade">#FFC23C00</color>
+    <color name="ntk_on_orange">#FF0A0A0A</color>
+    <color name="ntk_key_face">#FFFFFFFF</color>
+    <color name="ntk_key_edge">#FFD7D7D2</color>
+    <color name="ntk_key_shadow">#FFB4B4AE</color>
+    <color name="ntk_key_face_pressed">#FFD7D7D2</color>
+    <color name="ntk_key_edge_pressed">#FFB4B4AE</color>
+    <color name="ntk_key_func_face">#FFF4F4F1</color>
+    <color name="ntk_key_func_face_pressed">#FFD7D7D2</color>
+    <color name="ntk_panel">#FFFFFFFF</color>
+    <color name="ntk_hint">#FF6E6E69</color>
+</resources>

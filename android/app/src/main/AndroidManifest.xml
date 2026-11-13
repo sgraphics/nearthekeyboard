@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2012 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- NTK: the only addition. The keyboard sends a sealed typing session when you tap
+         Enroll or Sign, and the setup screen talks to NEAR testnet; nothing else. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/english_ime_name"
+        android:supportsRtl="true">
+
+        <service
+            android:name=".latin.LatinIME"
+            android:label="@string/english_ime_name"
+            android:directBootAware="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_INPUT_METHOD">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/method" />
+        </service>
+
+        <activity
+            android:name=".latin.settings.SettingsActivity"
+            android:label="@string/english_ime_name"
+            android:exported="true"
+            android:theme="@style/platformSettingsTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <!-- NTK: setup (keyboard, NEAR login, enrollment, try it). The launcher entry. -->
+        <activity
+            android:name="tools.ntk.ui.SetupActivity"
+            android:label="@string/english_ime_name"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@style/NtkAppTheme"
+            android:windowSoftInputMode="adjustResize|stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Back from the NEAR wallet: ntk://auth?account_id=… -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ntk" android:host="auth" />
+                <data android:scheme="ntk" android:host="auth-failed" />
+            </intent-filter>
+        </activity>
+
+        <!-- NTK: consent and the three enrollment prompts, typed with NTK. -->
+        <activity
+            android:name="tools.ntk.ui.EnrollActivity"
+            android:label="@string/english_ime_name"
+            android:exported="false"
+            android:theme="@style/NtkAppTheme"
+            android:windowSoftInputMode="adjustResize|stateVisible" />
+
+        <receiver
+            android:name=".latin.SystemBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <meta-data android:name="android.content.APP_RESTRICTIONS"
+            android:resource="@xml/app_restrictions" />
+    </application>
+
+</manifest>

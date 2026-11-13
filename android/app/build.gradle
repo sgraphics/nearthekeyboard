@@ -1,0 +1,68 @@
+apply plugin: 'com.android.application'
+
+// NTK: local.properties is ignored by git. A debug build may read a testnet
+// OutLayer payment key from it (ntk.paymentKey) to call OutLayer directly when
+// the relay is not available, and a relay URL (ntk.relayUrl). Release builds
+// never read either: their BuildConfig fields are empty / the public relay.
+def ntkLocal = new Properties()
+def ntkLocalFile = rootProject.file('local.properties')
+if (ntkLocalFile.exists()) {
+    ntkLocalFile.withInputStream { ntkLocal.load(it) }
+}
+def ntkQuote = { String s -> '"' + (s ?: '').replace('\\', '\\\\').replace('"', '\\"') + '"' }
+def ntkRelay = 'https://ntk.tools/api'
+
+android {
+    defaultConfig {
+        applicationId "tools.ntk.keyboard"
+        compileSdk 37
+        minSdkVersion 24
+        targetSdkVersion 37
+        versionCode 149
+        versionName "6.8-ntk.0.2"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        buildConfig true
+    }
+    buildTypes {
+        debug {
+            buildConfigField "String", "NTK_RELAY_URL", ntkQuote(ntkLocal.getProperty('ntk.relayUrl', ntkRelay))
+            buildConfigField "String", "NTK_PAYMENT_KEY", ntkQuote(ntkLocal.getProperty('ntk.paymentKey', ''))
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "NTK_RELAY_URL", ntkQuote(ntkRelay)
+            buildConfigField "String", "NTK_PAYMENT_KEY", ntkQuote('')
+        }
+    }
+    namespace 'rkr.simplekeyboard.inputmethod'
+
+    sourceSets {
+        // The shared protocol test vectors live at the repository root.
+        test.resources.srcDirs += ['../../docs/test-vectors', 'src/androidTest/assets']
+    }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/versions/9/OSGI-INF/MANIFEST.MF']
+        }
+    }
+
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+}
+
+dependencies {
+    // NTK: the one library the app ships. Ed25519, X25519, ChaCha20-Poly1305, HKDF-SHA256.
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.87'
+
+    // Tests only; nothing below is in the APK.
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20260814'
+    androidTestImplementation 'androidx.test:runner:1.7.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+}
