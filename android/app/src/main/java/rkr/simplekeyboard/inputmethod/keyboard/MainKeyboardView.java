@@ -585,8 +585,8 @@ public final class MainKeyboardView extends KeyboardView implements MoreKeysPane
         if (keyboard == null) {
             return;
         }
-        final int width = key.getWidth();
-        final int height = key.getHeight();
+        final int width = keyFaceWidth();
+        final int height = keyFaceHeight();
         paint.setTextAlign(Align.CENTER);
         paint.setTypeface(Typeface.DEFAULT);
         paint.setTextSize(mLanguageOnSpacebarTextSize);

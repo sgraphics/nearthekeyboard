@@ -71,7 +71,7 @@ body[data-state="idle"] .hero {
   overflow-wrap: break-word;
   color: var(--ink);
 }
-.tone-match .verdict { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
+.tone-match .verdict { --top: var(--green); --lit: var(--green-lit); --side: var(--green-shade); color: var(--on-green); }
 .tone-nomatch .verdict { --top: var(--slate); --lit: var(--slate-lit); --side: var(--slate-shade); color: #FFFFFF; }
 .tone-invalid .verdict { --top: var(--red); --lit: var(--red-lit); --side: var(--red-shade); color: #FFFFFF; }
 .tone-unknown .verdict { --top: var(--pale); }
@@ -155,7 +155,7 @@ body[data-state="idle"] .hero {
   color: var(--ink);
   box-shadow: var(--depth-1);
 }
-.mark-pass { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
+.mark-pass { --top: var(--green); --lit: var(--green-lit); --side: var(--green-shade); color: var(--on-green); }
 .mark-fail { --top: var(--red); --lit: var(--red-lit); --side: var(--red-shade); color: #FFFFFF; }
 .mark-skip { --top: var(--pale); color: var(--muted); }
 .mark-link { --top: var(--c-top-2); color: var(--muted); }

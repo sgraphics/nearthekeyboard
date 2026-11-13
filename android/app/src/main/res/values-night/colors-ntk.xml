@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- NTK: the dark theme, the same design (brand/palette.json "keyboard.dark").
-     Near-black background, dark grey keys with a lighter stepped edge, off-white
-     legends, the same orange. -->
+     Near-black background; keys are blocks with dark top faces and lighter side
+     faces, as on the site in the dark; off-white legends, the same orange. -->
 <resources>
     <color name="ntk_background">#FF121211</color>
     <color name="ntk_legend">#FFEDEDE8</color>
     <color name="ntk_muted">#FF8C8C86</color>
     <color name="ntk_orange">#FFFF4F00</color>
-    <color name="ntk_orange_shade">#FFC23C00</color>
+    <color name="ntk_orange_lit">#FFE04600</color>
+    <color name="ntk_orange_shade">#FFC23D00</color>
     <color name="ntk_on_orange">#FF0A0A0A</color>
     <color name="ntk_key_face">#FF2A2A27</color>
     <color name="ntk_key_edge">#FF3E3E3A</color>
@@ -16,6 +17,11 @@
     <color name="ntk_key_edge_pressed">#FF2A2A27</color>
     <color name="ntk_key_func_face">#FF1C1C1A</color>
     <color name="ntk_key_func_face_pressed">#FF121211</color>
+    <color name="ntk_key_lit">#FF3E3E3A</color>
+    <color name="ntk_key_shade">#FF34342F</color>
+    <color name="ntk_key_drop">#FF0A0A09</color>
+    <color name="ntk_key_func_lit">#FF33332F</color>
+    <color name="ntk_key_func_shade">#FF2A2A26</color>
     <color name="ntk_panel">#FF2A2A27</color>
     <color name="ntk_hint">#FF8C8C86</color>
 </resources>

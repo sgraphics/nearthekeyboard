@@ -1,22 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- NTK: the light theme, from brand/palette.json ("keyboard.light"). Paper
-     background, white keys, soft grey stepped edges, black legends; orange only
-     on the Sign key and in the badge (TODO.md 3.7, 8). A press darkens face and
-     edge by one step. -->
+     background; keys are blocks as on the site: a white top face, a lit face
+     below and a shaded face at the right in light greys, a soft drop; function
+     keys a slightly darker grey top. Black legends; orange only on the Sign key
+     and in the badge (TODO.md 3.7, 8). The app's buttons, cards and fields keep
+     the flat look (face, stepped edge, hard shadow; a press darkens them). -->
 <resources>
     <color name="ntk_background">#FFF4F4F1</color>
     <color name="ntk_legend">#FF0A0A0A</color>
     <color name="ntk_muted">#FF6E6E69</color>
     <color name="ntk_orange">#FFFF4F00</color>
-    <color name="ntk_orange_shade">#FFC23C00</color>
+    <color name="ntk_orange_lit">#FFE04600</color>
+    <color name="ntk_orange_shade">#FFC23D00</color>
     <color name="ntk_on_orange">#FF0A0A0A</color>
     <color name="ntk_key_face">#FFFFFFFF</color>
     <color name="ntk_key_edge">#FFD7D7D2</color>
     <color name="ntk_key_shadow">#FFB4B4AE</color>
     <color name="ntk_key_face_pressed">#FFD7D7D2</color>
     <color name="ntk_key_edge_pressed">#FFB4B4AE</color>
-    <color name="ntk_key_func_face">#FFF4F4F1</color>
+    <color name="ntk_key_func_face">#FFE9E9E4</color>
     <color name="ntk_key_func_face_pressed">#FFD7D7D2</color>
+    <color name="ntk_key_lit">#FFDDDDD6</color>
+    <color name="ntk_key_shade">#FFCBCBC3</color>
+    <color name="ntk_key_drop">#FFE6E6E1</color>
+    <color name="ntk_key_func_lit">#FFD2D2CB</color>
+    <color name="ntk_key_func_shade">#FFC1C1B9</color>
     <color name="ntk_panel">#FFFFFFFF</color>
     <color name="ntk_hint">#FF6E6E69</color>
 </resources>

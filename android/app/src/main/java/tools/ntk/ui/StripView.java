@@ -39,18 +39,21 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
     public static final int MSG_BAD = 2;
 
     private final int mStep;
+    private final int mKeyStep;
     private final float mDp;
     private final TextPaint mText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final TextPaint mKeyText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final Paint mPaint = Pixel.paint(0);
     private final Rect mSignRect = new Rect();
     private final Rect mBadgeRect = new Rect();
+    private final Rect mSignFace = new Rect();
     private final Drawable mBadge;
 
     /** The mark's height as a share of the strip's: 24 dp on the 44 dp strip. */
     private static final float BADGE_HEIGHT = 24f / 44f;
 
-    private final int cBackground, cText, cMuted, cOrange, cOrangeShade, cKeyFace, cKeyEdge, cKeyShadow, cOnOrange;
+    private final int cBackground, cText, cMuted, cOrange, cOrangeLit, cOrangeShade, cOnOrange;
+    private final int cKeyFace, cKeyLit, cKeyShade, cKeyDrop, cFuncFace, cFuncLit, cFuncShade;
 
     private String mFlash;
     private int mFlashKind;
@@ -63,15 +66,21 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         super(context, attrs);
         mDp = getResources().getDisplayMetrics().density;
         mStep = Pixel.step(context);
+        mKeyStep = Math.max(1, getResources().getDimensionPixelSize(R.dimen.ntk_key_step)); // as the keys
         cBackground = context.getColor(R.color.ntk_background);
         cText = context.getColor(R.color.ntk_legend);
         cMuted = context.getColor(R.color.ntk_muted);
         cOrange = context.getColor(R.color.ntk_orange);
+        cOrangeLit = context.getColor(R.color.ntk_orange_lit);
         cOrangeShade = context.getColor(R.color.ntk_orange_shade);
-        cKeyFace = context.getColor(R.color.ntk_key_face);
-        cKeyEdge = context.getColor(R.color.ntk_key_edge);
-        cKeyShadow = context.getColor(R.color.ntk_key_shadow);
         cOnOrange = context.getColor(R.color.ntk_on_orange);
+        cKeyFace = context.getColor(R.color.ntk_key_face);
+        cKeyLit = context.getColor(R.color.ntk_key_lit);
+        cKeyShade = context.getColor(R.color.ntk_key_shade);
+        cKeyDrop = context.getColor(R.color.ntk_key_drop);
+        cFuncFace = context.getColor(R.color.ntk_key_func_face);
+        cFuncLit = context.getColor(R.color.ntk_key_func_lit);
+        cFuncShade = context.getColor(R.color.ntk_key_func_shade);
         mText.setTextSize(13 * getResources().getDisplayMetrics().scaledDensity);
         mText.setColor(cText);
         mKeyText.setTextSize(14 * getResources().getDisplayMetrics().scaledDensity);
@@ -212,7 +221,7 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
 
     private void drawSignKey(Canvas c, AccountStore.Account account, TypingSession s, boolean busy, NtkCapture cap) {
         final Rect r = mSignRect;
-        final int st = mStep;
+        final int st = mKeyStep;
         String label;
         float fill = 0f;
         boolean enabled = true;
@@ -234,38 +243,40 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
             if (s.changedReason() != null || !cap.isPortrait()) enabled = false;
         }
         mDrawnLabel = label;
-        // A key whose stepped edge is orange-shade; its face fills with orange from the left
-        // as the session approaches the taps a stamp needs (palette: black legend on orange).
-        mPaint.setColor(enabled ? cOrangeShade : cKeyShadow);
-        Pixel.stepped(c, r.left, r.top, r.right, r.bottom, st, 2, mPaint);
-        if (!enabled) {
-            mPaint.setColor(cKeyEdge);
-            Pixel.stepped(c, r.left, r.top, r.right, r.bottom - st, st, 2, mPaint);
+        // A block as on the site, inside the key's bounds: a white key block that turns
+        // into the orange block (black legend) from the left as the session approaches the
+        // taps a stamp needs. Disabled: a grey block, muted legend. Pressed: the top face
+        // moves down onto its drop.
+        final boolean down = mSignPressed;
+        Pixel.blockFace(mSignFace, r.left, r.top, r.right, r.bottom, st, down);
+        final float f = enabled ? Math.max(0f, Math.min(1f, fill)) : 0f;
+        final int split = f >= 1f ? r.right : mSignFace.left + Math.round(mSignFace.width() * f);
+        if (split < r.right) {
+            Pixel.block(c, r.left, r.top, r.right, r.bottom, st, down, enabled ? cKeyFace : cFuncFace,
+                    enabled ? cKeyLit : cFuncLit, enabled ? cKeyShade : cFuncShade, cKeyDrop, mPaint);
         }
-        final int fl = r.left + st, ft = r.top + st, fr = r.right - st, fb = r.bottom - 2 * st;
-        mPaint.setColor(mSignPressed ? cKeyEdge : cKeyFace);
-        Pixel.stepped(c, fl, ft, fr, fb, st, 1, mPaint);
-        final int split = enabled ? fl + Math.round((fr - fl) * Math.max(0f, Math.min(1f, fill))) : fl;
-        if (split > fl) {
-            mPaint.setColor(mSignPressed ? cOrangeShade : cOrange);
+        if (split > mSignFace.left) {
             c.save();
             c.clipRect(r.left, r.top, split, r.bottom);
-            Pixel.stepped(c, fl, ft, fr, fb, st, 1, mPaint);
+            Pixel.block(c, r.left, r.top, r.right, r.bottom, st, down, cOrange, cOrangeLit, cOrangeShade, cKeyDrop, mPaint);
             c.restore();
         }
-        // The label: black over the orange part, the legend colour over the rest.
+        // The label on the top face: black over the orange part, the legend colour over the rest.
         final Paint.FontMetrics fm = mKeyText.getFontMetrics();
-        final float ty = (ft + fb) / 2f - (fm.ascent + fm.descent) / 2f;
-        c.save();
-        c.clipRect(split, r.top, r.right, r.bottom);
-        mKeyText.setColor(enabled ? cText : cMuted);
-        c.drawText(label, r.exactCenterX(), ty, mKeyText);
-        c.restore();
-        if (split > fl) {
+        final float tx = mSignFace.exactCenterX();
+        final float ty = mSignFace.exactCenterY() - (fm.ascent + fm.descent) / 2f;
+        if (split < r.right) {
+            c.save();
+            c.clipRect(split, r.top, r.right, r.bottom);
+            mKeyText.setColor(enabled ? cText : cMuted);
+            c.drawText(label, tx, ty, mKeyText);
+            c.restore();
+        }
+        if (split > mSignFace.left) {
             c.save();
             c.clipRect(r.left, r.top, split, r.bottom);
             mKeyText.setColor(cOnOrange);
-            c.drawText(label, r.exactCenterX(), ty, mKeyText);
+            c.drawText(label, tx, ty, mKeyText);
             c.restore();
         }
     }

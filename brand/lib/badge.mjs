@@ -9,8 +9,9 @@
 // g across. The mark is (union of the wide bands) minus (union of the gaps), so
 // where strokes meet (the T's bar and stem, the K's stem, arm and leg) their
 // gaps run into each other, as roads meet at a junction. Bands and gaps are
-// built here as convex polygons, all wound the same way, so one path per
-// colour fills their union without seams:
+// built here as convex polygons and, round the N's elbows, annular sectors
+// (both lines curve round the same centre), all wound the same way, so one
+// path per colour fills their union without seams:
 //   - an SVG draws the bands in orange through a mask that cuts out the gaps;
 //   - an Android VectorDrawable (no masks) paints the bands in orange, then
 //     the gaps in the background colour of the strip it sits on.
@@ -21,7 +22,7 @@ export const MARK = {
   t: 8,           // line thickness, 8 % of the cap height
   g: 11.2,        // gap between the two lines, 1.4 t
   space: 15,      // between letters
-  N: { w: 94 },
+  N: { w: 114, elbow: 18 }, // elbow: radius of the two rounded elbows, on the centerline (at least t + g/2)
   T: { w: 86 },
   K: { w: 87, joint: 55, legOut: 3 }, // joint: where arm and leg leave the stem; legOut: the leg reaches further than the arm
   overshoot: 4,   // the gap runs this far past an open end, so no orange fringe is left there
@@ -60,7 +61,7 @@ const area = (p) => p.reduce((s, a, i) => s + cross(a, p[(i + 1) % p.length]), 0
 //   joins: per inner point, 'miter' (a square outer corner) or a half-plane:
 //          the miter is cut flat there, and the gap one line thickness
 //          inside it, so the outer line keeps its thickness round an acute
-//          corner (the N's).
+//          corner.
 function strokePolys(s, { t, g, overshoot }, isGap) {
   const h = isGap ? g / 2 : t + g / 2;
   const pts = s.pts.map((p) => [...p]);
@@ -109,8 +110,31 @@ function strokePolys(s, { t, g, overshoot }, isGap) {
   return out;
 }
 
-// x where a line through P with direction d crosses y.
-const atY = (P, d, y) => P[0] + ((y - P[1]) / d[1]) * d[0];
+// A stroke made of pieces, each a line or an arc tangent to its neighbours:
+//   pieces: [{ line: [P, Q] } | { arc: { c, r, a0, a1 } }], angles in radians
+//           on screen (y down, so a growing angle turns clockwise), a0 < a1;
+//   start, end: 'butt' (open, cut across the line) on the first and last line.
+// An arc's band is an annular sector round the arc's centre.
+function pieceShapes(s, { t, g, overshoot }, isGap) {
+  const h = isGap ? g / 2 : t + g / 2;
+  const last = s.pieces.length - 1;
+  return s.pieces.map((p, i) => {
+    if (p.arc) {
+      const { c, r, a0, a1 } = p.arc;
+      if (r < h) throw new Error('an elbow radius is smaller than half the band');
+      return { sector: { c, r0: r - h, r1: r + h, a0, a1 } };
+    }
+    let [P, Q] = p.line;
+    const d = unit(sub(Q, P));
+    if (isGap && i === 0 && s.start === 'butt') P = sub(P, mul(d, overshoot));
+    if (isGap && i === last && s.end === 'butt') Q = add(Q, mul(d, overshoot));
+    const n = mul(leftOf(d), h);
+    const poly = [add(P, n), add(Q, n), sub(Q, n), sub(P, n)];
+    return area(poly) < 0 ? poly.reverse() : poly;
+  });
+}
+const shapesOf = (s, o, isGap) => (s.pieces ? pieceShapes(s, o, isGap) : strokePolys(s, o, isGap));
+
 // Bisection: x in [lo, hi] with f(x) = target, f monotonic.
 function solve(f, target, lo, hi) {
   const up = f(hi) > f(lo);
@@ -124,22 +148,28 @@ function solve(f, target, lo, hi) {
 // The letters, in their own boxes: x from 0 to w, y from 0 (cap line) to cap
 // (baseline). h: half the band's width; the stems' centerlines sit h inside.
 const LETTERS = {
-  // One double line that zig-zags: up the left stem (open at the foot), down the
-  // diagonal, up the right stem (open at the top). The two acute corners are
-  // cut flat at the cap line and the baseline, so the outer line turns them
-  // at its own thickness. The diagonal's outer edges leave the corners one
-  // band width from the sides, as on a drawn N.
-  N({ cap, w }, h) {
-    const W = 2 * h;
-    const edge = (y) => { // where the diagonal's upper edge meets the cap line
-      const P = [h, y], d = unit(sub([w - h, cap - y], P));
-      return atY(add(P, mul(leftOf(d), h)), d, 0);
-    };
-    const y = solve(edge, W, -cap / 2, cap / 2);
+  // One double line that zig-zags: up the left stem (open at the foot), round
+  // the top elbow, down the diagonal, round the bottom elbow, up the right stem
+  // (open at the top). Each elbow is an arc of radius `elbow` on the
+  // centerline, so both lines curve round the same centre; its outer edge
+  // touches the cap line (the baseline). The diagonal is the common tangent of
+  // the two elbows.
+  N({ cap, w, elbow: r }, h) {
+    const C1 = [h + r, h + r], C2 = [w - h - r, cap - h - r];
+    const D = sub(C2, C1);
+    if (D[0] <= 2 * r) throw new Error('the N is too narrow for its elbows');
+    // The diagonal's normal n (up and right): D . n = 2r, as C1 lies r below it and C2 r above.
+    const psi = Math.atan2(D[1], D[0]) - Math.acos((2 * r) / Math.hypot(D[0], D[1]));
+    const n = [Math.cos(psi), Math.sin(psi)];
     return [{
-      pts: [[h, cap], [h, y], [w - h, cap - y], [w - h, 0]],
       start: 'butt', end: 'butt',
-      joins: [keepBelow(0), keepAbove(cap)],
+      pieces: [
+        { line: [[h, cap], [h, C1[1]]] },
+        { arc: { c: C1, r, a0: Math.PI, a1: psi + 2 * Math.PI } },
+        { line: [add(C1, mul(n, r)), sub(C2, mul(n, r))] },
+        { arc: { c: C2, r, a0: 0, a1: psi + Math.PI } },
+        { line: [[w - h, C2[1]], [w - h, 0]] },
+      ],
     }];
   },
   // The bar, open at both ends, and the stem, open at the foot. The stem's gap
@@ -164,17 +194,20 @@ const LETTERS = {
   },
 };
 
-// The mark as polygons: { w, h, bands, gaps }, in mark units (cap height 100).
+// The mark as shapes (polygons and sectors): { w, h, bands, gaps }, in mark
+// units (cap height 100).
 export function drawMark(o = MARK) {
   const h = o.t + o.g / 2;
   const mark = { w: 0, h: o.cap, bands: [], gaps: [] };
   let x = 0;
   for (const ch of ['N', 'T', 'K']) {
     const L = o[ch];
+    const move = (shapes) => shapes.map((p) => (p.sector
+      ? { sector: { ...p.sector, c: [p.sector.c[0] + x, p.sector.c[1]] } }
+      : p.map(([px, py]) => [px + x, py])));
     for (const s of LETTERS[ch]({ cap: o.cap, ...L }, h)) {
-      const move = (polys) => polys.map((p) => p.map(([px, py]) => [px + x, py]));
-      mark.bands.push(...move(strokePolys(s, o, false)));
-      mark.gaps.push(...move(strokePolys(s, o, true)));
+      mark.bands.push(...move(shapesOf(s, o, false)));
+      mark.gaps.push(...move(shapesOf(s, o, true)));
     }
     x += L.w + (L.legOut ?? 0) + o.space;
   }
@@ -183,7 +216,15 @@ export function drawMark(o = MARK) {
 }
 
 const num = (v) => String(Math.round(v * 100) / 100);
-export const pathData = (polys) => polys.map((p) => 'M' + p.map(([x, y]) => `${num(x)} ${num(y)}`).join('L') + 'Z').join('');
+const shapeData = (p) => {
+  if (!p.sector) return 'M' + p.map(([x, y]) => `${num(x)} ${num(y)}`).join('L') + 'Z';
+  const { c, r0, r1, a0, a1 } = p.sector;
+  const at = (r, a) => `${num(c[0] + r * Math.cos(a))} ${num(c[1] + r * Math.sin(a))}`;
+  const large = a1 - a0 > Math.PI ? 1 : 0;
+  return `M${at(r1, a0)}A${num(r1)} ${num(r1)} 0 ${large} 1 ${at(r1, a1)}L${at(r0, a1)}` +
+    (r0 > 0 ? `A${num(r0)} ${num(r0)} 0 ${large} 0 ${at(r0, a0)}` : '') + 'Z';
+};
+export const pathData = (shapes) => shapes.map(shapeData).join('');
 
 // A standalone SVG, `height` px tall; the gaps are cut out by a mask, so they
 // show whatever lies behind.

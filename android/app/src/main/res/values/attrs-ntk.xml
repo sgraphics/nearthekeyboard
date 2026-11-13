@@ -5,6 +5,16 @@
         <attr name="ntkFace" format="color" />
         <attr name="ntkEdge" format="color" />
         <attr name="ntkShadow" format="color" />
+        <!-- Draw a block as on the site (Pixel.block): up, or pressed. ntkFace is
+             its top face, with ntkLit, ntkShade and ntkDrop for its faces. -->
+        <attr name="ntkBlock">
+            <enum name="none" value="0" />
+            <enum name="up" value="1" />
+            <enum name="pressed" value="2" />
+        </attr>
+        <attr name="ntkLit" format="color" />
+        <attr name="ntkShade" format="color" />
+        <attr name="ntkDrop" format="color" />
         <attr name="ntkStep" format="dimension" />
         <attr name="ntkInset" format="dimension" />
         <attr name="ntkPaddingLeft" format="dimension" />

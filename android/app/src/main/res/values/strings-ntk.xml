@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="ntk_strip_height">44dp</dimen>
+    <!-- One step of a key block (PixelKeyDrawable, Pixel.block): side faces two steps deep, the drop one. -->
+    <dimen name="ntk_key_step">2dp</dimen>
     <string name="keyboard_theme_ntk" translatable="false">NTK (light and dark, follows the system)</string>
 
     <!-- The stamp buttons in other apps (accessibility service) and the text selection menu entry. -->

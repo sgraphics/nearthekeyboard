@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <drawable xmlns:app="http://schemas.android.com/apk/res-auto"
     class="tools.ntk.ui.PixelKeyDrawable"
-    app:ntkFace="@color/ntk_key_func_face_pressed"
-    app:ntkEdge="@color/ntk_key_edge_pressed"
-    app:ntkShadow="@color/ntk_key_shadow"
-    app:ntkStep="1.5dp"  />
+    app:ntkBlock="pressed"
+    app:ntkFace="@color/ntk_key_func_face"
+    app:ntkLit="@color/ntk_key_func_lit"
+    app:ntkShade="@color/ntk_key_func_shade"
+    app:ntkDrop="@color/ntk_key_drop"
+    app:ntkStep="@dimen/ntk_key_step" />

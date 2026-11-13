@@ -15,7 +15,7 @@ node build.mjs     # writes out/ (about 0.4 MB) and lists every file
 | `palette.json` | Every colour, light and dark, and the keyboard theme colours. `build.mjs` reads it. |
 | `lib/keyboard.mjs` | The keyboard in 2:1 pixel isometric, built from blocks: the hero illustration (`KEYBOARD_DEFAULTS`), the icon keyboard (`SMALL`) and the favicon one (`FAVICON`). |
 | `lib/font3x5.mjs` | 3x5 pixel letters, available for key legends (`legends: 'glyph'`); the keys use dark marks at the sizes we ship. |
-| `lib/badge.mjs` | The NTK mark: N, T and K as two parallel lines, built from centerlines as vector shapes; writes the SVG and the Android VectorDrawables. |
+| `lib/badge.mjs` | The NTK mark: N, T and K as two parallel lines, built from centerlines as vector shapes (polygons and arcs); writes the SVG and the Android VectorDrawables. |
 | `lib/png.mjs`, `lib/raster.mjs`, `lib/svg.mjs` | PNG encoder (node:zlib), pixel canvas, SVG and text helpers. |
 | `fonts/Inter-Bold.ttf` | Inter 4.1 Bold from github.com/rsms/inter, under the SIL Open Font License (`fonts/OFL.txt`). |
 
@@ -55,9 +55,10 @@ spacebar, is the monolith of "2001: A Space Odyssey" in soft grey.
 | orange, orangeLit, orangeShade | as light | the same orange |
 
 The Android keyboard themes (TODO 3.7) take their colours from
-`palette.json` → `keyboard.light` / `keyboard.dark`: each key is a block (face,
-lit edge below, shaded edge at the right, no outline), and a press darkens the
-face and both edges by one step. Legends are 14:1 on a light key and 11.6:1 on
+`palette.json` → `keyboard.light` / `keyboard.dark`: each key is a block as on
+the site (a top face, a lit face below and a shaded face at the right, two
+steps deep, and a soft drop; no outline), drawn inside the key's bounds, and a
+press moves the top face down onto its drop. Legends are 14:1 on a light key and 11.6:1 on
 a dark one. The Sign key is an orange block with a `#1A1A1A` legend (5.3:1;
 `#2B2B2B` would be 4.3:1, white 3.3:1).
 
@@ -87,7 +88,7 @@ wordmark is outlines, so no font needs to be installed.
 | `icon/ntk-icon-512.png` | Store and legacy 512 icon, full bleed. |
 | `icon/favicon.ico`, `favicon-32.png`, `apple-touch-icon-180.png` | Web. |
 | `android/` | Ready-to-copy resources, see below. |
-| `badge/ntk-badge-{light,dark}.svg`, `-{32,64,128,256}.png` | The NTK mark, 300 x 100: SVG with the gaps cut out by a mask (they show what lies behind), and smooth PNGs 32 to 256 px tall, transparent. `light` is for light backgrounds, `dark` for dark ones; both are the same orange today. |
+| `badge/ntk-badge-{light,dark}.svg`, `-{32,64,128,256}.png` | The NTK mark, 320 x 100: SVG with the gaps cut out by a mask (they show what lies behind), and smooth PNGs 32 to 256 px tall, transparent. `light` is for light backgrounds, `dark` for dark ones; both are the same orange today. |
 
 README header with a dark-mode switch:
 
@@ -119,7 +120,7 @@ cell at mdpi, xhdpi, xxhdpi and xxxhdpi; hdpi is sampled nearest-neighbour, so
 it stays hard-edged. The keyboard stays inside the 66 dp safe circle and reads
 at 48 dp on its orange background.
 
-The badge drawables are VectorDrawables, 72 x 24 dp, and stay smooth at any
+The badge drawables are VectorDrawables, 76.8 x 24 dp, and stay smooth at any
 size. VectorDrawable has no masks, so each paints the orange lines and then
 the gaps between them in the background of the strip it sits on:
 `ntk_background`, which `build.mjs` reads from the app's
@@ -136,19 +137,22 @@ mark. The letters are our own; the mark copies no maker's mark or wordmark.
 Each letter is a few strokes along centerlines (`lib/badge.mjs`). A stroke is
 a wide band, 2t + g across, with a gap g cut along its middle: the mark is the
 union of the bands minus the union of the gaps. Where strokes meet, their gaps
-run into each other like roads at a junction.
+run into each other like roads at a junction. Round the N's elbows both lines
+curve about the same centre, like the bowl of a drawn R.
 
 - Proportions: cap height 100, lines t = 8 (8 % of the cap height), gap
-  g = 11.2 (1.4 t), letters 15 apart. The mark is 300 x 100, exactly 3:1.
+  g = 11.2 (1.4 t), letters 15 apart. The mark is 320 x 100 (3.2:1).
 - N: one double line that zig-zags, open at the foot of the left stem and at
-  the top of the right one. Its two acute corners are cut flat at the cap line
-  and the baseline, so the outer line turns them at its own thickness.
+  the top of the right one. Its two elbows are round: arcs of radius 18 on the
+  centerline (the inner line 4.4 to 12.4, the outer 23.6 to 31.6), touching
+  the cap line and the baseline; the diagonal is their common tangent.
 - T: the bar, open at both ends; the stem, open at the foot, its gap running
   into the bar's.
 - K: the stem, open at both ends; arm and leg leave the middle of its gap and
   end level with the cap line and the baseline.
-- Corners are square, open ends are cut square: across the line, or level with
-  the cap line or the baseline. Upright, no slant, no extra stripes.
+- The N's elbows are round, every other corner square; open ends are cut
+  square: across the line, or level with the cap line or the baseline.
+  Upright, no slant, no extra stripes.
 - Orange `#FF4F00` on light and dark: 3:1 on the light strip (`#F4F4F1`),
   5.7:1 on the dark one (`#121211`). It reads at 20 px tall in the site's
   header and at 24 dp on the keyboard strip.

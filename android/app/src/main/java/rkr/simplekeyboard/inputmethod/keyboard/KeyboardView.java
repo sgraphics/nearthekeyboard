@@ -89,6 +89,11 @@ public class KeyboardView extends View {
     private final Drawable mFunctionalKeyBackground;
     private final Drawable mSpacebarBackground;
     private final Rect mKeyBackgroundPadding = new Rect();
+    // NTK: the part of a key its legends are laid out in. A block key (tools.ntk.ui.
+    // PixelKeyDrawable) has its top face up and left of the key's centre, lower when
+    // pressed; its legends sit on that face. Drawing only: the key's bounds stay.
+    private final Rect mKeyFace = new Rect();
+    private final Rect mKeyBounds = new Rect();
     private static final float KET_TEXT_SHADOW_RADIUS_DISABLED = -1.0f;
     protected int mCustomColor = 0;
     protected KeyboardTheme mTheme;
@@ -314,14 +319,21 @@ public class KeyboardView extends View {
         final KeyDrawParams params = mKeyDrawParams.mayCloneAndUpdateParams(key.getHeight(), attr);
         params.mAnimAlpha = Constants.Color.ALPHA_OPAQUE;
 
+        Drawable background = null;
         if (!key.isSpacer()) {
-            final Drawable background = key.selectBackgroundDrawable(
+            background = key.selectBackgroundDrawable(
                     mKeyBackground, mFunctionalKeyBackground, mSpacebarBackground);
             if (background != null) {
                 onDrawKeyBackground(key, canvas, background);
             }
         }
+        mKeyBounds.set(-mKeyBackgroundPadding.left, -mKeyBackgroundPadding.top,
+                key.getWidth() + mKeyBackgroundPadding.right, key.getHeight() + mKeyBackgroundPadding.bottom);
+        tools.ntk.ui.PixelKeyDrawable.face(background, mKeyBounds, mKeyFace);
+        mKeyFace.intersect(0, 0, key.getWidth(), key.getHeight());
+        canvas.translate(mKeyFace.left, mKeyFace.top);
         onDrawKeyTopVisuals(key, canvas, paint, params);
+        canvas.translate(-mKeyFace.left, -mKeyFace.top);
 
         canvas.translate(-keyDrawX, -keyDrawY);
     }
@@ -348,8 +360,8 @@ public class KeyboardView extends View {
     // Draw key top visuals.
     protected void onDrawKeyTopVisuals(final Key key,final Canvas canvas,
             final Paint paint, final KeyDrawParams params) {
-        final int keyWidth = key.getWidth();
-        final int keyHeight = key.getHeight();
+        final int keyWidth = keyFaceWidth();
+        final int keyHeight = keyFaceHeight();
         final float centerX = keyWidth * 0.5f;
         final float centerY = keyHeight * 0.5f;
 
@@ -458,6 +470,15 @@ public class KeyboardView extends View {
             final int iconX = (keyWidth - iconWidth) / 2; // Align horizontally center.
             drawIcon(canvas, icon, iconX, iconY, iconWidth, iconHeight);
         }
+    }
+
+    /** NTK: the size of the part of the key being drawn that its legends go in. */
+    protected int keyFaceWidth() {
+        return mKeyFace.width();
+    }
+
+    protected int keyFaceHeight() {
+        return mKeyFace.height();
     }
 
     protected static void drawIcon(final Canvas canvas, final Drawable icon,

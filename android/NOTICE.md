@@ -43,8 +43,10 @@ calls, bundled binaries.
   the browser when a button is tapped. It has no network code.
 - "Verify NTK stamp" in the text selection menu of any app
   (`ui/VerifySelectionActivity`, `ACTION_PROCESS_TEXT`).
-- The NTK keyboard theme: one design in light and dark, pixel steps at key
-  corners and edges drawn in code (`ui/PixelKeyDrawable`), colours from
+- The NTK keyboard theme: one design in light and dark, keys drawn in code as
+  blocks like the site's buttons (`ui/PixelKeyDrawable`, `ui/Pixel.block`: a
+  top face, lit and shaded side faces, a soft drop, all inside the key's
+  bounds; a press moves the top face down), colours from
   `brand/palette.json`, the brand badge and launcher icon from `brand/out/android/`
   (redrawn 2026-11-13: the badge is the NTK mark as vector drawables,
   `drawable/ntk_badge_light.xml` and `ntk_badge_dark.xml`, whose gaps are painted
@@ -72,7 +74,8 @@ calls, bundled binaries.
 | `keyboard/PointerTracker.java` | Calls `NtkCapture` on touch down, touch up (also "phantom" ups when a second finger lands), long press and key repeat. |
 | `latin/inputlogic/InputLogic.java` | Reports what each key produced (one character, `\n` for a line break, or `<bksp>`, `<shift>`, `<sym>`, `<enter>`, …) and how the cursor moved; text from the paste key is reported as inserted. |
 | `latin/LatinIME.java` | Tells `NtkCapture` when a field starts and ends and when the selection moves. |
-| `keyboard/MainKeyboardView.java` | Ignores touches while a stamp request runs (typing is held). |
+| `keyboard/MainKeyboardView.java` | Ignores touches while a stamp request runs (typing is held); the language name on the spacebar goes on the key's top face. |
+| `keyboard/KeyboardView.java` | A key's legends, hint and icon are laid out on the top face of a block key (`ui/PixelKeyDrawable`), which moves when pressed. Drawing only: key bounds and touch areas are unchanged. |
 | `keyboard/KeyboardSwitcher.java` | The strip and the keys form one frame, which is what is shown and touchable. |
 | `keyboard/KeyboardTheme.java`, `res/values/attrs.xml`, `res/values/keyboard-themes.xml` | The NTK theme (id 7), the default. |
 | `latin/settings/Settings.java`, `res/xml/prefs_screen_preferences.xml`, `res/xml/prefs_screen_appearance.xml` | Space swipe and delete swipe always off and removed from settings; keyboard height and bottom offset locked (the fingerprint depends on where fingers land). |
