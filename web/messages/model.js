@@ -11,6 +11,9 @@ export const MAX_MESSAGE_CHARS = 5000;
 /** The friend on the other end. Invented. */
 export const CONTACT = Object.freeze({ name: 'Maya', initial: 'M' });
 
+/** You, as the friend's phone shows you (?as=maya). Invented. */
+export const ME = Object.freeze({ name: 'Sam', initial: 'S' });
+
 /**
  * The conversation so far, oldest first: something you sent last night, your
  * friend's question this morning, and your reply that carries a real stamp.
@@ -25,6 +28,21 @@ export const THREAD = Object.freeze([
   { from: 'them', day: 'Today', time: '09:38', text: 'But be honest. Did you write that yourself, or was it ChatGPT? 😅' },
   { from: 'me', day: 'Today', time: '09:41', text: STAMPED_REPLY.text },
 ]);
+
+/**
+ * Page options from the address: ?fresh=1 leaves out the built-in stamped
+ * reply (the thread ends with the friend's question, so your own reply is the
+ * answer), ?as=maya shows the same conversation on the friend's phone.
+ */
+export function viewOptions(search = '') {
+  const q = new URLSearchParams(search);
+  return { fresh: q.get('fresh') === '1', asFriend: q.get('as') === 'maya', embed: q.get('embed') === '1' };
+}
+
+/** The conversation for these options. */
+export function conversation({ fresh = false } = {}) {
+  return fresh ? THREAD.slice(0, -1) : THREAD;
+}
 
 const clip = (s) => (s.length <= MAX_MESSAGE_CHARS ? s : [...s].slice(0, MAX_MESSAGE_CHARS).join(''));
 

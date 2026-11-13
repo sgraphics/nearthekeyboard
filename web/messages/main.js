@@ -3,11 +3,12 @@
 // own <span class="ntk-tag">, so the Android stamp-button layer finds tag and
 // text in one block. ?embed=1 also loads the web embed, which turns the tags
 // into buttons. The logic lives in model.js; this file only builds the DOM.
-import { CONTACT, threadItems, loadMessages, saveMessages, clearMessages, addMessage, STORAGE_KEY } from './model.js';
+import { CONTACT, ME, threadItems, loadMessages, saveMessages, clearMessages, addMessage, STORAGE_KEY, viewOptions, conversation } from './model.js';
 import { splitTags } from '../feed/model.js';
 import { drawIcons } from '../lib/icons.js';
 
-const embedOn = new URLSearchParams(window.location.search).get('embed') === '1';
+const opts = viewOptions(window.location.search);
+const embedOn = opts.embed;
 if (embedOn) {
   const s = document.createElement('script');
   s.src = '/embed/ntk-embed.js';
@@ -39,8 +40,17 @@ function textBlock(text) {
   return p;
 }
 
+/** The address with the embed switched on or off, the other options kept. */
+function withEmbed(on) {
+  const q = new URLSearchParams(window.location.search);
+  if (on) q.set('embed', '1'); else q.delete('embed');
+  const s = q.toString();
+  return `${window.location.pathname}${s ? `?${s}` : ''}`;
+}
+
 function bubble(m) {
-  const out = m.from === 'me';
+  // On the friend's phone (?as=maya) your messages arrive, and theirs go out.
+  const out = (m.from === 'me') !== opts.asFriend;
   return h('div', { class: `msg ${out ? 'out' : 'in'}` },
     h('div', { class: 'bubble' }, textBlock(m.text)),
     h('span', { class: 'msg-time' }, out ? `${m.time} · Delivered` : m.time));
@@ -49,11 +59,12 @@ function bubble(m) {
 let mine = loadMessages(storage);
 
 function render() {
-  const note = h('p', { class: 'thread-note' }, 'A demo conversation. Messages you send stay in this browser. ',
+  const note = h('p', { class: 'thread-note' },
+    opts.asFriend ? `A demo conversation, as ${CONTACT.name}'s phone shows it. ` : 'A demo conversation. Messages you send stay in this browser. ',
     embedOn
-      ? ['Tags are buttons here (web embed). ', h('a', { href: window.location.pathname }, 'Turn off')]
-      : ['Tags are plain text here. ', h('a', { href: '?embed=1' }, 'Turn them into buttons'), ' (web embed).']);
-  threadEl.replaceChildren(note, ...threadItems(mine).map((it) =>
+      ? ['Tags are buttons here (web embed). ', h('a', { href: withEmbed(false) }, 'Turn off')]
+      : ['Tags are plain text here. ', h('a', { href: withEmbed(true) }, 'Turn them into buttons'), ' (web embed).']);
+  threadEl.replaceChildren(note, ...threadItems(mine, conversation(opts)).map((it) =>
     it.divider ? h('p', { class: 'divider' }, it.divider) : bubble(it)));
   clearBtn.disabled = mine.length === 0;
 }
@@ -93,8 +104,14 @@ window.addEventListener('storage', (e) => {
   if (e.key === null || e.key === STORAGE_KEY) { mine = loadMessages(storage); render(); }
 });
 
-$('contact-name').textContent = CONTACT.name;
-$('contact-avatar').textContent = CONTACT.initial;
+const other = opts.asFriend ? ME : CONTACT;
+$('contact-name').textContent = other.name;
+$('contact-avatar').textContent = other.initial;
+if (opts.asFriend) {
+  // The friend only reads here: no composer, nothing to clear.
+  composer.hidden = true;
+  clearBtn.hidden = true;
+}
 drawIcons(document);
 syncComposer();
 render();

@@ -54,3 +54,15 @@ test('the thread: a day-and-time line where the day changes, your messages last'
   assert.equal(last.time, '08:05');
   assert.equal(clockTime(new Date(2026, 0, 1, 23, 7).getTime()), '23:07');
 });
+
+test('?fresh=1 ends the thread with the question; ?as=maya is the friend\'s view', async () => {
+  const { viewOptions, conversation, THREAD: T, ME } = await import('../messages/model.js');
+  assert.deepEqual(viewOptions(''), { fresh: false, asFriend: false, embed: false });
+  assert.deepEqual(viewOptions('?fresh=1&as=maya&embed=1'), { fresh: true, asFriend: true, embed: true });
+  assert.equal(conversation({}).length, T.length);
+  const fresh = conversation({ fresh: true });
+  assert.equal(fresh.length, T.length - 1);
+  assert.equal(fresh[fresh.length - 1].from, 'them');
+  assert.match(fresh[fresh.length - 1].text, /ChatGPT/);
+  assert.ok(ME.name && ME.initial);
+});
