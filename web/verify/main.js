@@ -5,7 +5,7 @@
 import { fetchStamp, verifyStamp, verifyText, findTags, verifyUrl } from '../lib/ntk-verify.js';
 import { parseLocation, verifyBaseFor, boxMessage, buildView, hasText } from './model.js';
 import { installSubtleFallback } from './sha-fallback.js';
-import { pixelSvg, SPRITES } from '../lib/pixel.js';
+import { iconSvg } from '../lib/icons.js';
 import { STAMPED_REPLY } from '../feed/data.js';
 
 // Plain http from another machine (an emulator, a phone on the LAN) has no crypto.subtle.
@@ -32,8 +32,8 @@ function h(tag, attrs, ...children) {
 
 const MARKS = { pass: ['check', 'PASS'], fail: ['cross', 'FAIL'], skip: ['dash', 'SKIP'], link: ['out', 'LINK'] };
 function mark(status) {
-  const [sprite, word] = MARKS[status];
-  return h('span', { class: `mark mark-${status}` }, pixelSvg(document, SPRITES[sprite], { scale: 2 }), h('span', {}, word));
+  const [icon, word] = MARKS[status];
+  return h('span', { class: `mark mark-${status}` }, iconSvg(document, icon, { size: 16 }), h('span', {}, word));
 }
 
 function selectText(el) {
@@ -65,31 +65,64 @@ function callItem(call) {
     h('span', { class: 'cmd-row' }, code, copy)));
 }
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/** The typing match score on a fine scale from 0 to 100, lit up to the score, the score it needs marked in gold. */
+function scale({ pct, needs }) {
+  const W = 400;
+  const H = 22;
+  const at = (p) => 0.5 + (Math.min(100, Math.max(0, p)) / 100) * (W - 1);
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('class', 'scale-ticks');
+  svg.setAttribute('aria-hidden', 'true');
+  const line = (x, y1, y2, cls) => {
+    const l = document.createElementNS(SVG_NS, 'line');
+    for (const [k, val] of Object.entries({ x1: x, x2: x, y1, y2, class: cls, 'vector-effect': 'non-scaling-stroke' })) l.setAttribute(k, String(val));
+    svg.append(l);
+  };
+  for (let p = 0; p <= 100; p += 2.5) line(at(p), p % 10 === 0 ? 6 : 10, H - 4, `tick${p % 10 === 0 ? ' major' : ''}${p <= pct ? ' on' : ''}`);
+  if (needs != null) line(at(needs), 1, H, 'needs');
+  line(at(pct), 0, H, 'score');
+  return h('div', { class: 'scale' },
+    h('p', { class: 'scale-head' },
+      h('span', {}, 'Typing match score ', h('strong', {}, `${pct}%`)),
+      needs != null ? h('span', { class: 'scale-needs' }, `needs ${needs}%`) : null),
+    svg);
+}
+
+// A result: a white tile with a dark display set into its top (the stamp, the
+// verdict with its light, the summary), and below it the text, the facts and the checks.
 function renderView(v) {
-  const card = h('article', { class: `result pbox tone-${v.tone}` },
-    h('div', { class: 'verdict-row' },
-      h('h2', { class: 'verdict pbox' }, v.title),
+  const display = h('div', { class: 'display' },
+    h('div', { class: 'display-top' },
+      h('p', { class: 'stamp-line' }, 'Stamp ', h('code', {}, v.id || '?')),
       h('span', { class: 'chip chip-testnet' }, String(v.network).toUpperCase())),
-    h('p', { class: 'stamp-line' }, 'Stamp ', h('code', {}, v.id || '?'),
-      v.link ? [' · ', h('a', { href: v.link, title: 'This check, text included (the text stays in the # part)' }, 'Link to this check')] : null),
-    h('p', { class: 'summary' }, v.summary));
+    h('div', { class: 'verdict-row' }, h('h2', { class: 'verdict' }, v.title)),
+    h('p', { class: 'summary' }, v.summary),
+    v.score ? scale(v.score) : null,
+    v.link ? h('p', { class: 'display-link' },
+      h('a', { href: v.link, title: 'This check, text included (the text stays in the # part)' },
+        iconSvg(document, 'out', { size: 14 }), h('span', {}, 'Link to this check'))) : null);
+  const body = h('div', { class: 'result-body' });
   if (v.covered != null) {
-    card.append(h('figure', { class: 'covered' },
+    body.append(h('figure', { class: 'covered' },
       h('figcaption', {}, v.coveredLabel),
       h('blockquote', {}, h('p', {}, `“${v.covered}”`))));
   }
   if (v.facts.length) {
-    card.append(h('dl', { class: 'facts' }, v.facts.map((f) => h('div', { class: 'fact' }, h('dt', {}, f.label), h('dd', {}, f.value)))));
+    body.append(h('dl', { class: 'facts tiles' }, v.facts.map((f) => h('div', { class: 'fact' }, h('dt', {}, f.label), h('dd', {}, f.value)))));
   }
-  if (v.meaning) card.append(h('p', { class: 'meaning' }, v.meaning));
+  if (v.meaning) body.append(h('p', { class: 'meaning' }, v.meaning));
   const list = h('ol', { class: 'checks' }, v.checks.map((c) => h('li', { class: `check is-${c.status}` }, mark(c.status),
     h('div', { class: 'check-text' },
       h('span', { class: 'check-label' }, c.label),
       c.detail ? h('span', { class: 'check-detail' }, c.detail) : null))));
   if (v.call) list.append(callItem(v.call));
-  card.append(h('h3', { class: 'checks-title' }, 'What was checked'), list);
-  if (v.record) card.append(h('p', { class: 'fine' }, `Stamp record v${v.record.v}, enclave ${v.record.enclave}.`));
-  return card;
+  body.append(h('h3', { class: 'checks-title' }, 'What was checked'), list);
+  if (v.record) body.append(h('p', { class: 'fine' }, `Stamp record v${v.record.v}, enclave ${v.record.enclave}.`));
+  return h('article', { class: `result pbox tone-${v.tone}` }, display, body);
 }
 
 function setState(state) { document.body.dataset.state = state; }

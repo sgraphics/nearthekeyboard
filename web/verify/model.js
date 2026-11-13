@@ -123,6 +123,12 @@ function facts(r) {
   return out.filter(([, v]) => v != null && v !== '').map(([label, value]) => ({ label, value: String(value) }));
 }
 
+/** The typing match score and the score it needs, for the scale on a MATCH: { pct, needs } (needs may be null). */
+function score(r) {
+  if (!r || !Number.isFinite(r.score_pct)) return null;
+  return { pct: r.score_pct, needs: Number.isFinite(r.threshold_pct) ? r.threshold_pct : null };
+}
+
 /**
  * Everything the page shows for one result.
  * `result`: from verifyStamp() (plus `{ verdict: 'ERROR', error }` when the lookup failed).
@@ -173,6 +179,7 @@ export function buildView(result, { id, textGiven = true, pins = NTK, link = nul
     covered: showCovered ? result.covered : null,
     coveredLabel: verdict === 'MATCH' ? 'The stamp covers this text' : `The last ${chars} characters before the tag`,
     facts: genuine && record ? facts(record) : [],
+    score: verdict === 'MATCH' ? score(record) : null,
     record: genuine && record ? { v: record.v, enclave: record.enclave } : null,
     checks: checkList(result, { textGiven }),
     call: genuine ? issuingCall(record, pins) : null,

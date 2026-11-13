@@ -6,7 +6,8 @@ import { MAIN_POST, BUILTIN_REPLIES, YOU } from './data.js';
 import {
   splitTags, loadReplies, saveReplies, clearReplies, addReply, relTime, formatCount, avatarGrid, STORAGE_KEY,
 } from './model.js';
-import { pixelSvg, drawSprites, SPRITES } from '../lib/pixel.js';
+import { dotSvg } from '../lib/pixel.js';
+import { iconSvg, drawIcons } from '../lib/icons.js';
 
 const embedOn = new URLSearchParams(window.location.search).get('embed') === '1';
 if (embedOn) {
@@ -32,9 +33,11 @@ function h(tag, attrs, ...children) {
   return el;
 }
 
+/** A round knob with a dot-matrix face: the 5x5 pattern inside the avatar grid's ring, lit and unlit dots. */
 function avatar(handle) {
   const { rows, tone } = avatarGrid(handle);
-  return pixelSvg(document, rows, { scale: 6, cls: `avatar tone-${tone}`, names: { o: 'avbg' } });
+  const face = rows.slice(1, -1).map((r) => r.slice(1, -1).replace(/o/g, '-'));
+  return dotSvg(document, face, { size: 40, r: 0.33, pad: 1.7, cls: `avatar tone-${tone}`, names: { '#': 'on', '-': 'off' } });
 }
 
 /** One block for the text and its tags: <p>text <span class="ntk-tag">[NTK id]</span></p> */
@@ -45,7 +48,7 @@ function textBlock(text, cls) {
 }
 
 function acts(c = {}) {
-  const item = (sprite, n) => h('span', { class: 'act' }, pixelSvg(document, SPRITES[sprite], { scale: 2 }), h('span', {}, formatCount(n)));
+  const item = (icon, n) => h('span', { class: 'act' }, iconSvg(document, icon, { size: 18 }), h('span', {}, formatCount(n)));
   return h('div', { class: 'acts', 'aria-hidden': 'true' },
     item('reply', c.replies), item('repost', c.reposts), item('like', c.likes), item('views', c.views), item('share', 0));
 }
@@ -125,6 +128,6 @@ if (embedOn) {
 } else {
   embedLine.append('Tags are plain text here. ', h('a', { href: '?embed=1' }, 'Turn them into buttons'), ' (web embed).');
 }
-drawSprites(document);
+drawIcons(document);
 syncComposer();
 render();

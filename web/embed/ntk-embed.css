@@ -1,45 +1,62 @@
 /* NTK web embed: the button a tag becomes. Loaded by ntk-embed.js from the same
-   folder, on any page, so it uses no variables of the NTK site. An orange block:
-   the top face is the button, with a thin lit face below it and a shaded face at
-   its right, square-edged, on a soft blurred shadow; no outline. Pressed, the top
-   face moves onto its side faces. The text inside is the tag itself, so the
-   page's text does not change. */
+   folder, on any page, so it uses no variables of the NTK site. A small dark key,
+   like a display set into the page: rounded, no border, a soft layered shadow,
+   and a small orange light before the text. Pressed, it moves 1 px down onto a
+   smaller shadow. The text inside is the tag itself, so the page's text does not
+   change (the light is drawn by CSS, not text). */
 .ntk-embed-btn {
   -webkit-appearance: none;
   appearance: none;
   display: inline-block;
-  margin: 0 calc(.35em + 4px) 4px .2em;
-  padding: .1em .45em .12em;
+  margin: 0 .1em 0 .2em;
+  padding: .14em .6em .16em .55em;
   border: 0;
-  border-radius: 0;
+  border-radius: 8px;
   font: inherit;
-  font-weight: 700;
-  letter-spacing: normal;
+  font-weight: 500;
+  letter-spacing: .01em;
   text-transform: none;
   text-decoration: none;
   white-space: nowrap;
   vertical-align: baseline;
-  color: #111418;
-  background: #FF4F00;
+  color: #F2F3F5;
+  background: linear-gradient(180deg, #2C3037, #17191D);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   box-shadow:
-    0 3px 0 0 #E04600,
-    3px 0 0 0 #C23D00,
-    3px 3px 0 0 #C23D00,
-    0 6px 14px -6px rgba(17, 24, 39, .3);
-  transition: transform 70ms ease-out, box-shadow 70ms ease-out;
+    inset 0 1px 0 rgba(255, 255, 255, .1),
+    0 6px 12px -6px rgba(17, 24, 39, .55),
+    0 1px 2px rgba(17, 24, 39, .2);
+  transition: transform 80ms ease-out, box-shadow 80ms ease-out;
 }
-.ntk-embed-btn:hover { background: #FF6A26; }
+.ntk-embed-btn::before {
+  content: "";
+  display: inline-block;
+  width: .4em;
+  height: .4em;
+  margin: 0 .5em 0 .05em;
+  border-radius: 50%;
+  vertical-align: .14em;
+  background: #FF4F00;
+  box-shadow: 0 0 .45em rgba(255, 79, 0, .75);
+}
+.ntk-embed-btn:hover { background: linear-gradient(180deg, #343841, #1B1D22); }
 .ntk-embed-btn:active {
-  transform: translate(3px, 3px);
-  box-shadow: 0 3px 8px -4px rgba(17, 24, 39, .3);
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    0 2px 5px -2px rgba(17, 24, 39, .5),
+    0 1px 1px rgba(17, 24, 39, .2);
 }
 .ntk-embed-btn:focus-visible {
-  outline: 3px solid #C23D00;
-  outline-offset: 5px;
+  outline: 2px solid #FF4F00;
+  outline-offset: 3px;
 }
 @media (prefers-color-scheme: dark) {
-  .ntk-embed-btn { box-shadow: 0 3px 0 0 #E04600, 3px 0 0 0 #C23D00, 3px 3px 0 0 #C23D00, 0 6px 14px -6px rgba(0, 0, 0, .7); }
-  .ntk-embed-btn:active { box-shadow: 0 3px 8px -4px rgba(0, 0, 0, .7); }
+  .ntk-embed-btn {
+    background: linear-gradient(180deg, #3A3F47, #272A30);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 6px 12px -6px rgba(0, 0, 0, .8), 0 1px 2px rgba(0, 0, 0, .4);
+  }
+  .ntk-embed-btn:hover { background: linear-gradient(180deg, #424750, #2C2F35); }
+  .ntk-embed-btn:active { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 2px 5px -2px rgba(0, 0, 0, .8); }
 }

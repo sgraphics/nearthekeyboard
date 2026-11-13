@@ -77,6 +77,7 @@ test('MATCH: verdict, facts, covered text, all checks, the attestation', async (
   assert.equal(facts.Typed, '2026-11-13 11:26 UTC');
   assert.equal(facts['Typed share'], '100% typed key by key');
   assert.equal(facts['Typing match score'], '98% (needs 65%)');
+  assert.deepEqual(v.score, { pct: 98, needs: 65 }, 'the scale on the display');
   assert.equal(facts['Key taps'], '73');
   assert.equal(facts['Characters covered'], '72');
   assert.equal(facts.Fingerprint, '3 enrollment sessions');
@@ -97,6 +98,7 @@ test('NO MATCH: a genuine stamp, the text check fails, the checked text is shown
   assert.equal(v.covered, [...changed].slice(-72).join(''), 'the 72 characters the stamp covers');
   assert.equal(v.coveredLabel, 'The last 72 characters before the tag');
   assert.match(v.summary, /genuine stamp by ntk-alice\.testnet.*not the text that was stamped/);
+  assert.equal(v.score, null, 'the scale shows only on a MATCH');
   assert.deepEqual(v.checks.map((c) => c.status), ['pass', 'pass', 'pass', 'pass', 'pass', 'fail']);
   assert.ok(v.call, 'a genuine stamp still links its attestation');
   const short = await view(PUBLISHED, 'too short');

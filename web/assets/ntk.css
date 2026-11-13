@@ -1,134 +1,157 @@
 /* NTK web: the shared look of every page (verify, feed, login, privacy).
-   High-key white, like the brand's isometric scene (brand/README.md): the page
-   is a white floor with a faint square grid; UI elements are white blocks, each
-   a top face with a thin, very light lit face below it and a shaded face at its
-   right, square-edged, on a soft blurred shadow. No outlines. Black for small
-   strong details (chips, code, the NO MATCH verdict), orange for the one main
-   action and small accents, green for MATCH. Text in the system font.
-   Colours shared with brand/ (brand/palette.json). */
+   As if Polestar had designed it, after the owner's references (a white car
+   console with control tiles, a dark screen and one gold knob):
+   - the floor is soft studio light, no grid;
+   - surfaces are matte white tiles with rounded corners and no borders, lifted by
+     soft layered shadows; a pressed tile moves 1 px down onto a smaller shadow;
+   - grouped tiles sit side by side in a dark tray, so thin dark seams show
+     between them (.tiles);
+   - results show on dark "displays" inset into the white (.display);
+   - type is thin: Inter (self-hosted, /assets/fonts/, SIL OFL), headings and big
+     numbers at 200-300, small uppercase labels at 600 with letter-spacing;
+   - gold is the one main action (.btn-primary), orange (the NTK mark's) marks
+     small indicators and hairlines, green is MATCH and PASS;
+   - icons are thin lines (lib/icons.js).
+   Dark mode is a darker variant of the same console. */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/assets/fonts/InterVariable.woff2") format("woff2");
+}
 
 :root {
-  --px: 4px;                  /* a spacing unit */
-  --d: 6px;                   /* how deep a block's side faces are */
+  /* The floor: studio light from the top left. */
+  --floor: radial-gradient(120% 80% at 30% 0%, #FFFFFF, #F3F4F6 55%, #E9EBEF);
+  --floor-end: #E9EBEF;
 
-  --bg: #FFFFFF;              /* the floor */
-  --grid: #EEF0F3;            /* its faint grid */
-  --c-top: #FFFFFF;           /* a block's top face */
-  --c-top-2: #F7F8FA;         /* a quieter top face */
-  --c-lit: #F3F4F6;           /* front face (below) */
-  --c-shade: #E8EAED;         /* right face */
-  --c-lit-soft: #F3F4F6;      /* the faces of large blocks (panels) */
-  --c-shade-soft: #E8EAED;
-  --c-drop: rgba(17, 24, 39, .06);
-  --soft: 0 18px 40px -14px rgba(17, 24, 39, .12), 0 6px 12px -6px rgba(17, 24, 39, .08);
-  --soft-sm: 0 8px 18px -8px rgba(17, 24, 39, .14), 0 3px 6px -3px rgba(17, 24, 39, .08);
-  --ink: #111418;             /* text: 18:1 on white */
-  --muted: #6B7280;           /* secondary text: 4.8:1 on white */
-  --line: #E6E8EC;            /* rules */
+  /* Tiles: matte white with a barely visible vertical gradient. */
+  --tile-hi: #FFFFFF;
+  --tile-lo: #F7F8FA;
+  --tile: linear-gradient(180deg, var(--tile-hi), var(--tile-lo));
+  --tile-down: linear-gradient(180deg, #F3F4F6, #EEF0F3);   /* a tile in a tray, pressed */
+  --well: linear-gradient(180deg, #EDEFF2, #F5F6F8);        /* recessed: inputs, quotes */
+  --seam: #2A2E35;                                          /* between grouped tiles */
 
-  --orange: #FF4F00;
-  --orange-lit: #E04600;
-  --orange-shade: #C23D00;
-  --on-orange: #111418;       /* 5.6:1 on orange */
-  --green: #2DB86A;           /* MATCH, PASS */
-  --green-lit: #23995A;
-  --green-shade: #1C7D49;
-  --on-green: #111418;        /* 7:1 on green */
-  --black: #111418;           /* chips, code, NO MATCH */
-  --black-lit: #0B0D10;
-  --black-shade: #000000;
-  --on-black: #FFFFFF;
-  --red: #D33A1C;             /* INVALID, FAIL: orange-red, white text 4.8:1 */
-  --red-lit: #B8311A;
-  --red-shade: #9C2A16;
-  --pale: #F3F4F6;            /* UNKNOWN */
-  --slate: var(--black);      /* older names */
-  --slate-lit: var(--black-lit);
-  --slate-shade: var(--black-shade);
+  --lift: inset 0 1px 0 rgba(255, 255, 255, .9), 0 14px 28px -12px rgba(17, 24, 39, .20), 0 2px 6px rgba(17, 24, 39, .06);
+  --lift-sm: inset 0 1px 0 rgba(255, 255, 255, .9), 0 8px 16px -8px rgba(17, 24, 39, .22), 0 1px 3px rgba(17, 24, 39, .08);
+  --lift-press: inset 0 1px 0 rgba(255, 255, 255, .7), 0 3px 7px -4px rgba(17, 24, 39, .24), 0 1px 2px rgba(17, 24, 39, .06);
+  --sunk: inset 0 2px 4px rgba(17, 24, 39, .07), inset 0 1px 1px rgba(17, 24, 39, .05), 0 1px 0 rgba(255, 255, 255, .9);
+  --in-tray: inset 0 1px 0 rgba(255, 255, 255, .95), inset 0 -1px 0 rgba(17, 24, 39, .05);
 
-  /* Older names, still used by page styles. */
-  --surface: var(--c-top);
-  --accent: var(--orange);
-  --on-accent: var(--on-orange);
-  --edge: var(--c-shade);
-  --shade: var(--c-drop);
-  --p: 2px;
-  --tint-1: #EEF0F3;          /* pixel avatars */
-  --tint-2: #F7F8FA;
-  --tint-3: #E1E4E8;
+  /* Displays: dark glass set into the white. */
+  --display: linear-gradient(180deg, #23262C, #16181C);
+  --display-edge: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px rgba(255, 255, 255, .03), 0 1px 0 rgba(255, 255, 255, .9);
+  --on-display: #F2F3F5;
+  --on-display-2: #A0A6B0;      /* secondary text on a display: 7:1 */
+  --display-hair: rgba(255, 255, 255, .09);
 
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --ink: #111318;               /* text: 18:1 on white */
+  --muted: #6B7079;             /* secondary text: 4.9:1 on white */
+  --muted-deep: #5F646D;        /* secondary text on the floor and in wells: 5:1 on its darkest grey */
+  --hair: rgba(17, 19, 24, .08);
+  --code-bg: rgba(17, 19, 24, .055);
+
+  --gold: #C8A24A;
+  --gold-hi: #E4C77A;
+  --gold-lo: #B8902F;
+  --gold-metal: linear-gradient(180deg, #EBD38E 0%, #DABA66 34%, #C8A24A 64%, #B8902F 100%);
+  --on-gold: #111318;           /* 8:1 on gold */
+  --orange: #FF4F00;            /* the NTK mark */
+  --orange-glow: rgba(255, 79, 0, .55);
+  --green: #3DDC84;             /* MATCH and PASS lights */
+  --green-glow: rgba(61, 220, 132, .55);
+  --green-ink: #17924D;         /* green lines on white: 3.9:1 */
+  --grey-light: #5B616B;        /* an unlit indicator */
+
+  --r-panel: 20px;
+  --r-ctl: 12px;
+  --r-sm: 8px;
+
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111316;
-    --grid: #1A1D22;
-    --c-top: #1E2126;
-    --c-top-2: #24282E;
-    --c-lit: #2E333A;         /* in the dark the side faces are the lighter ones */
-    --c-shade: #282C32;
-    --c-lit-soft: #2A2E35;
-    --c-shade-soft: #25292F;
-    --c-drop: rgba(0, 0, 0, .3);
-    --soft: 0 18px 40px -14px rgba(0, 0, 0, .6), 0 6px 12px -6px rgba(0, 0, 0, .5);
-    --soft-sm: 0 8px 18px -8px rgba(0, 0, 0, .65), 0 3px 6px -3px rgba(0, 0, 0, .5);
-    --ink: #EDEEF0;
-    --muted: #9CA3AF;         /* 6.4:1 on #1E2126 */
-    --line: #2A2E35;
-    --black: #EDEEF0;         /* the strong details turn light */
-    --black-lit: #C9CDD3;
-    --black-shade: #AEB3BA;
-    --on-black: #111418;
-    --pale: #2A2E35;
-    --tint-1: #2A2E35;
-    --tint-2: #24282E;
-    --tint-3: #343941;
+    --floor: radial-gradient(120% 80% at 30% 0%, #2C2F35, #1D1F23 55%, #151619);
+    --floor-end: #151619;
+    --tile-hi: #2B2E34;
+    --tile-lo: #25282D;
+    --tile-down: linear-gradient(180deg, #222429, #1F2125);
+    --well: linear-gradient(180deg, #18191C, #1D1F23);
+    --seam: #0B0C0E;
+    --lift: inset 0 1px 0 rgba(255, 255, 255, .07), 0 14px 28px -12px rgba(0, 0, 0, .75), 0 2px 6px rgba(0, 0, 0, .3);
+    --lift-sm: inset 0 1px 0 rgba(255, 255, 255, .07), 0 8px 16px -8px rgba(0, 0, 0, .8), 0 1px 3px rgba(0, 0, 0, .35);
+    --lift-press: inset 0 1px 0 rgba(255, 255, 255, .05), 0 3px 7px -4px rgba(0, 0, 0, .8), 0 1px 2px rgba(0, 0, 0, .3);
+    --sunk: inset 0 2px 4px rgba(0, 0, 0, .35), inset 0 1px 1px rgba(0, 0, 0, .3), 0 1px 0 rgba(255, 255, 255, .05);
+    --in-tray: inset 0 1px 0 rgba(255, 255, 255, .07), inset 0 -1px 0 rgba(0, 0, 0, .2);
+    --display: linear-gradient(180deg, #141518, #0D0E10);
+    --display-edge: inset 0 1px 0 rgba(255, 255, 255, .06), inset 0 0 0 1px rgba(255, 255, 255, .04), 0 1px 0 rgba(255, 255, 255, .05);
+    --ink: #F2F3F5;
+    --muted: #9CA2AC;           /* 5.3:1 on a dark tile */
+    --muted-deep: #9CA2AC;
+    --hair: rgba(255, 255, 255, .08);
+    --code-bg: rgba(255, 255, 255, .07);
+    --green-ink: #3DDC84;
   }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--floor-end);
+}
 
 body {
   margin: 0;
-  background-color: var(--bg);
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 28px 28px;
+  min-height: 100vh;
+  background: var(--floor);
   color: var(--ink);
   font-family: var(--font);
   font-size: 1rem;
-  line-height: 1.55;
+  font-weight: 400;
+  line-height: 1.6;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
 }
 
-a { color: inherit; text-decoration-thickness: 2px; text-underline-offset: 3px; text-decoration-color: var(--orange); }
-a:hover { color: var(--orange-shade); }
-@media (prefers-color-scheme: dark) { a:hover { color: var(--orange); } }
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .3em;
+  text-decoration-color: var(--orange);
+}
+a:hover { text-decoration-thickness: 2px; }
 a:focus-visible, button:focus-visible, textarea:focus-visible {
-  outline: var(--px) solid var(--orange);
-  outline-offset: var(--px);
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
 }
 
-h1, h2, h3 { line-height: 1.2; margin: 0 0 .6rem; }
-h1 { font-size: 1.6rem; font-weight: 800; }
-h2 { font-size: 1.15rem; font-weight: 800; }
-h3 { font-size: 1rem; }
-p { margin: 0 0 .85rem; }
+h1, h2, h3 { margin: 0 0 .6em; line-height: 1.15; font-weight: 300; letter-spacing: -.015em; }
+h1 { font-size: clamp(1.9rem, 7.4vw, 2.5rem); font-weight: 250; letter-spacing: -.03em; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 1.05rem; font-weight: 500; letter-spacing: 0; }
+p { margin: 0 0 .9rem; }
+strong { font-weight: 600; }
 
 code, .mono {
   font-family: var(--mono);
-  font-size: .88em;
+  font-size: .86em;
 }
 code {
-  padding: .12em .4em;
-  background: var(--black);
-  color: var(--on-black);
+  padding: .12em .42em;
+  border-radius: 6px;
+  background: var(--code-bg);
+  color: var(--ink);
   overflow-wrap: anywhere;
 }
 
@@ -139,57 +162,48 @@ code {
   padding: 0 1.25rem;
 }
 
-/* ---- blocks ------------------------------------------------------------ */
+/* ---- tiles ------------------------------------------------------------- */
 
-/* Every block: the top face in --top, the front face (below it) in --lit, the
-   right face in --side, --d deep and square-edged, on a soft blurred shadow.
-   --depth-1 is the thin version for small things; a pressed block moves onto
-   its side faces, which disappear (.btn:active). */
-.block, .pbox, .btn, .chip, .mark, textarea {
-  --top: var(--c-top);
-  --lit: var(--c-lit);
-  --side: var(--c-shade);
-  --depth-1:
-    0 4px 0 0 var(--lit),
-    4px 0 0 0 var(--side),
-    4px 4px 0 0 var(--side),
-    var(--soft-sm);
-  --depth-2:
-    0 var(--d) 0 0 var(--lit),
-    var(--d) 0 0 0 var(--side),
-    var(--d) var(--d) 0 0 var(--side),
-    var(--soft);
-  background: var(--top);
+/* A panel: a large white tile. */
+.pbox, .block {
+  background: var(--tile);
   border: 0;
-  border-radius: 0;
-  box-shadow: var(--depth-2);
+  border-radius: var(--r-panel);
+  box-shadow: var(--lift);
 }
 
-/* Large blocks (panels, results); leave room for the faces. */
-.block, .pbox {
-  --lit: var(--c-lit-soft);
-  --side: var(--c-shade-soft);
-  margin: 0 calc(var(--d) + 6px) calc(var(--d) + 6px) 0;
+/* Grouped tiles in a dark tray: thin dark seams show between them. */
+.tiles {
+  display: grid;
+  gap: 3px;
+  padding: 3px;
+  margin: 0;
+  border-radius: 14px;
+  background: var(--seam);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9), 0 10px 22px -14px rgba(17, 24, 39, .45);
+}
+.tiles > * {
+  min-width: 0;
+  margin: 0;
+  border-radius: 11px;
+  background: var(--tile);
+  box-shadow: var(--in-tray);
+}
+@media (prefers-color-scheme: dark) {
+  .tiles { box-shadow: 0 1px 0 rgba(255, 255, 255, .05), 0 10px 22px -14px rgba(0, 0, 0, .8); }
 }
 
-/* Colours of a block. */
-.tone-orange { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
-.tone-green { --top: var(--green); --lit: var(--green-lit); --side: var(--green-shade); color: var(--on-green); }
-.tone-slate, .tone-black { --top: var(--black); --lit: var(--black-lit); --side: var(--black-shade); color: var(--on-black); }
-.tone-red { --top: var(--red); --lit: var(--red-lit); --side: var(--red-shade); color: #FFFFFF; }
-.tone-pale { --top: var(--pale); }
-.tone-quiet { --top: var(--c-top-2); }
+/* A display: dark glass inset into a white tile, with light thin text. */
+.display {
+  position: relative;
+  border-radius: 14px;
+  background: var(--display);
+  box-shadow: var(--display-edge);
+  color: var(--on-display);
+}
+.display a { color: var(--on-display); }
 
-/* Small pixel sprites (lib/pixel.js): colours by name. */
-svg.px { display: inline-block; vertical-align: middle; flex: none; shape-rendering: crispEdges; }
-.px-ink { fill: currentColor; }
-.px-accent { fill: var(--orange); }
-.px-muted { fill: var(--muted); }
-.px-edge { fill: var(--c-shade); }
-.px-line { fill: var(--line); }
-.px-surface { fill: var(--c-top); }
-
-/* ---- buttons: blocks you press ----------------------------------------- */
+/* ---- buttons: tiles you press ------------------------------------------ */
 
 .btn {
   appearance: none;
@@ -197,55 +211,93 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; shape-render
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .5rem;
+  gap: .55rem;
   min-height: 48px;
-  --d: 5px;
-  margin: 0 calc(var(--d) + 6px) calc(var(--d) + 6px) 0;
-  padding: .65rem 1.4rem;
+  margin: 0;
+  padding: .7rem 1.6rem;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--tile);
+  box-shadow: var(--lift-sm);
   font: inherit;
-  font-weight: 700;
+  font-size: .95rem;
+  font-weight: 500;
   line-height: 1.2;
+  letter-spacing: .005em;
   color: var(--ink);
   cursor: pointer;
   text-decoration: none;
-  transition: transform 70ms ease-out, box-shadow 70ms ease-out;
+  transition: transform 80ms ease-out, box-shadow 80ms ease-out;
 }
-.btn:hover { --top: var(--c-top-2); color: var(--ink); }
-/* Pressed: the top face moves down onto its side faces, which disappear. */
-.btn:active:not(:disabled) { transform: translate(var(--d), var(--d)); box-shadow: var(--soft-sm); }
+.btn:hover { color: var(--ink); }
+.btn:not(.btn-primary):hover:not(:disabled) { box-shadow: var(--lift); }
+/* Pressed: 1 px down, onto a smaller shadow. */
+.btn:active:not(:disabled) { transform: translateY(1px); box-shadow: var(--lift-press); }
 .btn:disabled { color: var(--muted); cursor: default; }
-.btn-primary { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
-.btn-primary:hover { --top: #FF6A26; color: var(--on-orange); }
-.btn-primary:disabled { --top: var(--c-top-2); --lit: var(--c-lit); --side: var(--c-shade); color: var(--muted); }
-/* On a white panel a plain button gets a quieter top face, so that it reads as a block of its own. */
-.pbox .btn:not(.btn-primary), .block .btn:not(.btn-primary) { --top: var(--c-top-2); }
-.pbox .btn:not(.btn-primary):hover, .block .btn:not(.btn-primary):hover { --top: var(--c-top); }
-.btn-small {
-  --d: 4px;
-  min-height: 36px;
-  margin: 0 10px 10px 0;
-  padding: .35rem .8rem;
-  font-size: .85rem;
-  box-shadow: var(--depth-1);
+
+/* The one main action: brushed gold, like the gold knob of the console. */
+.btn-primary {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .07) 0 1px, rgba(0, 0, 0, .025) 1px 2px, transparent 2px 3px),
+    var(--gold-metal);
+  color: var(--on-gold);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .55),
+    inset 0 -1px 0 rgba(110, 78, 14, .22),
+    0 10px 20px -10px rgba(120, 86, 16, .55),
+    0 2px 5px rgba(17, 24, 39, .10);
+}
+.btn-primary:hover { color: var(--on-gold); filter: brightness(1.03); }
+.btn-primary:active:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .45),
+    inset 0 -1px 0 rgba(110, 78, 14, .22),
+    0 3px 7px -4px rgba(120, 86, 16, .6),
+    0 1px 2px rgba(17, 24, 39, .1);
+}
+.btn-primary:disabled { background: var(--tile); color: var(--muted); box-shadow: var(--lift-sm); filter: none; }
+@media (prefers-color-scheme: dark) {
+  .btn-primary { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 -1px 0 rgba(110, 78, 14, .3), 0 10px 20px -10px rgba(0, 0, 0, .8), 0 2px 5px rgba(0, 0, 0, .3); }
 }
 
-/* ---- small blocks: chips and marks ------------------------------------- */
+.btn-small {
+  min-height: 36px;
+  padding: .4rem .95rem;
+  border-radius: 10px;
+  font-size: .85rem;
+}
+
+/* ---- chips: small display tiles ---------------------------------------- */
 
 .chip {
-  display: inline-block;
-  margin: 0 10px 10px 0;
-  padding: .45em .65em .4em;
-  font: 700 .7rem/1 var(--mono);
-  letter-spacing: .08em;
+  display: inline-flex;
+  align-items: center;
+  gap: .6em;
+  padding: .62em .85em .6em .75em;
+  border-radius: var(--r-sm);
+  background: var(--display);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 6px 12px -6px rgba(17, 24, 39, .4), 0 1px 2px rgba(17, 24, 39, .12);
+  color: var(--on-display);
+  font: 600 10px/1 var(--font);
+  letter-spacing: .16em;
   white-space: nowrap;
-  color: var(--ink);
-  box-shadow: var(--depth-1);
 }
-/* Chips are small black blocks: strong details, like the cables in the brand scene. */
-.chip, .chip-testnet { --top: var(--black); --lit: var(--black-lit); --side: var(--black-shade); color: var(--on-black); }
+/* Its light: a small orange indicator. */
+.chip::before {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 6px var(--orange-glow);
+}
+@media (prefers-color-scheme: dark) {
+  .chip { background: linear-gradient(180deg, #34383F, #26292F); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 6px 12px -6px rgba(0, 0, 0, .7); }
+}
 
-/* A rule. */
-.rule { border: 0; border-top: 1px solid var(--line); margin: 1.25rem 0; }
+/* A rule: a fine engraved line. */
+.rule { border: 0; border-top: 1px solid var(--hair); margin: 1.25rem 0; }
 
 /* ---- page frame -------------------------------------------------------- */
 
@@ -278,102 +330,129 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; shape-render
   white-space: nowrap;
 }
 .site-foot {
-  padding-top: 2rem;
+  padding-top: 2.5rem;
   padding-bottom: 3rem;
-  color: var(--muted);
-  font-size: .88rem;
+  color: var(--muted-deep);
+  font-size: .85rem;
 }
 .site-foot a { color: var(--ink); }
 
-/* A quiet block for notes and errors. */
+/* A note or an error: a recessed well with an orange light. */
 .notice {
-  margin: .9rem 10px 10px 0;
-  padding: .7rem .9rem;
-  background: var(--c-top-2);
-  box-shadow: 0 4px 0 0 var(--c-lit), 4px 0 0 0 var(--c-shade), 4px 4px 0 0 var(--c-shade), var(--soft-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  margin: .9rem 0 0;
+  padding: .8rem 1rem;
+  border-radius: var(--r-ctl);
+  background: var(--well);
+  box-shadow: var(--sunk);
+  font-size: .92rem;
 }
 .notice::before {
   content: "";
-  display: inline-block;
+  flex: none;
   width: 6px;
   height: 6px;
-  margin: 0 .55rem .1em 0;
-  vertical-align: middle;
+  margin-top: .6em;
+  border-radius: 50%;
   background: var(--orange);
+  box-shadow: 0 0 6px var(--orange-glow);
 }
 
-.fine { color: var(--muted); font-size: .88rem; }
+.fine { color: var(--muted); font-size: .85rem; }
 
 .label {
   display: block;
-  margin-bottom: .55rem;
-  font-size: .75rem;
-  font-weight: 700;
-  letter-spacing: .08em;
+  margin-bottom: .6rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-/* An input is a block too, pressed a little into the panel it sits on. */
+/* An input is a recessed well; focused, an orange line lights at its foot. */
 textarea {
   display: block;
-  --d: 4px;
-  width: calc(100% - var(--d) - 6px);
-  margin: 0 calc(var(--d) + 6px) calc(var(--d) + 6px) 0;
-  padding: .8rem .9rem;
+  width: 100%;
+  margin: 0;
+  padding: .85rem 1rem;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--well);
+  box-shadow: var(--sunk);
   font: inherit;
   font-size: 1rem;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--ink);
-  --top: var(--c-top);
   resize: vertical;
+  transition: box-shadow 150ms ease-out;
 }
-textarea:focus { outline: none; --side: var(--orange-shade); --lit: var(--orange-lit); }
-textarea:focus-visible { outline: none; }
-textarea::placeholder { color: var(--muted); opacity: 1; }
+textarea:focus, textarea:focus-visible { outline: none; box-shadow: var(--sunk), inset 0 -2px 0 var(--orange); }
+textarea::placeholder { color: var(--muted-deep); opacity: 1; }
 
-/* A blinking block cursor: the moving thing is orange. */
+/* Busy: a small orange light that breathes. */
 .blink {
   display: inline-block;
-  width: .6em;
-  height: 1.1em;
-  margin-right: .6em;
-  vertical-align: -.2em;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-right: .8em;
+  border-radius: 50%;
+  vertical-align: .12em;
   background: var(--orange);
-  animation: ntk-blink 1s steps(1) infinite;
+  box-shadow: 0 0 8px var(--orange-glow);
+  animation: ntk-breathe 1.3s ease-in-out infinite;
 }
-@keyframes ntk-blink { 50% { opacity: 0; } }
+@keyframes ntk-breathe { 50% { opacity: .2; box-shadow: none; } }
 @media (prefers-reduced-motion: reduce) {
   .blink { animation: none; }
   .btn { transition: none; }
   html { scroll-behavior: auto; }
 }
 
+/* Thin line icons (lib/icons.js) take the text colour. */
+svg.icon { display: inline-block; flex: none; vertical-align: middle; }
+
 /* ---- text pages (privacy) ---------------------------------------------- */
 
 .doc { padding-bottom: 1rem; }
-.doc h1 { font-size: 2rem; margin-top: .5rem; }
-.doc .lede { color: var(--muted); font-size: 1.05rem; margin-bottom: 1.75rem; }
-.doc-short { padding: 1.25rem 1.3rem .6rem; margin-bottom: 2.4rem; }
+.doc h1 { font-size: clamp(2.4rem, 11vw, 3.4rem); font-weight: 200; letter-spacing: -.035em; margin: .75rem 0 .9rem; }
+.doc .lede { color: var(--muted-deep); font-size: 1.08rem; font-weight: 300; line-height: 1.6; margin-bottom: 2rem; }
+.doc-short { padding: 1.4rem 1.4rem .7rem; margin-bottom: 2.75rem; }
+.doc-short h2 {
+  margin-bottom: 1.1rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 .doc-short ul { margin: 0; padding: 0; list-style: none; }
-.doc-short li { position: relative; margin: 0 0 .75rem; padding-left: 1.4rem; }
+.doc-short li { position: relative; margin: 0 0 .9rem; padding-left: 1.35rem; }
 .doc-short li::before {
   content: "";
   position: absolute;
   left: 0;
-  top: .5em;
-  width: 8px;
-  height: 8px;
+  top: .62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   background: var(--orange);
+  box-shadow: 0 0 6px var(--orange-glow);
 }
-.doc-part { margin: 0 0 1.9rem; }
-.doc-part h2 { display: flex; align-items: center; gap: .6rem; }
+.doc-part { margin: 0 0 2.2rem; }
+.doc-part h2 { font-size: 1.45rem; font-weight: 300; }
+/* A short gold hairline over each part. */
 .doc-part h2::before {
   content: "";
-  flex: none;
-  width: 10px;
-  height: 10px;
-  background: var(--black);
+  display: block;
+  width: 28px;
+  height: 2px;
+  margin-bottom: .9rem;
+  border-radius: 1px;
+  background: var(--gold);
 }
 
 [hidden] { display: none !important; }

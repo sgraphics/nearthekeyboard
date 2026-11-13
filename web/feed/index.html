@@ -7,7 +7,7 @@
   <meta name="description" content="A demo social feed for NTK stamps. Invented accounts; your replies stay in this browser.">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#161615" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1D1F23" media="(prefers-color-scheme: dark)">
   <meta name="referrer" content="no-referrer">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Near The Keyboard">
@@ -22,14 +22,15 @@
   <link rel="icon" href="/assets/favicon.ico?v=ea5a9c4b" sizes="any">
   <link rel="icon" href="/assets/favicon-32.png?v=02454784" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=03289bdc">
-  <link rel="stylesheet" href="/assets/ntk.css?v=4ae9ee91">
+  <link rel="preload" href="/assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/ntk.css?v=695fbedf">
   <link rel="stylesheet" href="/feed/feed.css">
   <script type="module" src="/feed/main.js"></script>
 </head>
 <body class="page-feed">
   <div class="column">
     <header class="topbar">
-      <a class="icon-btn" href="/" aria-label="Back"><span data-sprite="back" data-scale="2"></span></a>
+      <a class="icon-btn" href="/" aria-label="Back"><span data-icon="back" data-size="20"></span></a>
       <h1>Post</h1>
       <span class="chip" title="A demo feed with invented accounts">DEMO</span>
     </header>
@@ -50,7 +51,7 @@
         </div>
       </form>
 
-      <section id="replies" class="replies" aria-label="Replies"></section>
+      <section id="replies" class="replies tiles" aria-label="Replies"></section>
     </main>
 
     <footer class="feed-foot">

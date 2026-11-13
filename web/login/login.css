@@ -1,99 +1,167 @@
-/* Wallet login (/login/). The blocks and colours are in /assets/ntk.css. The
-   wallet connector's own dialogs bring their own styles (injected by bundle.js). */
+/* Wallet login (/login/). Tiles, type and colours are in /assets/ntk.css. The
+   key's facts and the wallets are grouped tiles with thin dark seams, like the
+   console's controls. The wallet connector's own dialogs bring their own styles
+   (injected by bundle.js). */
 
-.panel { padding: 1.35rem 1.2rem 1.1rem; }
-.login h1 { margin-bottom: .8rem; }
+.panel { padding: 1.5rem 1.25rem 1.2rem; }
+.login h1 { margin-bottom: .75rem; }
 
-.what { font-size: 1.05rem; font-weight: 600; }
+.what { font-size: 1.1rem; font-weight: 300; line-height: 1.5; }
 
+/* What the key can do: grouped tiles. */
 .facts {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-  gap: .8rem 1rem;
-  margin: 1.1rem 0 1.2rem;
-  padding: .9rem 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  margin: 1.2rem 0 1.4rem;
+  padding: 3px;
+  border-radius: 14px;
+  background: var(--seam);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9), 0 10px 22px -14px rgba(17, 24, 39, .45);
 }
 .facts:empty { display: none; }
+.fact {
+  min-width: 0;
+  padding: .7rem .85rem .75rem;
+  border-radius: 11px;
+  background: var(--tile);
+  box-shadow: var(--in-tray);
+}
 .fact dt,
 .step-title {
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .08em;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--muted);
 }
-.fact dd { margin: .15rem 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.fact dt { font-size: 10px; letter-spacing: .13em; }
+.fact dd { margin: .3rem 0 0; font-size: 1rem; font-weight: 400; overflow-wrap: anywhere; }
+/* The key and the receiver in the site's type, with unambiguous letters (Inter ss02). */
+.fact dd.mono { font-family: var(--font); font-feature-settings: "ss02"; letter-spacing: .01em; }
 .fact-wide { grid-column: 1 / -1; }
-.step-title { margin: 0 0 .8rem; }
+.step-title { margin: 0 0 .75rem; }
 
-.busy { display: flex; align-items: center; margin: 1rem 0 .5rem; font-weight: 600; }
+.busy { display: flex; align-items: center; margin: 1rem 0 .5rem; font-weight: 300; }
 
-/* ---- the wallet list: one block per wallet ------------------------------ */
+/* ---- the wallet list: a tile per wallet, in one tray --------------------- */
 
 .wallets {
   list-style: none;
-  margin: 0 0 1rem;
-  padding: 0;
+  margin: 0 0 1.1rem;
+  padding: 3px;
   display: grid;
-  gap: .9rem;
+  gap: 3px;
+  border-radius: 14px;
+  background: var(--seam);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9), 0 12px 24px -14px rgba(17, 24, 39, .5);
 }
+.wallets:empty { display: none; }
 .btn.wallet {
   display: flex;
   justify-content: flex-start;
   gap: 1rem;
-  width: calc(100% - var(--d) - 6px);
-  min-height: 72px;
-  padding: .8rem 1rem;
+  width: 100%;
+  min-height: 76px;
+  padding: .85rem 1rem;
+  border-radius: 11px;
+  box-shadow: var(--in-tray);
   font-weight: 400;
   text-align: left;
 }
-.wallet-icon { display: block; width: 40px; height: 40px; flex: none; object-fit: contain; }
-.wallet-text { display: grid; gap: .1rem; min-width: 0; }
-.wallet-name { font-weight: 700; }
+.btn.wallet:hover:not(:disabled) { box-shadow: var(--in-tray); background: var(--tile-hi); }
+.btn.wallet:active:not(:disabled) { transform: none; background: var(--tile-down); box-shadow: inset 0 2px 4px rgba(17, 24, 39, .08); }
+/* The wallet's icon sits in a small round well. */
+.wallet-icon {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  padding: 8px;
+  border-radius: 50%;
+  background: var(--well);
+  box-shadow: var(--sunk);
+  object-fit: contain;
+}
+.wallet-text { display: grid; gap: .15rem; min-width: 0; }
+.wallet-name { font-size: 1.05rem; font-weight: 500; }
 .wallet-note { color: var(--muted); font-size: .85rem; }
 
 /* ---- connected, done, error -------------------------------------------- */
 
-.account-line { margin: 1rem 0 .1rem; color: var(--muted); }
-.account { margin: 0 0 .9rem; font-size: 1.3rem; font-weight: 700; overflow-wrap: anywhere; }
+.account-line { margin: 1.1rem 0 .1rem; color: var(--muted); }
+.account {
+  margin: 0 0 1rem;
+  font-family: var(--font);
+  font-size: 1.7rem;
+  font-weight: 250;
+  letter-spacing: -.02em;
+  overflow-wrap: anywhere;
+}
 
 .row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .5rem 1rem;
-  margin: .6rem 0 .9rem;
+  gap: .75rem 1rem;
+  margin: .75rem 0 1rem;
 }
 
 .done-title {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .3rem .7rem;
-  margin: 1rem 0 .5rem;
-  font-size: 1.25rem;
-  font-weight: 800;
+  gap: .3rem .8rem;
+  margin: 1.1rem 0 .5rem;
+  font-size: 1.5rem;
+  font-weight: 250;
+  letter-spacing: -.015em;
   overflow-wrap: anywhere;
 }
-/* Orange marks the one thing that happened: a small block. */
+.done-title .mono { font-family: var(--font); font-size: 1em; }
+/* The one thing that happened: a small green light. */
 .dot {
   display: inline-block;
-  width: 16px;
-  height: 16px;
-  background: var(--orange);
-  box-shadow: 0 3px 0 0 var(--orange-lit), 3px 0 0 0 var(--orange-shade), 3px 3px 0 0 var(--orange-shade), var(--soft-sm);
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(61, 220, 132, .14), 0 0 10px var(--green-glow);
 }
 
-.problems { margin: .6rem 0 .25rem; padding-left: 1.2rem; }
-.problems li { margin-bottom: .35rem; }
+.problems { margin: .75rem 0 .4rem; padding: 0; list-style: none; }
+.problems li { position: relative; margin-bottom: .55rem; padding-left: 1.3rem; }
+.problems li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 6px var(--orange-glow);
+}
 .error-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 
-.about { margin-top: 2.25rem; }
-.about p { color: var(--muted); }
+.about { margin-top: 2.75rem; }
+.about h2::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 2px;
+  margin-bottom: .9rem;
+  border-radius: 1px;
+  background: var(--gold);
+}
+.about p { color: var(--muted-deep); }
+
+@media (prefers-color-scheme: dark) {
+  .facts, .wallets { box-shadow: 0 1px 0 rgba(255, 255, 255, .05), 0 10px 22px -14px rgba(0, 0, 0, .8); }
+  .btn.wallet:active:not(:disabled) { box-shadow: inset 0 2px 4px rgba(0, 0, 0, .3); }
+}
 
 @media (min-width: 40rem) {
-  .panel { padding: 1.6rem 1.6rem 1.3rem; }
-  h1 { font-size: 1.75rem; }
+  .panel { padding: 1.9rem 1.9rem 1.6rem; }
 }
