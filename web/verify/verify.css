@@ -1,8 +1,8 @@
-/* Verify page. Tiles, the display, type and colours are in /assets/ntk.css.
-   A result is a white tile with a dark display set into its top, like the car's
-   central screen in the white console: the verdict in large thin type with a
-   thin coloured light under it. Below the display, the facts as grouped tiles
-   and every check with a thin line icon. */
+/* Verify page. Surfaces, type, colours and the dial are in /assets/ntk.css.
+   The form sits on the page itself, like the keys of the mock; a result is a flat
+   plate: the verdict in large thin type with a small flat indicator (green for
+   MATCH, orange for NO MATCH and INVALID), the typing match score on the dial,
+   the facts as tiles, every check with a thin line icon. */
 
 /* The start page only: the name as text on the left, the keyboard on the right. */
 .hero { display: none; }
@@ -11,26 +11,16 @@ body[data-state="idle"] .hero {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: clamp(.75rem, 4vw, 2.5rem);
-  margin: 1rem 0 2.5rem;
+  margin: 2rem 0 2.25rem;
 }
 .hero-title {
   margin: 0;
-  font-size: clamp(2.05rem, 9.6vw, 4.2rem);
-  font-weight: 200;
-  line-height: 1.02;
-  letter-spacing: -.01em;
-  text-transform: uppercase;
+  font-size: clamp(2.5rem, 12vw, 4.6rem);
+  font-weight: 100;
+  line-height: 1;
+  letter-spacing: -.03em;
+  text-transform: lowercase;
   color: var(--ink);
-}
-/* A short gold hairline under the name. */
-.hero-title::after {
-  content: "";
-  display: block;
-  width: 32px;
-  height: 2px;
-  margin-top: .5em;
-  border-radius: 1px;
-  background: var(--gold);
 }
 .hero-art img {
   display: block;
@@ -38,202 +28,186 @@ body[data-state="idle"] .hero {
   height: auto;
 }
 
+main.wrap { padding-top: 1.75rem; }
+body[data-state="idle"] main.wrap { padding-top: 0; }
+
 .results {
   display: grid;
-  gap: 1.5rem;
-  margin: .25rem 0 1.75rem;
+  gap: 1rem;
+  margin: 0 0 2.5rem;
 }
 .results:empty { display: none; }
 .results > * { min-width: 0; }
 
-/* ---- the form ---------------------------------------------------------- */
+/* ---- the form, on the page ----------------------------------------------- */
 
-.panel { padding: 1.5rem 1.25rem 1.35rem; }
-.panel h1 { margin-bottom: .5em; }
+.panel.pbox { background: none; box-shadow: none; border-radius: 0; }
+.panel h1 { margin-bottom: .45em; }
 .panel .row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .75rem 1.5rem;
-  margin-top: 1.25rem;
+  gap: .75rem;
+  margin-top: 1rem;
 }
-.lede { color: var(--muted); }
+.lede { color: var(--ink-2); }
 .lede code { white-space: nowrap; }
-.link { font-weight: 500; }
+/* "Try an example": a secondary action, a flat key. */
+.panel .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: .7rem 1.3rem;
+  border-radius: var(--r-key);
+  background: var(--key);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  font-size: .95rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.panel .link:active { transform: translateY(1px); box-shadow: var(--shadow-down); background: var(--key-down); }
 
-/* ---- a result ---------------------------------------------------------- */
+/* ---- a result: a flat plate ---------------------------------------------- */
 
-.result { padding: 8px; }
+.result { padding: 1.25rem 1.25rem 1rem; }
 
-.result .display { padding: 1.1rem 1.15rem 1.15rem; }
-.display-top {
+.result-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: .75rem;
-  margin-bottom: 1.35rem;
+  margin-bottom: 1.4rem;
 }
 .stamp-line {
   margin: 0;
-  color: var(--on-display-2);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .14em;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
   text-transform: uppercase;
 }
 .stamp-line code {
+  margin-left: .45em;
   padding: 0;
-  margin-left: .35em;
   background: none;
-  color: var(--on-display);
   font-family: var(--font);
-  font-feature-settings: "ss02";
   font-size: 13px;
   font-weight: 400;
-  letter-spacing: .03em;
+  letter-spacing: .02em;
   text-transform: none;
 }
-/* On the display the chip is a lighter glass. */
-.display .chip { background: rgba(255, 255, 255, .08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06); }
 
-/* The verdict: large thin type, with its light, a thin line, under it. */
+/* The verdict: large thin type with a small flat indicator before it. */
+.verdict-row {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  margin-bottom: 1rem;
+}
+.indicator {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--indicator, var(--minor));
+}
 .verdict {
   margin: 0;
-  max-width: 100%;
-  font-size: clamp(2.6rem, 13.5vw, 4.4rem);
-  font-weight: 200;
+  min-width: 0;
+  font-size: clamp(3rem, 15.5vw, 5rem);
+  font-weight: 100;
   line-height: 1;
-  letter-spacing: -.01em;
+  letter-spacing: -.03em;
   overflow-wrap: break-word;
-  color: var(--on-display);
+  color: var(--ink);
 }
-.verdict::after {
-  content: "";
-  display: block;
-  width: 44px;
-  height: 2px;
-  margin: .95rem 0 1rem;
-  border-radius: 1px;
-  background: var(--light, var(--grey-light));
-  box-shadow: 0 0 10px var(--light-glow, transparent);
-}
-.tone-match { --light: var(--green); --light-glow: var(--green-glow); }
-.tone-match .verdict { color: var(--green); }
-.tone-nomatch { --light: var(--orange); --light-glow: var(--orange-glow); }
-.tone-invalid { --light: var(--orange); --light-glow: var(--orange-glow); }
-.tone-invalid .verdict { color: var(--orange); }
-.tone-neutral { --light: var(--gold); --light-glow: rgba(200, 162, 74, .5); }
-.tone-unknown, .tone-error { --light: var(--grey-light); }
+.tone-match { --indicator: var(--green); }
+.tone-match .verdict { color: var(--green); font-weight: 150; }
+.tone-nomatch { --indicator: var(--orange); }
+.tone-invalid { --indicator: var(--orange); }
+.tone-invalid .verdict { color: var(--orange); font-weight: 150; }
 .tone-neutral .verdict,
 .tone-error .verdict,
-.tone-unknown .verdict { font-size: clamp(2.1rem, 10.5vw, 3.4rem); }
+.tone-unknown .verdict { font-size: clamp(2.2rem, 11vw, 3.6rem); }
 
 .summary {
   margin: 0;
-  color: var(--on-display);
   font-size: 1.05rem;
   font-weight: 300;
   line-height: 1.5;
 }
-/* On a MATCH: the typing match score on a fine scale, like the slider on the car's screen. */
-.scale { margin: 1.35rem 0 0; }
-.scale-head {
+
+/* The typing match score on the dial. */
+.meter { margin: 1.5rem 0 .5rem; }
+.meter-head {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  margin: 0 0 .5rem;
-  color: var(--on-display-2);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: .14em;
+  margin: 0 0 .55rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
   text-transform: uppercase;
 }
-.scale-head strong { margin-left: .4em; color: var(--green); font-weight: 600; }
-.scale-ticks { display: block; width: 100%; height: 22px; overflow: visible; }
-.scale-ticks line { stroke-width: 1px; stroke-linecap: butt; }
-.scale-ticks .tick { stroke: rgba(255, 255, 255, .16); }
-.scale-ticks .tick.major { stroke: rgba(255, 255, 255, .3); }
-.scale-ticks .tick.on { stroke: rgba(61, 220, 132, .5); }
-.scale-ticks .tick.major.on { stroke: rgba(61, 220, 132, .8); }
-.scale-ticks .needs { stroke: var(--gold); stroke-width: 2px; }
-.scale-ticks .score { stroke: var(--green); stroke-width: 2px; filter: drop-shadow(0 0 3px rgba(61, 220, 132, .9)); }
+.meter-head strong { margin-left: .35em; font-weight: 700; }
 
-.display-link {
-  margin: 1.1rem 0 0;
-  font-size: .85rem;
-}
-.display-link a {
+.result-link { margin: 1.5rem 0 0; font-size: .88rem; }
+.result-link a {
   display: inline-flex;
   align-items: center;
   gap: .4rem;
-  color: var(--on-display-2);
   text-decoration: none;
 }
-.display-link a:hover { color: var(--on-display); }
-.display-link a span { text-decoration: underline 1px var(--orange); text-underline-offset: .3em; }
+.result-link a span { text-decoration: underline 1px var(--orange); text-underline-offset: .3em; }
 
-.result-body { padding: 1.25rem .85rem .35rem; }
+.result-body { margin-top: 1.5rem; }
 
 .covered { margin: 0 0 1.5rem; }
 .covered figcaption,
 .checks-title,
 .fact dt {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: .14em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink);
 }
 .covered blockquote {
-  position: relative;
   margin: .6rem 0 0;
-  padding: .9rem 1rem .9rem 1.25rem;
-  border-radius: var(--r-ctl);
-  background: var(--well);
-  box-shadow: var(--sunk);
+  padding: .9rem 1rem;
+  border-radius: var(--r-key);
+  background: var(--key);
   font-size: 1.15rem;
   font-weight: 300;
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
-/* A gold hairline down its left side. */
-.covered blockquote::before {
-  content: "";
-  position: absolute;
-  left: .55rem;
-  top: .85rem;
-  bottom: .85rem;
-  width: 2px;
-  border-radius: 1px;
-  background: var(--gold);
-}
 .covered blockquote p { margin: 0; white-space: pre-wrap; }
 
-/* The facts: grouped tiles with dark seams, like the console's controls. An odd
-   last tile spans the row, so the tray never shows an empty hole. */
+/* The facts: flat tiles, like the keys of the mock. An odd last one spans the row. */
 .facts {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0 0 1.5rem;
 }
+.fact { padding: .75rem .85rem .8rem; }
 .fact:last-child:nth-child(odd) { grid-column: 1 / -1; }
-.fact { padding: .7rem .8rem .75rem; }
-.fact dt { font-size: 10px; letter-spacing: .13em; }
+.fact dt { font-size: 9.5px; letter-spacing: .11em; }
 .fact dd {
   margin: .3rem 0 0;
-  font-size: 1rem;
-  font-weight: 400;
+  font-size: 1.05rem;
+  font-weight: 300;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
 .meaning {
   margin: 0 0 1.5rem;
-  padding: 0 .1rem;
-  color: var(--muted);
+  color: var(--ink-2);
   font-size: .92rem;
 }
 
-.checks-title { margin: 0 0 .5rem; }
+.checks-title { margin: 0 0 .4rem; }
 .checks {
   list-style: none;
   margin: 0 0 1rem;
@@ -241,38 +215,36 @@ body[data-state="idle"] .hero {
 }
 .check {
   display: grid;
-  grid-template-columns: 4.6rem 1fr;
+  grid-template-columns: 4.5rem 1fr;
   gap: .75rem;
   align-items: start;
   padding: .7rem 0;
-  border-top: 1px solid var(--hair);
+  border-top: 1px solid var(--line);
 }
 .check:first-child { border-top: 0; }
 .check-text { display: grid; gap: .15rem; min-width: 0; }
-.check-label { font-weight: 400; }
-.check-detail { color: var(--muted); font-size: .84rem; overflow-wrap: anywhere; }
+.check-detail { color: var(--ink-2); font-size: .84rem; overflow-wrap: anywhere; }
 .check-detail a { color: var(--ink); }
-.is-skip .check-label { color: var(--muted); }
+.is-skip .check-label { color: var(--ink-2); }
 
-/* PASS, FAIL, SKIP, LINK: a thin line icon and the word. */
+/* PASS, FAIL, SKIP, LINK: a thin line icon and the word in small capitals. */
 .mark {
   display: inline-flex;
   align-items: center;
   gap: .4rem;
   justify-self: start;
-  margin-top: .15rem;
+  margin-top: .2rem;
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .14em;
+  font-weight: 700;
+  letter-spacing: .12em;
   line-height: 1;
   color: var(--ink);
 }
 .mark svg.icon { stroke-width: 2; }
-.mark-pass svg.icon { color: var(--green-ink); }
+.mark-pass svg.icon { color: var(--green); }
 .mark-fail svg.icon { color: var(--orange); }
-.mark-fail { color: var(--orange); }
-.mark-skip, .mark-link { color: var(--muted); }
-.mark-link svg.icon { color: var(--gold-lo); }
+.mark-skip { color: var(--ink-2); }
+.mark-skip svg.icon { color: var(--minor); }
 
 .cmd-row {
   display: flex;
@@ -281,52 +253,30 @@ body[data-state="idle"] .hero {
   gap: .5rem .6rem;
   margin-top: .45rem;
 }
-/* The command: a small display. */
+/* The command: a flat patch. */
 .cmd {
   display: inline-block;
   padding: .6rem .75rem;
   border-radius: 10px;
-  background: var(--display);
-  box-shadow: var(--display-edge);
-  color: var(--on-display);
+  background: var(--key);
+  color: var(--ink);
   line-height: 1.5;
   font-size: .76rem;
   user-select: all;
   -webkit-user-select: all;
 }
 
-/* Looking up: the display, before it shows a verdict. */
-.results .loading {
-  display: flex;
-  align-items: center;
-  margin: 0;
-  padding: 1.3rem 1.4rem;
-  border-radius: var(--r-panel);
-  background: var(--display);
-  box-shadow: var(--lift);
-  color: var(--on-display);
-  font-weight: 300;
-}
+/* Looking up: a plate with the dial, its needle sweeping. */
+.loading { padding: 1.25rem 1.25rem 1.4rem; }
+.loading-text { margin: 0 0 1.1rem; font-weight: 300; }
 
-/* ---- about ------------------------------------------------------------- */
+/* ---- about --------------------------------------------------------------- */
 
-.about { margin-top: 2.75rem; }
-.about h2::before {
-  content: "";
-  display: block;
-  width: 28px;
-  height: 2px;
-  margin-bottom: .9rem;
-  border-radius: 1px;
-  background: var(--gold);
-}
-.about p { color: var(--muted-deep); }
-.about .about-meaning { color: var(--ink); font-size: 1.15rem; font-weight: 300; line-height: 1.5; }
+.about { margin-top: 3rem; }
+.about p { color: var(--ink-2); }
+.about .about-meaning { color: var(--ink); font-size: 1.2rem; font-weight: 300; line-height: 1.5; }
 body[data-state="result"] .about-meaning { display: none; }
 
 @media (min-width: 40rem) {
-  .panel { padding: 1.9rem 1.9rem 1.6rem; }
-  .result { padding: 10px; }
-  .result .display { padding: 1.5rem 1.6rem 1.5rem; }
-  .result-body { padding: 1.6rem 1.3rem .6rem; }
+  .result, .loading { padding: 1.75rem 1.75rem 1.4rem; }
 }

@@ -6,6 +6,7 @@ import { fetchStamp, verifyStamp, verifyText, findTags, verifyUrl } from '../lib
 import { parseLocation, verifyBaseFor, boxMessage, buildView, hasText } from './model.js';
 import { installSubtleFallback } from './sha-fallback.js';
 import { iconSvg } from '../lib/icons.js';
+import { dialEl } from '../lib/dial.js';
 import { STAMPED_REPLY } from '../feed/data.js';
 
 // Plain http from another machine (an emulator, a phone on the LAN) has no crypto.subtle.
@@ -65,44 +66,29 @@ function callItem(call) {
     h('span', { class: 'cmd-row' }, code, copy)));
 }
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
-
-/** The typing match score on a fine scale from 0 to 100, lit up to the score, the score it needs marked in gold. */
-function scale({ pct, needs }) {
-  const W = 400;
-  const H = 22;
-  const at = (p) => 0.5 + (Math.min(100, Math.max(0, p)) / 100) * (W - 1);
-  const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('preserveAspectRatio', 'none');
-  svg.setAttribute('class', 'scale-ticks');
-  svg.setAttribute('aria-hidden', 'true');
-  const line = (x, y1, y2, cls) => {
-    const l = document.createElementNS(SVG_NS, 'line');
-    for (const [k, val] of Object.entries({ x1: x, x2: x, y1, y2, class: cls, 'vector-effect': 'non-scaling-stroke' })) l.setAttribute(k, String(val));
-    svg.append(l);
-  };
-  for (let p = 0; p <= 100; p += 2.5) line(at(p), p % 10 === 0 ? 6 : 10, H - 4, `tick${p % 10 === 0 ? ' major' : ''}${p <= pct ? ' on' : ''}`);
-  if (needs != null) line(at(needs), 1, H, 'needs');
-  line(at(pct), 0, H, 'score');
-  return h('div', { class: 'scale' },
-    h('p', { class: 'scale-head' },
+/** The typing match score on the dial: the needle at the score, a mark at the score it needs. */
+function meter({ pct, needs }) {
+  return h('div', { class: 'meter' },
+    h('p', { class: 'meter-head' },
       h('span', {}, 'Typing match score ', h('strong', {}, `${pct}%`)),
-      needs != null ? h('span', { class: 'scale-needs' }, `needs ${needs}%`) : null),
-    svg);
+      needs != null ? h('span', {}, `needs ${needs}%`) : null),
+    dialEl(document, { score: pct, needs }));
 }
 
-// A result: a white tile with a dark display set into its top (the stamp, the
-// verdict with its light, the summary), and below it the text, the facts and the checks.
+// A result: a flat plate. At its top the stamp, the verdict in large thin type with
+// a small indicator, the summary and, on a MATCH, the dial; below, the text, the
+// facts and every check.
 function renderView(v) {
-  const display = h('div', { class: 'display' },
-    h('div', { class: 'display-top' },
+  const head = h('div', { class: 'result-head' },
+    h('div', { class: 'result-top' },
       h('p', { class: 'stamp-line' }, 'Stamp ', h('code', {}, v.id || '?')),
       h('span', { class: 'chip chip-testnet' }, String(v.network).toUpperCase())),
-    h('div', { class: 'verdict-row' }, h('h2', { class: 'verdict' }, v.title)),
+    h('div', { class: 'verdict-row' },
+      h('span', { class: 'indicator', 'aria-hidden': 'true' }),
+      h('h2', { class: 'verdict' }, v.title)),
     h('p', { class: 'summary' }, v.summary),
-    v.score ? scale(v.score) : null,
-    v.link ? h('p', { class: 'display-link' },
+    v.score ? meter(v.score) : null,
+    v.link ? h('p', { class: 'result-link' },
       h('a', { href: v.link, title: 'This check, text included (the text stays in the # part)' },
         iconSvg(document, 'out', { size: 14 }), h('span', {}, 'Link to this check'))) : null);
   const body = h('div', { class: 'result-body' });
@@ -122,7 +108,7 @@ function renderView(v) {
   if (v.call) list.append(callItem(v.call));
   body.append(h('h3', { class: 'checks-title' }, 'What was checked'), list);
   if (v.record) body.append(h('p', { class: 'fine' }, `Stamp record v${v.record.v}, enclave ${v.record.enclave}.`));
-  return h('article', { class: `result pbox tone-${v.tone}` }, display, body);
+  return h('article', { class: `result pbox tone-${v.tone}` }, head, body);
 }
 
 function setState(state) { document.body.dataset.state = state; }
@@ -132,11 +118,12 @@ function showNotice(text) {
   notice.hidden = !text;
 }
 
+// Waiting on the network: the dial with its needle sweeping.
 function showLoading(ids) {
   setState('busy');
-  resultsEl.replaceChildren(h('p', { class: 'loading pbox' },
-    h('span', { class: 'blink', 'aria-hidden': 'true' }),
-    `Looking up ${ids.length > 1 ? 'stamps' : 'stamp'} ${ids.join(', ')}…`));
+  resultsEl.replaceChildren(h('div', { class: 'loading pbox' },
+    h('p', { class: 'loading-text' }, `Looking up ${ids.length > 1 ? 'stamps' : 'stamp'} ${ids.join(', ')}…`),
+    dialEl(document, { busy: true })));
 }
 
 function showResults(views, title) {

@@ -33,7 +33,7 @@ function h(tag, attrs, ...children) {
   return el;
 }
 
-/** A round knob with a dot-matrix face: the 5x5 pattern inside the avatar grid's ring, lit and unlit dots. */
+/** A flat disc with a dot-matrix face: the 5x5 pattern inside the avatar grid's ring, lit and unlit dots. */
 function avatar(handle) {
   const { rows, tone } = avatarGrid(handle);
   const face = rows.slice(1, -1).map((r) => r.slice(1, -1).replace(/o/g, '-'));

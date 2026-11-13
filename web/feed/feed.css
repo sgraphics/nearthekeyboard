@@ -1,7 +1,7 @@
-/* Demo feed: a familiar social layout in NTK's look, phone first. Tiles, type
-   and colours are in /assets/ntk.css. The post and the reply box are white
-   tiles; the replies are grouped tiles with thin dark seams between them; the
-   avatars are round knobs with a dot-matrix face, yours in gold. */
+/* Demo feed: a familiar social layout in NTK's flat look, phone first.
+   Surfaces, type and colours are in /assets/ntk.css. The bar is the header bar;
+   the post and each reply are flat plates; the reply box sits on the page; the
+   avatars are flat discs with a dot-matrix face, yours orange. */
 
 .column {
   max-width: 37.5rem;
@@ -22,7 +22,7 @@
   border: 0;
 }
 
-/* The bar: frosted, over the floor. */
+/* The bar: the header bar's colour, full width on a phone. */
 .topbar {
   position: sticky;
   top: 0;
@@ -31,83 +31,66 @@
   align-items: center;
   gap: .9rem;
   min-height: 4rem;
-  margin: 0 -.75rem .5rem;
-  padding: .6rem 1rem .6rem .85rem;
-  background: rgba(250, 250, 251, .78);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
+  margin: 0 -.75rem .75rem;
+  padding: .6rem 1rem .6rem .75rem;
+  background: var(--bar);
 }
-@media (prefers-color-scheme: dark) {
-  .topbar { background: rgba(30, 32, 36, .78); }
-}
-/* On a wide screen the bar floats: a frosted strip with rounded ends. */
 @media (min-width: 40rem) {
-  .topbar {
-    top: .75rem;
-    margin: 0 0 .75rem;
-    padding: .5rem 1rem .5rem .6rem;
-    border-radius: 16px;
-    box-shadow: var(--lift-sm);
-  }
+  .topbar { top: .75rem; margin: 0 0 .75rem; border-radius: var(--r-plate); box-shadow: var(--shadow); }
 }
-.topbar h1 { flex: 1; margin: 0; font-size: 1.35rem; font-weight: 300; letter-spacing: -.01em; }
-/* Back: a round white knob with a thin arrow. */
+.topbar h1 { flex: 1; margin: 0; font-size: 1.5rem; font-weight: 150; letter-spacing: -.01em; }
+/* Back: a flat key with a thin arrow. */
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--tile);
-  box-shadow: var(--lift-sm);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-key);
+  background: var(--key);
+  box-shadow: var(--shadow);
   color: var(--ink);
-  transition: transform 80ms ease-out, box-shadow 80ms ease-out;
 }
-.icon-btn:hover { box-shadow: var(--lift); }
-.icon-btn:active { transform: translateY(1px); box-shadow: var(--lift-press); }
+.icon-btn:active { transform: translateY(1px); box-shadow: var(--shadow-down); background: var(--key-down); }
 
-/* ---- posts ------------------------------------------------------------- */
+/* ---- posts: flat plates -------------------------------------------------- */
 
-.post { padding: 1rem 1.1rem .8rem; }
-.name { font-weight: 500; }
-.handle, .time, .sep, .post-time, .post-stats, .replying, .composer-note { color: var(--muted); }
+.post {
+  padding: 1rem 1.1rem .8rem;
+  border-radius: var(--r-plate);
+  background: var(--plate);
+  box-shadow: var(--shadow);
+}
+.name { font-weight: 600; }
+.handle, .time, .sep, .post-time, .post-stats, .replying, .composer-note { color: var(--ink-2); }
 
-/* Avatars: round knobs, the face a small dot matrix (lib/pixel.js dotSvg). */
+/* Avatars: flat discs, the face a small dot matrix (lib/pixel.js dotSvg). */
 svg.avatar {
   display: block;
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 28%, #FFFFFF, #F3F4F6 55%, #E2E5E9);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), inset 0 -2px 3px rgba(17, 24, 39, .06), 0 6px 12px -6px rgba(17, 24, 39, .35), 0 1px 3px rgba(17, 24, 39, .1);
+  background: var(--bg);
 }
-.avatar .dot-on { fill: #2A2E35; }
-.avatar .dot-off { fill: rgba(17, 24, 39, .07); }
-.avatar.tone-1 { background: radial-gradient(circle at 35% 28%, #F5F6F8, #E3E6EA 55%, #D3D7DD); }
-.avatar.tone-2 { background: radial-gradient(circle at 35% 28%, #41464F, #2A2E35 55%, #1A1C20); }
-.avatar.tone-2 .dot-on { fill: #F2F3F5; }
-.avatar.tone-2 .dot-off { fill: rgba(255, 255, 255, .09); }
-/* Yours: the gold knob. */
-.mine svg.avatar, .composer svg.avatar { background: radial-gradient(circle at 35% 28%, #F3E0A4, #D8B865 50%, #B8902F); }
-.mine .avatar .dot-on, .composer .avatar .dot-on { fill: #111318; }
-.mine .avatar .dot-off, .composer .avatar .dot-off { fill: rgba(17, 19, 24, .1); }
+.avatar .dot-on { fill: #000000; }
+.avatar .dot-off { fill: rgba(0, 0, 0, .07); }
+.avatar.tone-1 { background: #BDC3D3; }
+.avatar.tone-2 { background: #8E98B1; }
+.avatar.tone-2 .dot-off { fill: rgba(0, 0, 0, .1); }
+/* Yours: orange. */
+.mine svg.avatar, .composer svg.avatar { background: var(--orange); }
+.mine .avatar .dot-off, .composer .avatar .dot-off { fill: rgba(0, 0, 0, .12); }
 @media (prefers-color-scheme: dark) {
-  svg.avatar { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 6px 12px -6px rgba(0, 0, 0, .8), 0 1px 3px rgba(0, 0, 0, .4); }
-  .avatar.tone-0 { background: radial-gradient(circle at 35% 28%, #E9EBEE, #C9CDD3 60%, #A9AEB6); }
-  .avatar.tone-1 { background: radial-gradient(circle at 35% 28%, #8A9099, #686E78 60%, #4C5159); }
-  .avatar.tone-1 .dot-on { fill: #F2F3F5; }
-  .avatar.tone-1 .dot-off { fill: rgba(255, 255, 255, .1); }
-  .avatar.tone-2 { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 6px 12px -6px rgba(0, 0, 0, .8), 0 1px 3px rgba(0, 0, 0, .4); }
+  svg.avatar { background: #3A404C; }
+  .avatar .dot-on { fill: #ECEFF5; }
+  .avatar .dot-off { fill: rgba(255, 255, 255, .08); }
+  .avatar.tone-1 { background: #BDC3D3; }
+  .avatar.tone-2 { background: #8E98B1; }
+  .avatar.tone-1 .dot-on, .avatar.tone-2 .dot-on, .mine .avatar .dot-on, .composer .avatar .dot-on { fill: #000000; }
+  .avatar.tone-1 .dot-off, .avatar.tone-2 .dot-off { fill: rgba(0, 0, 0, .1); }
 }
 
-.main-post {
-  margin-bottom: .75rem;
-  padding-top: 1.15rem;
-  border-radius: var(--r-panel);
-  background: var(--tile);
-  box-shadow: var(--lift);
-}
+.main-post { margin-bottom: .75rem; padding-top: 1.15rem; }
 .main-post svg.avatar { width: 48px; height: 48px; }
 .post-head { display: flex; align-items: center; gap: .85rem; margin-bottom: .9rem; }
 .who { display: grid; line-height: 1.3; min-width: 0; }
@@ -119,15 +102,15 @@ svg.avatar {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.post-time { margin: 0; padding-bottom: .85rem; font-size: .9rem; border-bottom: 1px solid var(--hair); }
-.post-time strong, .post-stats strong { color: var(--ink); font-weight: 500; }
+.post-time { margin: 0; padding-bottom: .85rem; font-size: .9rem; border-bottom: 1px solid var(--line); }
+.post-time strong, .post-stats strong { color: var(--ink); font-weight: 600; }
 .post-stats {
   display: flex;
   gap: 1.4rem;
   margin: 0;
   padding: .8rem 0;
   font-size: .9rem;
-  border-bottom: 1px solid var(--hair);
+  border-bottom: 1px solid var(--line);
 }
 .main-post .acts { justify-content: space-around; max-width: none; padding-top: .7rem; }
 
@@ -159,23 +142,20 @@ svg.avatar {
   display: flex;
   justify-content: space-between;
   max-width: 26rem;
-  color: var(--muted);
+  color: var(--ink-2);
   font-size: .8rem;
 }
 .act { display: inline-flex; align-items: center; gap: .4rem; min-width: 3rem; }
 .act svg.icon { width: 18px; height: 18px; stroke-width: 1.4; }
 
-/* ---- composer ---------------------------------------------------------- */
+/* ---- the reply box, on the page ------------------------------------------ */
 
 .composer {
   display: grid;
   grid-template-columns: 40px 1fr;
   gap: .8rem;
-  margin-bottom: .75rem;
-  padding: 1rem 1.1rem .9rem;
-  border-radius: var(--r-panel);
-  background: var(--tile);
-  box-shadow: var(--lift);
+  margin: 1.25rem 0 1.25rem;
+  padding: 0 .35rem;
 }
 .replying { margin: .45rem 0 .55rem; font-size: .88rem; }
 .composer textarea {
@@ -193,20 +173,14 @@ svg.avatar {
 }
 .composer-note { font-size: .8rem; }
 
-/* ---- replies: grouped tiles -------------------------------------------- */
+/* ---- replies: plates with a small gap ------------------------------------ */
 
 .replies:empty { display: none; }
-.replies {
-  border-radius: var(--r-panel);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .9), 0 14px 28px -12px rgba(17, 24, 39, .3), 0 2px 6px rgba(17, 24, 39, .06);
-}
-.replies > .post { border-radius: 17px; }
-@media (prefers-color-scheme: dark) {
-  .replies { box-shadow: 0 1px 0 rgba(255, 255, 255, .05), 0 14px 28px -12px rgba(0, 0, 0, .8); }
-}
+.replies { gap: 8px; }
+.replies > .post { border-radius: var(--r-plate); background: var(--plate); }
 
 /* ---- footer ------------------------------------------------------------ */
 
 .feed-foot { padding: 1.6rem .35rem 2.5rem; font-size: .9rem; }
 .feed-foot p { margin-bottom: 1rem; }
-.feed-foot .fine { color: var(--muted-deep); }
+.feed-foot .fine { color: var(--ink-2); }
