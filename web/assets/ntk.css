@@ -31,7 +31,7 @@
   --line: #BDC3D3;            /* fine lines */
   --orange: #FD5B15;          /* the main action, focus, the needle */
   --orange-down: #E54E0E;
-  --on-orange: #000000;       /* 6.7:1 */
+  --on-orange: #FFFFFF;       /* white, at a medium weight */
   --green: #1E9E5A;           /* MATCH, PASS */
   --code-bg: #ECEFF6;
   --shadow: 0 1px 2px rgba(60, 72, 100, .06), 0 3px 8px rgba(60, 72, 100, .08);
@@ -183,8 +183,8 @@ code {
 .btn:active:not(:disabled) { transform: translateY(1px); box-shadow: var(--shadow-down); background: var(--key-down); }
 .btn:disabled { color: var(--ink-2); cursor: default; }
 
-/* The one main action: a flat orange key with black text. */
-.btn-primary { background: var(--orange); color: var(--on-orange); }
+/* The one main action: a flat orange key with white text at a medium weight. */
+.btn-primary { background: var(--orange); color: var(--on-orange); font-weight: 600; }
 .btn-primary:hover { color: var(--on-orange); }
 .btn-primary:active:not(:disabled) { background: var(--orange-down); }
 .btn-primary:disabled { background: var(--key); color: var(--ink-2); }
@@ -322,8 +322,9 @@ svg.icon { display: inline-block; flex: none; vertical-align: middle; }
 /* ---- the dial (lib/dial.js) --------------------------------------------- */
 
 /* After an old radio's tuning scale: fine black ticks on a thin line, tiny thin
-   numbers from 0 to 100, an orange needle. With .dial-busy the needle sweeps
-   while a page waits on the network. */
+   numbers from 0 to 100, an orange needle. While a page waits on the network the
+   busy dial (.dial-busy) has evenly spaced ticks, no numbers, and a needle that
+   advances from 0 towards 100 as progress, slowing as it goes. */
 .dial { position: relative; padding-top: 4px; color: var(--ink); }
 .dial-scale { display: block; width: 100%; height: 30px; overflow: visible; }
 .dial-scale line { stroke: currentColor; stroke-width: 1px; stroke-linecap: butt; }
@@ -343,16 +344,16 @@ svg.icon { display: inline-block; flex: none; vertical-align: middle; }
 .dial-sweep {
   position: absolute;
   top: 0;
-  bottom: -2px;
-  left: 50%;
+  bottom: -3px;
+  left: 0;
   width: 2px;
   margin-left: -1px;
   background: var(--orange);
-  animation: ntk-tune 2.4s ease-in-out infinite alternate;
+  animation: ntk-progress 12s cubic-bezier(.12, .62, .25, 1) forwards;
 }
-@keyframes ntk-tune { from { left: 4%; } to { left: 96%; } }
+@keyframes ntk-progress { from { left: 0%; } to { left: 97%; } }
 @media (prefers-reduced-motion: reduce) {
-  .dial-sweep { animation: none; }
+  .dial-sweep { animation: none; left: 50%; }
   .btn { transition: none; }
   html { scroll-behavior: auto; }
 }

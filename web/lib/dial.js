@@ -1,8 +1,9 @@
 // The dial, after an old radio's tuning scale: fine black ticks standing on a
 // thin line from 0 to 100, tiny numbers every 10, an orange needle. The verify
 // page shows a stamp's typing match score on it (the needle at the score, a short
-// heavy mark at the score it needs) and, while it waits on the network, a needle
-// that sweeps (.dial-busy). The login page carries the same markup in its HTML:
+// heavy mark at the score it needs). While a page waits on the network it shows
+// the busy dial: evenly spaced ticks, no numbers, the needle advancing from 0 to
+// 100 as progress (.dial-busy). The login page carries that markup in its HTML:
 // dialMarkup() writes it and web/test/dial.test.mjs checks that the two agree.
 // dialTicks and dialMarkup are pure; dialEl needs a DOM document.
 
@@ -24,10 +25,17 @@ export function dialTicks() {
   return out;
 }
 
+/** The busy dial's ticks: evenly spaced and all alike, every 2.5 points. */
+export function busyTicks() {
+  const out = [];
+  for (let i = 0; i <= 40; i++) out.push({ x: i * 25, y1: DIAL.BASE - 9, y2: DIAL.BASE });
+  return out;
+}
+
 /** The lines of a dial: the base line, the ticks, then the mark and the needle when given. */
-function dialLines({ score = null, needs = null } = {}) {
+function dialLines({ score = null, needs = null, busy = false } = {}) {
   const lines = [{ x1: 0, y1: DIAL.BASE, x2: DIAL.W, y2: DIAL.BASE }];
-  for (const t of dialTicks()) lines.push({ x1: t.x, y1: t.y1, x2: t.x, y2: t.y2 });
+  for (const t of busy ? busyTicks() : dialTicks()) lines.push({ x1: t.x, y1: t.y1, x2: t.x, y2: t.y2 });
   if (needs != null && Number.isFinite(Number(needs))) {
     const x = clamp(needs) * 10;
     lines.push({ x1: x, y1: 0, x2: x, y2: 7, cls: 'dial-needs' });
@@ -42,7 +50,7 @@ function dialLines({ score = null, needs = null } = {}) {
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SVG_ATTRS = { viewBox: `0 0 ${DIAL.W} ${DIAL.H}`, preserveAspectRatio: 'none', focusable: 'false', 'aria-hidden': 'true' };
 
-/** A dial as DOM: { score, needs } for a reading, { busy: true } for the sweeping needle. */
+/** A dial as DOM: { score, needs } for a reading, { busy: true } for the progress needle. */
 export function dialEl(doc, opts = {}) {
   const dial = doc.createElement('div');
   dial.setAttribute('class', opts.busy ? 'dial dial-busy' : 'dial');
@@ -57,15 +65,17 @@ export function dialEl(doc, opts = {}) {
     line.setAttribute('vector-effect', 'non-scaling-stroke');
     svg.append(line);
   }
-  const numbers = doc.createElement('div');
-  numbers.setAttribute('class', 'dial-numbers');
-  for (const n of DIAL_NUMBERS) {
-    const s = doc.createElement('span');
-    s.textContent = String(n);
-    numbers.append(s);
-  }
-  dial.append(svg, numbers);
-  if (opts.busy) {
+  dial.append(svg);
+  if (!opts.busy) {
+    const numbers = doc.createElement('div');
+    numbers.setAttribute('class', 'dial-numbers');
+    for (const n of DIAL_NUMBERS) {
+      const s = doc.createElement('span');
+      s.textContent = String(n);
+      numbers.append(s);
+    }
+    dial.append(numbers);
+  } else {
     const sweep = doc.createElement('span');
     sweep.setAttribute('class', 'dial-sweep');
     dial.append(sweep);
@@ -83,8 +93,8 @@ export function dialMarkup(opts = {}, indent = '') {
     `${indent}  <svg class="dial-scale"${attrs}>`,
     ...lines,
     `${indent}  </svg>`,
-    `${indent}  <div class="dial-numbers">${DIAL_NUMBERS.map((n) => `<span>${n}</span>`).join('')}</div>`,
-    ...(opts.busy ? [`${indent}  <span class="dial-sweep"></span>`] : []),
+    ...(opts.busy ? [`${indent}  <span class="dial-sweep"></span>`]
+      : [`${indent}  <div class="dial-numbers">${DIAL_NUMBERS.map((n) => `<span>${n}</span>`).join('')}</div>`]),
     `${indent}</div>`,
   ].join('\n');
 }

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Maya · Messages</title>
+  <meta name="description" content="A demo phone conversation with a reply stamped by the NTK keyboard. Invented contact; your messages stay in this browser.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#F7F7F8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1C1C1E" media="(prefers-color-scheme: dark)">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/assets/favicon.ico?v=043ec83d" sizes="any">
+  <link rel="icon" href="/assets/favicon-32.png?v=ad8ec9d2" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=776edb31">
+  <link rel="stylesheet" href="/messages/messages.css">
+  <script type="module" src="/messages/main.js"></script>
+</head>
+<body class="page-messages">
+  <header class="msg-bar">
+    <a class="msg-back" href="/" aria-label="Back"><span data-icon="chevron" data-size="26"></span></a>
+    <div class="contact">
+      <span class="contact-avatar" id="contact-avatar" aria-hidden="true"></span>
+      <span class="contact-name" id="contact-name"></span>
+    </div>
+    <span class="demo" title="A demo conversation with an invented contact">DEMO</span>
+    <button id="clear-btn" class="msg-clear" type="button" disabled>Clear</button>
+  </header>
+
+  <main id="thread" class="thread" aria-label="Conversation" aria-live="polite"></main>
+
+  <form id="composer" class="msg-composer" autocomplete="off">
+    <label class="sr-only" for="message-box">Message</label>
+    <textarea id="message-box" name="message" rows="1" placeholder="Text message"></textarea>
+    <button id="send-btn" class="msg-send" type="submit" aria-label="Send" disabled><span data-icon="send" data-size="20"></span></button>
+  </form>
+  <noscript><p class="notice">This demo needs JavaScript.</p></noscript>
+</body>
+</html>

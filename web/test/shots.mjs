@@ -35,6 +35,7 @@ const SHOTS = [
   { name: 'nomatch', path: `/26144e35e7#t=${EDITED}` },
   { name: 'unknown', path: '/0000000000#t=SGVsbG8' },
   { name: 'feed', path: '/feed/?embed=1' },
+  { name: 'messages', path: '/messages/?embed=1' },
   { name: 'login', path: LOGIN },
   { name: 'login-connected', path: LOGIN, then: loginState('connected', "document.getElementById('account').textContent = 'ntk-alice.testnet'; document.getElementById('wallet-name').textContent = 'Meteor Wallet';") },
   { name: 'login-done', path: LOGIN, then: loginState('done', "document.getElementById('done-account').textContent = 'ntk-alice.testnet'; document.getElementById('done-detail').textContent = 'The key is on your account.';") },

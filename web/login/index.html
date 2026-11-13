@@ -14,7 +14,7 @@
   <link rel="icon" href="/assets/favicon-32.png?v=ad8ec9d2" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=776edb31">
   <link rel="preload" href="/assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/ntk.css?v=b52a8de3">
+  <link rel="stylesheet" href="/assets/ntk.css?v=138478f0">
   <link rel="stylesheet" href="/login/login.css">
   <!-- A classic script, not a module: it reads its own nonce (nginx puts a fresh one here) for the wallets' iframes. -->
   <script src="/login/bundle.js" nonce="NTK_CSP_NONCE" defer></script>
@@ -49,65 +49,54 @@
         <ul id="invalid-list" class="problems"></ul>
       </div>
 
-      <!-- Waiting: the dial of lib/dial.js with its needle sweeping (dialMarkup wrote it; web/test/dial.test.mjs checks it). -->
+      <!-- Waiting: the busy dial of lib/dial.js, its needle advancing (dialMarkup wrote it; web/test/dial.test.mjs checks it). -->
       <div class="busy" data-show="loading busy">
         <p class="busy-text" role="status" aria-live="polite"><span id="busy-text">Loading…</span></p>
         <div class="dial dial-busy" aria-hidden="true">
           <svg class="dial-scale" viewBox="0 0 1000 30" preserveAspectRatio="none" focusable="false" aria-hidden="true">
             <line x1="0" y1="26" x2="1000" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="0" y1="10" x2="0" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="20" y1="20" x2="20" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="40" y1="20" x2="40" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="60" y1="20" x2="60" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="80" y1="20" x2="80" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="100" y1="15" x2="100" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="120" y1="20" x2="120" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="140" y1="20" x2="140" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="160" y1="20" x2="160" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="180" y1="20" x2="180" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="200" y1="15" x2="200" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="220" y1="20" x2="220" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="240" y1="20" x2="240" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="260" y1="20" x2="260" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="280" y1="20" x2="280" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="300" y1="15" x2="300" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="320" y1="20" x2="320" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="340" y1="20" x2="340" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="360" y1="20" x2="360" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="380" y1="20" x2="380" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="400" y1="15" x2="400" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="420" y1="20" x2="420" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="440" y1="20" x2="440" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="460" y1="20" x2="460" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="480" y1="20" x2="480" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="500" y1="10" x2="500" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="520" y1="20" x2="520" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="540" y1="20" x2="540" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="560" y1="20" x2="560" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="580" y1="20" x2="580" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="600" y1="15" x2="600" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="620" y1="20" x2="620" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="640" y1="20" x2="640" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="660" y1="20" x2="660" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="680" y1="20" x2="680" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="700" y1="15" x2="700" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="720" y1="20" x2="720" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="740" y1="20" x2="740" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="760" y1="20" x2="760" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="780" y1="20" x2="780" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="800" y1="15" x2="800" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="820" y1="20" x2="820" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="840" y1="20" x2="840" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="860" y1="20" x2="860" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="880" y1="20" x2="880" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="900" y1="15" x2="900" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="920" y1="20" x2="920" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="940" y1="20" x2="940" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="960" y1="20" x2="960" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="980" y1="20" x2="980" y2="26" vector-effect="non-scaling-stroke"/>
-            <line x1="1000" y1="10" x2="1000" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="0" y1="17" x2="0" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="25" y1="17" x2="25" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="50" y1="17" x2="50" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="75" y1="17" x2="75" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="100" y1="17" x2="100" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="125" y1="17" x2="125" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="150" y1="17" x2="150" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="175" y1="17" x2="175" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="200" y1="17" x2="200" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="225" y1="17" x2="225" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="250" y1="17" x2="250" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="275" y1="17" x2="275" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="300" y1="17" x2="300" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="325" y1="17" x2="325" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="350" y1="17" x2="350" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="375" y1="17" x2="375" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="400" y1="17" x2="400" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="425" y1="17" x2="425" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="450" y1="17" x2="450" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="475" y1="17" x2="475" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="500" y1="17" x2="500" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="525" y1="17" x2="525" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="550" y1="17" x2="550" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="575" y1="17" x2="575" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="600" y1="17" x2="600" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="625" y1="17" x2="625" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="650" y1="17" x2="650" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="675" y1="17" x2="675" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="700" y1="17" x2="700" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="725" y1="17" x2="725" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="750" y1="17" x2="750" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="775" y1="17" x2="775" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="800" y1="17" x2="800" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="825" y1="17" x2="825" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="850" y1="17" x2="850" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="875" y1="17" x2="875" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="900" y1="17" x2="900" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="925" y1="17" x2="925" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="950" y1="17" x2="950" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="975" y1="17" x2="975" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="1000" y1="17" x2="1000" y2="26" vector-effect="non-scaling-stroke"/>
           </svg>
-          <div class="dial-numbers"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span><span>70</span><span>80</span><span>90</span><span>100</span></div>
           <span class="dial-sweep"></span>
         </div>
       </div>

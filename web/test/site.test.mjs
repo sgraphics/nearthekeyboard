@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { createRelay } from '../../relay/server.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PAGES = ['/', '/e65ee28db5', '/feed/', '/feed/?embed=1', '/login/', '/privacy/'];
+const PAGES = ['/', '/e65ee28db5', '/feed/', '/feed/?embed=1', '/messages/', '/messages/?embed=1', '/login/', '/privacy/'];
 const ENTRY = ['/embed/ntk-embed.js', '/embed/ntk-embed.css', '/favicon.ico', '/assets/ntk-social-1280x640.png'];
 
 async function startSite() {
@@ -70,7 +70,8 @@ test('every page and every file it refers to resolves, with the right type', asy
       '/assets/ntk.css', '/verify/verify.css', '/feed/feed.css', '/embed/ntk-embed.js',
       '/assets/ntk-badge-light.svg', '/assets/ntk-badge-dark.svg', '/assets/ntk-keyboard-light.svg', '/assets/ntk-keyboard-dark.svg',
       '/assets/favicon.ico', '/assets/favicon-32.png', '/assets/apple-touch-icon.png', '/assets/ntk-social-1280x640.png',
-      '/login/bundle.js', '/login/login.css']) {
+      '/login/bundle.js', '/login/login.css', '/lib/icons.js', '/lib/dial.js',
+      '/messages/main.js', '/messages/model.js', '/messages/messages.css']) {
       assert.ok(files.includes(must), `${must} is reachable from the pages`);
     }
   } finally {
@@ -81,14 +82,15 @@ test('every page and every file it refers to resolves, with the right type', asy
 test('markup fits the CSP: no inline scripts, no inline styles, no innerHTML', async () => {
   const { relay, base } = await startSite();
   try {
-    for (const p of ['/', '/feed/', '/login/', '/privacy/']) {
+    for (const p of ['/', '/feed/', '/messages/', '/login/', '/privacy/']) {
       const html = await (await fetch(base + p)).text();
       assert.doesNotMatch(html, /<script(?![^>]*\ssrc=)[^>]*>/i, `${p}: inline <script>`);
       assert.doesNotMatch(html, /\sstyle=/i, `${p}: style attribute`);
       assert.doesNotMatch(html, /<style/i, `${p}: <style> element`);
       assert.doesNotMatch(html, /\son[a-z]+=/i, `${p}: inline event handler`);
     }
-    for (const p of ['/verify/main.js', '/feed/main.js', '/lib/pixel.js', '/embed/ntk-embed.js', '/login/src/main.js', '/login/src/model.js']) {
+    for (const p of ['/verify/main.js', '/feed/main.js', '/messages/main.js', '/lib/pixel.js', '/lib/icons.js', '/lib/dial.js',
+      '/embed/ntk-embed.js', '/login/src/main.js', '/login/src/model.js']) {
       const js = await (await fetch(base + p)).text();
       assert.doesNotMatch(js, /innerHTML|outerHTML|insertAdjacentHTML|document\.write/, `${p} builds DOM from text only`);
       assert.doesNotMatch(js, /setAttribute\(\s*['"]style['"]/, `${p}: style attribute`);

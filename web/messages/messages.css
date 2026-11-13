@@ -1,0 +1,232 @@
+/* Demo messages (/messages/): an ordinary phone messages app, not NTK's look,
+   so it has its own stylesheet and does not load /assets/ntk.css. A bar with
+   the contact's name and avatar, incoming bubbles light grey on the left,
+   outgoing bubbles blue on the right, day-and-time lines, a composer at the
+   bottom with a send button. The system font. The one NTK element is the stamp
+   button the web embed puts on a tag (/embed/ntk-embed.css). Phone first. */
+
+:root {
+  --bg: #FFFFFF;
+  --bar: rgba(247, 247, 248, .92);
+  --ink: #000000;
+  --ink-2: #6E6E73;             /* times and notes: 5:1 on white */
+  --hair: #E5E5EA;
+  --in: #E9E9EB;
+  --on-in: #000000;
+  --out: #0B6CF5;
+  --on-out: #FFFFFF;            /* 4.7:1 */
+  --blue: #0B6CF5;
+  --field: #F2F2F7;
+  --off: #C7C7CC;
+  --avatar: #8E8E93;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --bar: rgba(28, 28, 30, .92);
+    --ink: #FFFFFF;
+    --ink-2: #8E8E93;
+    --hair: #38383A;
+    --in: #26252A;
+    --on-in: #FFFFFF;
+    --field: #1C1C1E;
+    --off: #3A3A3C;
+    --avatar: #636366;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: var(--bg); }
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.35;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+p { margin: 0; }
+a { color: var(--blue); }
+a:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+[hidden] { display: none !important; }
+svg.icon { display: block; flex: none; }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- the bar: back, the contact, the demo label, clear ------------------- */
+
+.msg-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+  padding: 8px 12px 8px 4px;
+  padding-top: max(8px, env(safe-area-inset-top));
+  border-bottom: 1px solid var(--hair);
+  background: var(--bar);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.msg-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 44px;
+  color: var(--blue);
+}
+.msg-back svg.icon { stroke-width: 2; }
+.contact { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.contact-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--avatar);
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 600;
+}
+.contact-name { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo {
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: var(--in);
+  color: var(--ink-2);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+.msg-clear {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 44px;
+  padding: 0 4px 0 8px;
+  border: 0;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+.msg-clear:disabled { color: var(--off); cursor: default; }
+
+/* ---- the thread ---------------------------------------------------------- */
+
+.thread {
+  flex: 1;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 10px 12px 16px;
+}
+.thread-note {
+  max-width: 30em;
+  margin: 6px auto 4px;
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+.divider {
+  margin: 18px 0 8px;
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.msg { display: flex; flex-direction: column; margin-top: 2px; }
+.msg.in { align-items: flex-start; }
+.msg.out { align-items: flex-end; }
+.bubble {
+  max-width: 78%;
+  padding: 8px 13px;
+  border-radius: 18px;
+  overflow-wrap: anywhere;
+}
+.in .bubble { background: var(--in); color: var(--on-in); }
+.out .bubble { background: var(--out); color: var(--on-out); }
+.bubble-text { white-space: pre-wrap; }
+/* The last bubble of a run from one sender has a tail corner and shows the time. */
+.msg.in:not(:has(+ .msg.in)) .bubble { border-bottom-left-radius: 5px; }
+.msg.out:not(:has(+ .msg.out)) .bubble { border-bottom-right-radius: 5px; }
+.msg-time { margin: 3px 6px 10px; color: var(--ink-2); font-size: 11px; }
+.msg.in:has(+ .msg.in) .msg-time,
+.msg.out:has(+ .msg.out) .msg-time { display: none; }
+
+/* A tag stays on one line; the Android layer or the web embed puts a button on it. */
+.ntk-tag { white-space: nowrap; }
+
+/* ---- the composer -------------------------------------------------------- */
+
+.msg-composer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 10px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--hair);
+  background: var(--bar);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.msg-composer textarea {
+  flex: 1;
+  min-height: 38px;
+  max-height: 140px;
+  margin: 0;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 19px;
+  outline: none;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  line-height: 22px;
+  resize: none;
+}
+.msg-composer textarea::placeholder { color: var(--ink-2); opacity: 1; }
+.msg-send {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #FFFFFF;
+  cursor: pointer;
+}
+.msg-send svg.icon { stroke-width: 2.4; }
+.msg-send:disabled { background: var(--off); cursor: default; }
+
+.notice { margin: 16px; color: var(--ink-2); text-align: center; }

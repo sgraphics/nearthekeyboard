@@ -1,9 +1,9 @@
-// The dial (web/lib/dial.js): its scale, and the copy of it in the login page's
-// HTML, which has no script of its own to build it.
+// The dial (web/lib/dial.js): its scale, the busy variant, and the copy of the
+// busy dial in the login page's HTML, which has no script of its own to build it.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { DIAL, DIAL_NUMBERS, dialTicks, dialMarkup } from '../lib/dial.js';
+import { DIAL, DIAL_NUMBERS, dialTicks, busyTicks, dialMarkup } from '../lib/dial.js';
 
 test('the scale: a tick every 2 points, longer every 10, longest at 0, 50 and 100', () => {
   const ticks = dialTicks();
@@ -20,9 +20,19 @@ test('a reading: the needle at the score, the mark at the score it needs, both k
   const m = dialMarkup({ score: 95, needs: 65 });
   assert.match(m, /<line x1="950" y1="-3" x2="950" y2="\d+" class="dial-needle"/);
   assert.match(m, /<line x1="650" y1="0" x2="650" y2="7" class="dial-needs"/);
+  assert.match(m, /class="dial-numbers"/, 'a reading keeps its numbers');
   assert.match(dialMarkup({ score: 140 }), /x1="1000"[^>]*class="dial-needle"/);
-  assert.doesNotMatch(dialMarkup({ busy: true }), /dial-needle|dial-needs/, 'a busy dial has only the sweeping needle');
-  assert.match(dialMarkup({ busy: true }), /<span class="dial-sweep"><\/span>/);
+});
+
+test('the busy dial: evenly spaced ticks all alike, no numbers, only the progress needle', () => {
+  const ticks = busyTicks();
+  assert.equal(ticks.length, 41);
+  assert.deepEqual(ticks.map((t) => t.x), Array.from({ length: 41 }, (_, i) => i * 25));
+  assert.equal(new Set(ticks.map((t) => t.y1)).size, 1, 'one length');
+  const m = dialMarkup({ busy: true });
+  assert.doesNotMatch(m, /dial-numbers|dial-needle|dial-needs/);
+  assert.match(m, /<span class="dial-sweep"><\/span>/);
+  assert.equal(m.split('<line ').length - 1, 42, 'the base line and 41 ticks');
 });
 
 test('the login page carries the busy dial exactly as dialMarkup writes it', () => {

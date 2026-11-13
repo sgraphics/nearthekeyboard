@@ -33,11 +33,11 @@ function h(tag, attrs, ...children) {
   return el;
 }
 
-/** A flat disc with a dot-matrix face: the 5x5 pattern inside the avatar grid's ring, lit and unlit dots. */
+/** A round avatar with a generated face: the 5x5 pattern inside the avatar grid's ring, as dots. */
 function avatar(handle) {
   const { rows, tone } = avatarGrid(handle);
   const face = rows.slice(1, -1).map((r) => r.slice(1, -1).replace(/o/g, '-'));
-  return dotSvg(document, face, { size: 40, r: 0.33, pad: 1.7, cls: `avatar tone-${tone}`, names: { '#': 'on', '-': 'off' } });
+  return dotSvg(document, face, { size: 40, r: 0.42, pad: 1.35, cls: `avatar tone-${tone}`, names: { '#': 'on', '-': 'off' } });
 }
 
 /** One block for the text and its tags: <p>text <span class="ntk-tag">[NTK id]</span></p> */

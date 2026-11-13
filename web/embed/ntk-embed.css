@@ -1,6 +1,6 @@
 /* NTK web embed: the button a tag becomes. Loaded by ntk-embed.js from the same
    folder, on any page, so it uses no variables of the NTK site. A small flat
-   orange tile with black text: no border, no gradient, rounded corners and a
+   orange tile with white text at a medium weight: no border, no gradient, rounded corners and a
    barely visible soft shadow. Pressed, it moves 1 px down and darkens a little.
    The text inside is the tag itself, so the page's text does not change. */
 .ntk-embed-btn {
@@ -12,13 +12,13 @@
   border: 0;
   border-radius: 6px;
   font: inherit;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: normal;
   text-transform: none;
   text-decoration: none;
   white-space: nowrap;
   vertical-align: baseline;
-  color: #000000;
+  color: #FFFFFF;
   background: #FD5B15;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;

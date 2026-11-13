@@ -78,7 +78,7 @@ export function serveLocal() {
   const server = http.createServer((req, res) => {
     let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (p.split('/').some((s) => s.startsWith('.')) || p.startsWith('/test/')) { res.writeHead(404); return res.end(); }
-    for (const page of ['/feed', '/login', '/privacy']) if (p === page) { res.writeHead(301, { Location: `${page}/` }); return res.end(); }
+    for (const page of ['/feed', '/messages', '/login', '/privacy']) if (p === page) { res.writeHead(301, { Location: `${page}/` }); return res.end(); }
     if (p === '/' || /^\/[0-9a-f]{10}$/.test(p)) p = '/index.html';
     if (p.endsWith('/')) p += 'index.html';
     const file = path.join(WEB, p);
