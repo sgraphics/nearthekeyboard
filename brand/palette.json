@@ -1,70 +1,180 @@
 {
   "name": "NTK — Near The Keyboard",
-  "note": "build.mjs reads this file. Change a colour here, then run node build.mjs. Every object is a block in 2:1 pixel isometric: a top face, a lit front face (lower left), a shaded right face (lower right). No outlines.",
+  "note": "build.mjs reads this file. Change a colour here, then run node build.mjs. High-key white, as in the reference scene: white blocks in 2:1 pixel isometric with very light cool-grey side faces (lit front, shaded right) and soft blurred shadows on a white floor with a faint grid. Black for small strong details, orange for a few accents. No outlines.",
   "light": {
-    "white": { "hex": "#FFFFFF", "use": "top faces of keys and small blocks" },
-    "top": { "hex": "#F7F7F4", "use": "top faces of large blocks: the keyboard body, cards" },
-    "lit": { "hex": "#E9E9E4", "use": "lit side faces (the front, lower left in isometric)" },
-    "shade": { "hex": "#DADAD3", "use": "shaded side faces (the right, lower right in isometric)" },
-    "paper": { "hex": "#EDEDE8", "use": "backgrounds" },
-    "drop": { "hex": "#DDDDD6", "use": "the soft blocky shadow on the desk (paper)" },
-    "ink": { "hex": "#2B2B2B", "use": "the wordmark, text, legends (12:1 on paper, 14:1 on white)" },
-    "muted": { "hex": "#66665F", "use": "secondary text only (4.9:1 on paper)" },
-    "slate": { "hex": "#4A4A46", "use": "the one dark block (the spacebar): top face" },
-    "slateLit": { "hex": "#3B3B38", "use": "the dark block: lit side" },
-    "slateShade": { "hex": "#30302E", "use": "the dark block: shaded side" },
-    "orange": { "hex": "#FF4F00", "use": "accent blocks: the Enter/Sign key, the light, a verified stamp; icon backgrounds" },
-    "orangeLit": { "hex": "#E04600", "use": "orange block: lit side; drops on orange" },
-    "orangeShade": { "hex": "#C23D00", "use": "orange block: shaded side" }
+    "white": {
+      "hex": "#FFFFFF",
+      "use": "top faces of keys and small blocks"
+    },
+    "top": {
+      "hex": "#FFFFFF",
+      "use": "top faces of large blocks: the keyboard body, cards"
+    },
+    "lit": {
+      "hex": "#F3F4F6",
+      "use": "lit side faces (the front, lower left in isometric)"
+    },
+    "shade": {
+      "hex": "#E8EAED",
+      "use": "shaded side faces (the right, lower right in isometric)"
+    },
+    "keyLit": {
+      "hex": "#ECEEF1",
+      "use": "lit side faces of keys (a touch deeper than large blocks, so the keys read)"
+    },
+    "keyShade": {
+      "hex": "#DFE2E6",
+      "use": "shaded side faces of keys"
+    },
+    "paper": {
+      "hex": "#FFFFFF",
+      "use": "backgrounds: the floor"
+    },
+    "grid": {
+      "hex": "#EEF0F3",
+      "use": "the faint square grid on the floor, 1 px lines"
+    },
+    "shadow": {
+      "hex": "#111827",
+      "use": "soft blurred shadows, at 8 to 18 % opacity"
+    },
+    "ink": {
+      "hex": "#111418",
+      "use": "the wordmark, text, legends, black details (18:1 on white)"
+    },
+    "muted": {
+      "hex": "#6B7280",
+      "use": "secondary text only (4.8:1 on white)"
+    },
+    "slate": {
+      "hex": "#2B2F36",
+      "use": "a dark block, if a scheme asks for one: top face"
+    },
+    "slateLit": {
+      "hex": "#22262C",
+      "use": "the dark block: lit side"
+    },
+    "slateShade": {
+      "hex": "#1A1D22",
+      "use": "the dark block: shaded side"
+    },
+    "orange": {
+      "hex": "#FF4F00",
+      "use": "accents: the Enter and Esc keys, the light, the main action, a verified stamp; icon backgrounds"
+    },
+    "orangeLit": {
+      "hex": "#E04600",
+      "use": "orange block: lit side"
+    },
+    "orangeShade": {
+      "hex": "#C23D00",
+      "use": "orange block: shaded side"
+    }
   },
   "dark": {
-    "space": { "hex": "#121211", "use": "backgrounds" },
-    "drop": { "hex": "#0A0A09", "use": "the soft blocky shadow on space" },
-    "top": { "hex": "#222220", "use": "top faces of large blocks: the keyboard body, cards" },
-    "lit": { "hex": "#3A3A36", "use": "lit side faces of large blocks (lighter than the top)" },
-    "shade": { "hex": "#2E2E2B", "use": "shaded side faces of large blocks" },
-    "key": { "hex": "#2E2E2B", "use": "top faces of keys and small blocks" },
-    "keyLit": { "hex": "#4A4A45", "use": "lit side faces of keys" },
-    "keyShade": { "hex": "#3D3D39", "use": "shaded side faces of keys" },
-    "offWhite": { "hex": "#EDEDE8", "use": "the wordmark, text, legends (16:1 on space, 11.6:1 on a key)" },
-    "muted": { "hex": "#8C8C86", "use": "secondary text only (5.5:1 on space)" },
-    "slate": { "hex": "#161615", "use": "the one dark block (the spacebar): top face" },
-    "slateLit": { "hex": "#2A2A27", "use": "the dark block: lit side" },
-    "slateShade": { "hex": "#222220", "use": "the dark block: shaded side" },
-    "orange": { "hex": "#FF4F00", "use": "accent blocks (same orange as light)" },
-    "orangeLit": { "hex": "#E04600", "use": "orange block: lit side" },
-    "orangeShade": { "hex": "#C23D00", "use": "orange block: shaded side" }
+    "space": {
+      "hex": "#111316",
+      "use": "backgrounds: the floor"
+    },
+    "grid": {
+      "hex": "#1B1E23",
+      "use": "the faint grid on the floor"
+    },
+    "shadow": {
+      "hex": "#000000",
+      "use": "soft blurred shadows, at 40 to 60 % opacity"
+    },
+    "top": {
+      "hex": "#1F2227",
+      "use": "top faces of large blocks: the keyboard body, cards"
+    },
+    "lit": {
+      "hex": "#2A2E34",
+      "use": "lit side faces of large blocks (lighter than the top)"
+    },
+    "shade": {
+      "hex": "#25282E",
+      "use": "shaded side faces of large blocks"
+    },
+    "key": {
+      "hex": "#2A2E35",
+      "use": "top faces of keys and small blocks"
+    },
+    "keyLit": {
+      "hex": "#363B43",
+      "use": "lit side faces of keys"
+    },
+    "keyShade": {
+      "hex": "#30353C",
+      "use": "shaded side faces of keys"
+    },
+    "offWhite": {
+      "hex": "#EDEEF0",
+      "use": "the wordmark, text, legends (16:1 on space)"
+    },
+    "muted": {
+      "hex": "#9CA3AF",
+      "use": "secondary text only (7.5:1 on space)"
+    },
+    "slate": {
+      "hex": "#16181C",
+      "use": "a dark block, if a scheme asks for one: top face"
+    },
+    "slateLit": {
+      "hex": "#2A2E34",
+      "use": "the dark block: lit side"
+    },
+    "slateShade": {
+      "hex": "#22252A",
+      "use": "the dark block: shaded side"
+    },
+    "orange": {
+      "hex": "#FF4F00",
+      "use": "accents (same orange as light)"
+    },
+    "orangeLit": {
+      "hex": "#E04600",
+      "use": "orange block: lit side"
+    },
+    "orangeShade": {
+      "hex": "#C23D00",
+      "use": "orange block: shaded side"
+    }
   },
   "keyboard": {
-    "note": "Colours for the Android keyboard themes (TODO 3.7). Each key is a block: face, a lit edge below it, a shaded edge at its right, no outline. A press darkens the face and both edges by one step. The Sign key is an orange block; its legend is #1A1A1A (5.3:1 on orange; #2B2B2B gives only 4.3:1, white 3.3:1).",
+    "note": "The Android keyboard theme (android/app/src/main/res/values{,-night}/colors-ntk.xml). Each key is a block: a top face, a lit face along its bottom and a shaded face along its right, cut at 45 degrees, and a soft blurred shadow, all inside the key; a press moves the top face down onto its side faces. Function keys a touch greyer. The Sign key is an orange block with a near-black legend (5.0:1 on orange).",
     "light": {
-      "background": "#EDEDE8",
+      "background": "#FFFFFF",
       "key": "#FFFFFF",
-      "keyEdgeLit": "#E9E9E4",
-      "keyEdgeShade": "#DADAD3",
-      "keyPressed": "#E9E9E4",
-      "keyPressedEdgeLit": "#DADAD3",
-      "keyPressedEdgeShade": "#CBCBC4",
-      "legend": "#2B2B2B",
+      "keyLit": "#F3F4F6",
+      "keyShade": "#E8EAED",
+      "func": "#F5F6F8",
+      "funcLit": "#EBEDF0",
+      "funcShade": "#E0E3E7",
+      "shadow": "#33111827",
+      "legend": "#111418",
+      "muted": "#6B7280",
       "signKey": "#FF4F00",
-      "signKeyEdgeLit": "#E04600",
-      "signKeyEdgeShade": "#C23D00",
-      "signLegend": "#1A1A1A",
+      "signKeyLit": "#E04600",
+      "signKeyShade": "#C23D00",
+      "signLegend": "#111418",
       "badge": "ntk_badge_light.xml"
     },
     "dark": {
-      "background": "#121211",
-      "key": "#2E2E2B",
-      "keyEdgeLit": "#4A4A45",
-      "keyEdgeShade": "#3D3D39",
-      "keyPressed": "#222220",
-      "keyPressedEdgeLit": "#3A3A36",
-      "keyPressedEdgeShade": "#2E2E2B",
-      "legend": "#EDEDE8",
+      "background": "#111316",
+      "key": "#272B31",
+      "keyLit": "#32373E",
+      "keyShade": "#2C3036",
+      "func": "#1F2227",
+      "funcLit": "#2A2E34",
+      "funcShade": "#25282E",
+      "shadow": "#B3000000",
+      "legend": "#EDEEF0",
+      "muted": "#9CA3AF",
       "signKey": "#FF4F00",
-      "signKeyEdgeLit": "#E04600",
-      "signKeyEdgeShade": "#C23D00",
-      "signLegend": "#1A1A1A",
+      "signKeyLit": "#E04600",
+      "signKeyShade": "#C23D00",
+      "signLegend": "#111418",
       "badge": "ntk_badge_dark.xml"
     }
   }

@@ -1,41 +1,50 @@
 /* NTK web: the shared look of every page (verify, feed, login, privacy).
-   Light, blocky, large-pixel 3D: UI elements are blocks extruded in soft
-   isometric light. A block's own box is its top face; its front face (lit) and
-   right face (shaded) are drawn below and to its right as stairs of big pixels,
-   with a soft drop one pixel further. No outlines: edges come from the change of
-   colour between faces. Orange marks what is active. Text in the system font.
+   High-key white, like the brand's isometric scene (brand/README.md): the page
+   is a white floor with a faint square grid; UI elements are white blocks, each
+   a top face with a thin, very light lit face below it and a shaded face at its
+   right, square-edged, on a soft blurred shadow. No outlines. Black for small
+   strong details (chips, code, the NO MATCH verdict), orange for the one main
+   action and small accents, green for MATCH. Text in the system font.
    Colours shared with brand/ (brand/palette.json). */
 
 :root {
-  --px: 4px;                  /* one big pixel */
+  --px: 4px;                  /* a spacing unit */
+  --d: 6px;                   /* how deep a block's side faces are */
 
-  --bg: #FBFBF9;              /* page */
+  --bg: #FFFFFF;              /* the floor */
+  --grid: #EEF0F3;            /* its faint grid */
   --c-top: #FFFFFF;           /* a block's top face */
-  --c-top-2: #F7F7F4;         /* a quieter top face */
-  --c-lit: #E6E6E0;           /* front face */
-  --c-shade: #D5D5CD;         /* right face */
-  --c-lit-soft: #EEEEE9;      /* the faces of large blocks (panels): calmer */
-  --c-shade-soft: #E2E2DB;
-  --c-drop: #EFEFEB;          /* the soft drop */
-  --ink: #2B2B2B;             /* text: 14:1 on white */
-  --muted: #66665F;           /* secondary text: 5.4:1 on #F7F7F4 */
-  --line: #E2E2DC;            /* dotted rules */
+  --c-top-2: #F7F8FA;         /* a quieter top face */
+  --c-lit: #F3F4F6;           /* front face (below) */
+  --c-shade: #E8EAED;         /* right face */
+  --c-lit-soft: #F3F4F6;      /* the faces of large blocks (panels) */
+  --c-shade-soft: #E8EAED;
+  --c-drop: rgba(17, 24, 39, .06);
+  --soft: 0 18px 40px -14px rgba(17, 24, 39, .12), 0 6px 12px -6px rgba(17, 24, 39, .08);
+  --soft-sm: 0 8px 18px -8px rgba(17, 24, 39, .14), 0 3px 6px -3px rgba(17, 24, 39, .08);
+  --ink: #111418;             /* text: 18:1 on white */
+  --muted: #6B7280;           /* secondary text: 4.8:1 on white */
+  --line: #E6E8EC;            /* rules */
 
   --orange: #FF4F00;
   --orange-lit: #E04600;
   --orange-shade: #C23D00;
-  --on-orange: #161616;       /* 5.5:1 on orange */
-  --green: #2DB86A;           /* MATCH */
+  --on-orange: #111418;       /* 5.6:1 on orange */
+  --green: #2DB86A;           /* MATCH, PASS */
   --green-lit: #23995A;
   --green-shade: #1C7D49;
-  --on-green: #161616;        /* 7:1 on green */
-  --slate: #56554F;           /* NO MATCH: white text 7.5:1 */
-  --slate-lit: #47463F;
-  --slate-shade: #3B3A35;
-  --red: #C2412D;             /* INVALID: white text 5.1:1 */
-  --red-lit: #A8382A;
-  --red-shade: #8E2F23;
-  --pale: #EEEEE9;            /* UNKNOWN */
+  --on-green: #111418;        /* 7:1 on green */
+  --black: #111418;           /* chips, code, NO MATCH */
+  --black-lit: #0B0D10;
+  --black-shade: #000000;
+  --on-black: #FFFFFF;
+  --red: #D33A1C;             /* INVALID, FAIL: orange-red, white text 4.8:1 */
+  --red-lit: #B8311A;
+  --red-shade: #9C2A16;
+  --pale: #F3F4F6;            /* UNKNOWN */
+  --slate: var(--black);      /* older names */
+  --slate-lit: var(--black-lit);
+  --slate-shade: var(--black-shade);
 
   /* Older names, still used by page styles. */
   --surface: var(--c-top);
@@ -44,9 +53,9 @@
   --edge: var(--c-shade);
   --shade: var(--c-drop);
   --p: 2px;
-  --tint-1: #E9E9E4;          /* pixel avatars */
-  --tint-2: #F7F7F4;
-  --tint-3: #DADAD3;
+  --tint-1: #EEF0F3;          /* pixel avatars */
+  --tint-2: #F7F8FA;
+  --tint-3: #E1E4E8;
 
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
@@ -55,24 +64,28 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161615;
-    --c-top: #282826;
-    --c-top-2: #222220;
-    --c-lit: #3E3E3A;         /* in the dark the side faces are the lighter ones */
-    --c-shade: #34342F;
-    --c-lit-soft: #353532;
-    --c-shade-soft: #2F2F2C;
-    --c-drop: #0D0D0C;
-    --ink: #EDEDE8;
-    --muted: #A6A69F;         /* 6:1 on #282826 */
-    --line: #34342F;
-    --slate: #5A5954;
-    --slate-lit: #6A6964;
-    --slate-shade: #63625C;
-    --pale: #3B3B37;
-    --tint-1: #3B3B37;
-    --tint-2: #32322F;
-    --tint-3: #4A4A45;
+    --bg: #111316;
+    --grid: #1A1D22;
+    --c-top: #1E2126;
+    --c-top-2: #24282E;
+    --c-lit: #2E333A;         /* in the dark the side faces are the lighter ones */
+    --c-shade: #282C32;
+    --c-lit-soft: #2A2E35;
+    --c-shade-soft: #25292F;
+    --c-drop: rgba(0, 0, 0, .3);
+    --soft: 0 18px 40px -14px rgba(0, 0, 0, .6), 0 6px 12px -6px rgba(0, 0, 0, .5);
+    --soft-sm: 0 8px 18px -8px rgba(0, 0, 0, .65), 0 3px 6px -3px rgba(0, 0, 0, .5);
+    --ink: #EDEEF0;
+    --muted: #9CA3AF;         /* 6.4:1 on #1E2126 */
+    --line: #2A2E35;
+    --black: #EDEEF0;         /* the strong details turn light */
+    --black-lit: #C9CDD3;
+    --black-shade: #AEB3BA;
+    --on-black: #111418;
+    --pale: #2A2E35;
+    --tint-1: #2A2E35;
+    --tint-2: #24282E;
+    --tint-3: #343941;
   }
 }
 
@@ -82,7 +95,11 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px;
   color: var(--ink);
   font-family: var(--font);
   font-size: 1rem;
@@ -109,8 +126,9 @@ code, .mono {
   font-size: .88em;
 }
 code {
-  padding: .1em .35em;
-  background: var(--c-top-2);
+  padding: .12em .4em;
+  background: var(--black);
+  color: var(--on-black);
   overflow-wrap: anywhere;
 }
 
@@ -123,47 +141,46 @@ code {
 
 /* ---- blocks ------------------------------------------------------------ */
 
-/* Every block: the top face in --top, the front face in --lit, the right face in
-   --shade. The front face is drawn by shadows with a negative spread so that it
-   stops at the block's right edge; the right face is the stair of full copies.
-   Depth 2 by default; depth 1 for small things and for a pressed block. */
+/* Every block: the top face in --top, the front face (below it) in --lit, the
+   right face in --side, --d deep and square-edged, on a soft blurred shadow.
+   --depth-1 is the thin version for small things; a pressed block moves onto
+   its side faces, which disappear (.btn:active). */
 .block, .pbox, .btn, .chip, .mark, textarea {
   --top: var(--c-top);
   --lit: var(--c-lit);
   --side: var(--c-shade);
   --depth-1:
-    calc(var(--px) * .5) calc(var(--px) * 1.5) 0 calc(var(--px) * -.5) var(--lit),
-    var(--px) var(--px) 0 0 var(--side),
-    calc(var(--px) * 2) calc(var(--px) * 2) 0 0 var(--c-drop);
+    0 4px 0 0 var(--lit),
+    4px 0 0 0 var(--side),
+    4px 4px 0 0 var(--side),
+    var(--soft-sm);
   --depth-2:
-    calc(var(--px) * .5) calc(var(--px) * 1.5) 0 calc(var(--px) * -.5) var(--lit),
-    var(--px) calc(var(--px) * 3) 0 calc(var(--px) * -1) var(--lit),
-    var(--px) var(--px) 0 0 var(--side),
-    calc(var(--px) * 2) calc(var(--px) * 2) 0 0 var(--side),
-    calc(var(--px) * 3) calc(var(--px) * 3) 0 0 var(--c-drop);
+    0 var(--d) 0 0 var(--lit),
+    var(--d) 0 0 0 var(--side),
+    var(--d) var(--d) 0 0 var(--side),
+    var(--soft);
   background: var(--top);
   border: 0;
   border-radius: 0;
   box-shadow: var(--depth-2);
 }
 
-/* Large blocks (panels, results) use larger pixels and calmer faces; leave room for the faces. */
+/* Large blocks (panels, results); leave room for the faces. */
 .block, .pbox {
-  --px: 6px;
   --lit: var(--c-lit-soft);
   --side: var(--c-shade-soft);
-  margin: 0 calc(var(--px) * 3) calc(var(--px) * 3) 0;
+  margin: 0 calc(var(--d) + 6px) calc(var(--d) + 6px) 0;
 }
 
 /* Colours of a block. */
 .tone-orange { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
 .tone-green { --top: var(--green); --lit: var(--green-lit); --side: var(--green-shade); color: var(--on-green); }
-.tone-slate { --top: var(--slate); --lit: var(--slate-lit); --side: var(--slate-shade); color: #FFFFFF; }
+.tone-slate, .tone-black { --top: var(--black); --lit: var(--black-lit); --side: var(--black-shade); color: var(--on-black); }
 .tone-red { --top: var(--red); --lit: var(--red-lit); --side: var(--red-shade); color: #FFFFFF; }
 .tone-pale { --top: var(--pale); }
 .tone-quiet { --top: var(--c-top-2); }
 
-/* Pixel sprites (lib/pixel.js): colours by name. */
+/* Small pixel sprites (lib/pixel.js): colours by name. */
 svg.px { display: inline-block; vertical-align: middle; flex: none; shape-rendering: crispEdges; }
 .px-ink { fill: currentColor; }
 .px-accent { fill: var(--orange); }
@@ -182,7 +199,8 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; shape-render
   justify-content: center;
   gap: .5rem;
   min-height: 48px;
-  margin: 0 calc(var(--px) * 3) calc(var(--px) * 3) 0;
+  --d: 5px;
+  margin: 0 calc(var(--d) + 6px) calc(var(--d) + 6px) 0;
   padding: .65rem 1.4rem;
   font: inherit;
   font-weight: 700;
@@ -190,32 +208,32 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; shape-render
   color: var(--ink);
   cursor: pointer;
   text-decoration: none;
-  transition: transform 60ms steps(1), box-shadow 60ms steps(1);
+  transition: transform 70ms ease-out, box-shadow 70ms ease-out;
 }
 .btn:hover { --top: var(--c-top-2); color: var(--ink); }
-/* Pressed: the block moves down one big pixel along its faces, which shrink. */
-.btn:active:not(:disabled) { transform: translate(var(--px), var(--px)); box-shadow: var(--depth-1); }
+/* Pressed: the top face moves down onto its side faces, which disappear. */
+.btn:active:not(:disabled) { transform: translate(var(--d), var(--d)); box-shadow: var(--soft-sm); }
 .btn:disabled { color: var(--muted); cursor: default; }
 .btn-primary { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
-.btn-primary:hover { --top: #FF6420; color: var(--on-orange); }
+.btn-primary:hover { --top: #FF6A26; color: var(--on-orange); }
 .btn-primary:disabled { --top: var(--c-top-2); --lit: var(--c-lit); --side: var(--c-shade); color: var(--muted); }
 /* On a white panel a plain button gets a quieter top face, so that it reads as a block of its own. */
 .pbox .btn:not(.btn-primary), .block .btn:not(.btn-primary) { --top: var(--c-top-2); }
 .pbox .btn:not(.btn-primary):hover, .block .btn:not(.btn-primary):hover { --top: var(--c-top); }
 .btn-small {
+  --d: 4px;
   min-height: 36px;
-  margin: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  margin: 0 10px 10px 0;
   padding: .35rem .8rem;
   font-size: .85rem;
   box-shadow: var(--depth-1);
 }
-.btn-small:active:not(:disabled) { box-shadow: calc(var(--px) * 1) calc(var(--px) * 1) 0 0 var(--c-drop); }
 
 /* ---- small blocks: chips and marks ------------------------------------- */
 
 .chip {
   display: inline-block;
-  margin: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  margin: 0 10px 10px 0;
   padding: .45em .65em .4em;
   font: 700 .7rem/1 var(--mono);
   letter-spacing: .08em;
@@ -223,10 +241,11 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; shape-render
   color: var(--ink);
   box-shadow: var(--depth-1);
 }
-.chip-testnet { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
+/* Chips are small black blocks: strong details, like the cables in the brand scene. */
+.chip, .chip-testnet { --top: var(--black); --lit: var(--black-lit); --side: var(--black-shade); color: var(--on-black); }
 
-/* A dotted pixel rule. */
-.rule { border: 0; border-top: var(--px) dotted var(--line); margin: 1.25rem 0; }
+/* A rule. */
+.rule { border: 0; border-top: 1px solid var(--line); margin: 1.25rem 0; }
 
 /* ---- page frame -------------------------------------------------------- */
 
@@ -241,20 +260,23 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; shape-render
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: .75rem;
+  gap: .6rem;
   text-decoration: none;
   min-height: 44px;
 }
 .brand:hover { color: inherit; }
 .brand picture { display: block; line-height: 0; }
 .badge { display: block; height: 22px; width: auto; }
+/* "Near the / keyboard" beside the mark: two lines, together as tall as the mark (22 px). */
 .brand-name {
+  display: block;
   font-weight: 800;
-  font-size: .72rem;
-  letter-spacing: .12em;
+  font-size: 11px;
+  line-height: 11px;
+  letter-spacing: .08em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
-@media (max-width: 26.5rem) { .brand-name { display: none; } }
 .site-foot {
   padding-top: 2rem;
   padding-bottom: 3rem;
@@ -265,27 +287,19 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; shape-render
 
 /* A quiet block for notes and errors. */
 .notice {
-  --px: 4px;
-  --top: var(--c-top-2);
-  --lit: var(--c-lit);
-  --side: var(--c-shade);
-  margin: .9rem calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  margin: .9rem 10px 10px 0;
   padding: .7rem .9rem;
-  background: var(--top);
-  box-shadow:
-    calc(var(--px) * .5) calc(var(--px) * 1.5) 0 calc(var(--px) * -.5) var(--lit),
-    var(--px) var(--px) 0 0 var(--side),
-    calc(var(--px) * 2) calc(var(--px) * 2) 0 0 var(--c-drop);
+  background: var(--c-top-2);
+  box-shadow: 0 4px 0 0 var(--c-lit), 4px 0 0 0 var(--c-shade), 4px 4px 0 0 var(--c-shade), var(--soft-sm);
 }
 .notice::before {
   content: "";
   display: inline-block;
-  width: var(--px);
-  height: var(--px);
-  margin: 0 .55rem .2em 0;
+  width: 6px;
+  height: 6px;
+  margin: 0 .55rem .1em 0;
   vertical-align: middle;
   background: var(--orange);
-  box-shadow: 0 calc(var(--px) * -1) 0 0 var(--orange);
 }
 
 .fine { color: var(--muted); font-size: .88rem; }
@@ -303,14 +317,15 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; shape-render
 /* An input is a block too, pressed a little into the panel it sits on. */
 textarea {
   display: block;
-  width: calc(100% - var(--px) * 3);
-  margin: 0 calc(var(--px) * 3) calc(var(--px) * 3) 0;
+  --d: 4px;
+  width: calc(100% - var(--d) - 6px);
+  margin: 0 calc(var(--d) + 6px) calc(var(--d) + 6px) 0;
   padding: .8rem .9rem;
   font: inherit;
   font-size: 1rem;
   line-height: 1.45;
   color: var(--ink);
-  --top: var(--c-top-2);
+  --top: var(--c-top);
   resize: vertical;
 }
 textarea:focus { outline: none; --side: var(--orange-shade); --lit: var(--orange-lit); }
@@ -325,7 +340,6 @@ textarea::placeholder { color: var(--muted); opacity: 1; }
   margin-right: .6em;
   vertical-align: -.2em;
   background: var(--orange);
-  box-shadow: 2px 2px 0 0 var(--orange-shade);
   animation: ntk-blink 1s steps(1) infinite;
 }
 @keyframes ntk-blink { 50% { opacity: 0; } }
@@ -351,7 +365,6 @@ textarea::placeholder { color: var(--muted); opacity: 1; }
   width: 8px;
   height: 8px;
   background: var(--orange);
-  box-shadow: 2px 2px 0 0 var(--orange-shade);
 }
 .doc-part { margin: 0 0 1.9rem; }
 .doc-part h2 { display: flex; align-items: center; gap: .6rem; }
@@ -360,8 +373,7 @@ textarea::placeholder { color: var(--muted); opacity: 1; }
   flex: none;
   width: 10px;
   height: 10px;
-  background: var(--c-shade);
-  box-shadow: 2px 2px 0 0 var(--c-lit);
+  background: var(--black);
 }
 
 [hidden] { display: none !important; }

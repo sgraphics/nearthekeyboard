@@ -1,5 +1,5 @@
 /* Demo feed: a familiar social layout in NTK's light block style, phone first.
-   The blocks and colours are in /assets/ntk.css. Separators are dotted pixel rules. */
+   The blocks and colours are in /assets/ntk.css. Separators are thin rules. */
 
 .page-feed { background: var(--c-top); }
 @media (min-width: 40rem) { .page-feed { background: var(--bg); } }
@@ -14,7 +14,7 @@
   .column {
     margin: 1.5rem auto 2rem;
     min-height: 0;
-    box-shadow: 6px 6px 0 0 var(--c-shade), 12px 12px 0 0 var(--c-drop);
+    box-shadow: 0 6px 0 0 var(--c-lit), 6px 0 0 0 var(--c-shade), 6px 6px 0 0 var(--c-shade), var(--soft);
   }
 }
 
@@ -38,10 +38,10 @@
   min-height: 3.5rem;
   padding: .4rem 1rem .4rem .5rem;
   background: var(--c-top);
-  border-bottom: var(--px) dotted var(--line);
+  border-bottom: 1px solid var(--line);
 }
 .topbar h1 { flex: 1; margin: 0; font-size: 1.2rem; font-weight: 800; }
-.topbar .chip { margin-bottom: calc(var(--px) * 2); }
+.topbar .chip { margin-bottom: 4px; }
 .icon-btn {
   display: inline-flex;
   align-items: center;
@@ -54,12 +54,12 @@
 
 /* ---- posts ------------------------------------------------------------- */
 
-.post { padding: .9rem 1rem; border-bottom: var(--px) dotted var(--line); }
+.post { padding: .9rem 1rem; border-bottom: 1px solid var(--line); }
 .name { font-weight: 700; }
 .handle, .time, .sep, .post-time, .post-stats, .replying, .composer-note { color: var(--muted); }
 
-/* Pixel avatars: a light block with a dark face. */
-svg.avatar { display: block; box-shadow: 3px 3px 0 0 var(--c-shade); }
+/* Pixel avatars: a light block with a dark face, on a soft shadow. */
+svg.avatar { display: block; box-shadow: 0 3px 0 0 var(--c-lit), 3px 0 0 0 var(--c-shade), 3px 3px 0 0 var(--c-shade), var(--soft-sm); }
 .avatar .px-ink { fill: var(--ink); }
 .avatar.tone-0 .px-avbg { fill: var(--tint-1); }
 .avatar.tone-1 .px-avbg { fill: var(--tint-2); }
@@ -76,7 +76,7 @@ svg.avatar { display: block; box-shadow: 3px 3px 0 0 var(--c-shade); }
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.post-time { margin: 0; padding-bottom: .9rem; font-size: .92rem; border-bottom: var(--px) dotted var(--line); }
+.post-time { margin: 0; padding-bottom: .9rem; font-size: .92rem; border-bottom: 1px solid var(--line); }
 .post-time strong, .post-stats strong { color: var(--ink); }
 .post-stats {
   display: flex;
@@ -84,7 +84,7 @@ svg.avatar { display: block; box-shadow: 3px 3px 0 0 var(--c-shade); }
   margin: 0;
   padding: .8rem 0;
   font-size: .92rem;
-  border-bottom: var(--px) dotted var(--line);
+  border-bottom: 1px solid var(--line);
 }
 .main-post .acts { justify-content: space-around; max-width: none; padding-top: .7rem; }
 
@@ -129,7 +129,7 @@ svg.avatar { display: block; box-shadow: 3px 3px 0 0 var(--c-shade); }
   grid-template-columns: 42px 1fr;
   gap: .8rem;
   padding: 1rem 1rem .6rem;
-  border-bottom: var(--px) dotted var(--line);
+  border-bottom: 1px solid var(--line);
 }
 .replying { margin: 0 0 .45rem; font-size: .9rem; }
 .composer textarea {

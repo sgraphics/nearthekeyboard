@@ -12,8 +12,8 @@
   gap: .8rem 1rem;
   margin: 1.1rem 0 1.2rem;
   padding: .9rem 0;
-  border-top: var(--px) dotted var(--line);
-  border-bottom: var(--px) dotted var(--line);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 .facts:empty { display: none; }
 .fact dt,
@@ -43,7 +43,7 @@
   display: flex;
   justify-content: flex-start;
   gap: 1rem;
-  width: calc(100% - var(--px) * 3);
+  width: calc(100% - var(--d) - 6px);
   min-height: 72px;
   padding: .8rem 1rem;
   font-weight: 400;
@@ -83,7 +83,7 @@
   width: 16px;
   height: 16px;
   background: var(--orange);
-  box-shadow: 2px 6px 0 -2px var(--orange-lit), 4px 4px 0 0 var(--orange-shade);
+  box-shadow: 0 3px 0 0 var(--orange-lit), 3px 0 0 0 var(--orange-shade), 3px 3px 0 0 var(--orange-shade), var(--soft-sm);
 }
 
 .problems { margin: .6rem 0 .25rem; padding-left: 1.2rem; }

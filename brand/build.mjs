@@ -24,18 +24,19 @@ const hexes = (set) => Object.fromEntries(Object.entries(set).map(([k, v]) => [k
 const L = hexes(palette.light), D = hexes(palette.dark);
 
 // Colour roles of the pixel art, per theme. Every block has a top, a lit front
-// and a shaded side; light comes softly from the top left.
+// and a shaded side; light comes softly from the top left. The floor (bg) has
+// a faint grid, and soft blurred shadows (floorShadow) lie on it.
 export const ART = {
   light: {
-    bg: L.paper, shadow: L.drop,
+    bg: L.paper, grid: L.grid, floorShadow: L.shadow, shadowOpacity: 1, shadow: L.shade,
     bodyTop: L.top, bodyFront: L.lit, bodySide: L.shade,
-    keyTop: L.white, keyFront: L.lit, keySide: L.shade, legend: L.ink,
+    keyTop: L.white, keyFront: L.keyLit, keySide: L.keyShade, legend: L.ink,
     darkTop: L.slate, darkFront: L.slateLit, darkSide: L.slateShade,
     accentTop: L.orange, accentFront: L.orangeLit, accentSide: L.orangeShade,
     text: L.ink, muted: L.muted,
   },
   dark: {
-    bg: D.space, shadow: D.drop,
+    bg: D.space, grid: D.grid, floorShadow: D.shadow, shadowOpacity: 3.5, shadow: D.shade,
     bodyTop: D.top, bodyFront: D.lit, bodySide: D.shade,
     keyTop: D.key, keyFront: D.keyLit, keySide: D.keyShade, legend: D.offWhite,
     darkTop: D.slate, darkFront: D.slateLit, darkSide: D.slateShade,
@@ -44,7 +45,7 @@ export const ART = {
   },
 };
 // Icons stand on orange: the white keyboard on it reads at 48 px, with no
-// outline. Its drop is the orange's lit step.
+// outline and no shadow.
 export const ICON = { ...ART.light, bg: L.orange, shadow: L.orangeLit };
 
 // ---------------------------------------------------------------- the keyboard
@@ -75,6 +76,35 @@ function paste(w, h, hex, img, x, y) {
     }
   }
   return encodePNG({ width: w, height: h, rgba });
+}
+
+// The floor: the background colour with a faint square grid of 1 px lines.
+function floor(W, H, t, step = 32) {
+  if (!t.grid) return `<rect width="${W}" height="${H}" fill="${t.bg}"/>
+`;
+  return `<defs><pattern id="grid" width="${step}" height="${step}" patternUnits="userSpaceOnUse">` +
+    `<path d="M0 .5H${step}M.5 0V${step}" fill="none" stroke="${t.grid}" stroke-width="1"/></pattern></defs>
+` +
+    `<rect width="${W}" height="${H}" fill="${t.bg}"/><rect width="${W}" height="${H}" fill="url(#grid)"/>
+`;
+}
+
+// The keyboard at (x, y), `scale` px a pixel, on a soft blurred shadow: its
+// outline on the floor, a little lower and to the right, twice (a wide faint
+// one and a close one), as in the reference scene.
+let shadowId = 0;
+function keyboardArt(kb, t, x, y, scale) {
+  const id = `soft${shadowId++}`;
+  const pts = (dx, dy) => kb.floor.map(([px, py]) => `${r2(x + (px + dx) * scale)},${r2(y + (py + dy) * scale)}`).join(' ');
+  const o = (a) => r2(Math.min(1, a * t.shadowOpacity));
+  return `<defs><filter id="${id}w" x="-30%" y="-30%" width="160%" height="190%"><feGaussianBlur stdDeviation="${r2(7 * scale)}"/></filter>` +
+    `<filter id="${id}c" x="-20%" y="-20%" width="140%" height="160%"><feGaussianBlur stdDeviation="${r2(2 * scale)}"/></filter></defs>
+` +
+    `<polygon points="${pts(3, 9)}" fill="${t.floorShadow}" fill-opacity="${o(0.13)}" filter="url(#${id}w)"/>
+` +
+    `<polygon points="${pts(1, 3)}" fill="${t.floorShadow}" fill-opacity="${o(0.1)}" filter="url(#${id}c)"/>
+` +
+    rasterSVG(kb, t, x, y, scale);
 }
 
 // ---------------------------------------------------------------- wordmark
@@ -117,9 +147,9 @@ function stacked({ W, H, mode, scale, ratio = 0.9, gap = 0.07, domain = false, l
   const top = Math.round((H - (probe.h + g + kh)) / 2) - lift;
   const word = wordmark({ x: (W - probe.w) / 2, y: top, width: probe.w, fill: t.text });
   const kx = Math.round((W - kw) / 2), ky = Math.round(top + probe.h + g);
-  let body = word.svg + rasterSVG(kb, t, kx, ky, scale);
+  let body = floor(W, H, t) + word.svg + keyboardArt(kb, t, kx, ky, scale);
   if (domain) body += smallText(DOMAIN, W / 2, ky + kh + Math.round((H - ky - kh) * 0.42), Math.round(H * 0.022), t.muted, 'center');
-  return svgDoc(W, H, body, t.bg);
+  return svgDoc(W, H, body);
 }
 
 // Wordmark at the left, keyboard at the right.
@@ -129,7 +159,7 @@ function sideBySide({ W, H, mode, scale, wordWidth, wordX, kbRight, wordCY, kbCY
   const probe = wordmark({ x: 0, y: 0, width: wordWidth, fill: t.text });
   const word = wordmark({ x: wordX, y: Math.round((wordCY ?? H / 2) - probe.h / 2), width: wordWidth, fill: t.text, align: 'left' });
   const kx = W - kbRight - kw, ky = Math.round((kbCY ?? H / 2) - kh / 2);
-  return svgDoc(W, H, word.svg + rasterSVG(kb, t, kx, ky, scale), t.bg);
+  return svgDoc(W, H, floor(W, H, t) + word.svg + keyboardArt(kb, t, kx, ky, scale));
 }
 
 const logo = (mode) => stacked({ W: 1024, H: 1024, mode, scale: 5, ratio: 0.75, gap: 0.05 });
@@ -247,12 +277,16 @@ for (const [name, fn] of Object.entries(BANNERS)) for (const mode of ['light', '
   write(`banner/ntk-${name}-${mode}.png`, renderPNG(svg));
 }
 
-// The keyboard on its own, transparent: 1x grid and scaled, hero and small.
+// The keyboard on its own, transparent: the 1x pixel grid (no shadow), and at 4x
+// on its soft shadow (SVG and PNG), with room around it for the shadow.
+const KB_MARGIN = [4, 26, 30, 6]; // top, right, bottom, left, in pixels of the art
 for (const mode of ['light', 'dark']) {
   const t = ART[mode], kb = hero(), s = small();
+  const [mt, mr, mb, ml] = KB_MARGIN.map((m) => m * 4);
+  const kbSVG = svgDoc(kb.w * 4 + ml + mr, kb.h * 4 + mt + mb, keyboardArt(kb, t, ml, mt, 4));
   write(`keyboard/ntk-keyboard-${mode}-1x.png`, pixelPNG(kb, t, 1));
-  write(`keyboard/ntk-keyboard-${mode}-4x.png`, pixelPNG(kb, t, 4));
-  write(`keyboard/ntk-keyboard-${mode}.svg`, svgDoc(kb.w * 4, kb.h * 4, rasterSVG(kb, t, 0, 0, 4)));
+  write(`keyboard/ntk-keyboard-${mode}-4x.png`, renderPNG(kbSVG));
+  write(`keyboard/ntk-keyboard-${mode}.svg`, kbSVG);
   write(`keyboard/ntk-keyboard-small-${mode}-1x.png`, pixelPNG(s, t, 1));
   write(`keyboard/ntk-keyboard-small-${mode}-8x.png`, pixelPNG(s, t, 8));
 }

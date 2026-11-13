@@ -1,8 +1,9 @@
 // The NTK keyboard illustration: a white keyboard lying on the desk, seen from
 // above at an angle, in classic 2:1 pixel isometric (edges step two pixels
-// across for one down). Every object is a block: a light top face, a lit front
-// face and a shaded right face. There are no outlines: an edge is where one
-// face meets another. A soft blocky shadow lies on the desk.
+// across for one down). Every object is a block: a white top face, a very
+// light lit front face and a light shaded right face. There are no outlines:
+// an edge is where one face meets another. The soft blurred shadow on the
+// floor is drawn under the art by build.mjs, from the outline it reports.
 //
 // Iso coordinates: x runs along the keyboard (left to right, down-right on
 // screen), z runs away from you (up-right on screen), both in steps; heights
@@ -23,7 +24,7 @@ export const LAYOUT = [
 // The keyboard at icon size: six units across, fewer and larger keys, the
 // same accents.
 export const LAYOUT_SMALL = [
-  [['.'], ['.'], ['.'], ['.'], ['.'], ['.']],
+  [['.', 1, 'esc'], ['.'], ['.'], ['.'], ['.'], ['.']],
   [['.', 1.5], ['.'], ['.'], ['.'], ['', 1.5, 'enter']],
   [['', 1.25], ['', 3.5, 'space'], ['', 1.25]],
 ];
@@ -35,8 +36,14 @@ export const LAYOUT_TINY = [
 ];
 
 export const SCHEMES = {
-  // White keys, a soft dark-grey spacebar (the monolith) and an orange Enter.
-  blocks: { space: 'dark', enter: 'accent' },
+  // All white, as in the reference scene: an orange Enter and one small orange
+  // key at the top left.
+  blocks: { esc: 'accent', enter: 'accent' },
+  // On an orange tile (the icons) orange keys would read as holes: the same two
+  // keys in black.
+  onOrange: { esc: 'dark', enter: 'dark' },
+  // The earlier look: a dark-grey spacebar (the monolith) and an orange Enter.
+  monolith: { space: 'dark', enter: 'accent' },
   // More orange: an orange spacebar too.
   orange: { space: 'accent', enter: 'accent' },
 };
@@ -48,10 +55,10 @@ export const KEYBOARD_DEFAULTS = {
   keyH: 3,           // key height, pixels
   bodyH: 3,          // body (slab) thickness, pixels
   border: [7, 2, 2], // body around the keys, steps: back (the strip), sides, front
-  legends: 'mark',   // 'glyph' (3x5 letters), 'mark' (a dark pixel pair) or false
+  legends: false,    // 'glyph' (3x5 letters), 'mark' (a dark pixel pair) or false: blank keys, as in the reference
   scheme: 'blocks',  // a name in SCHEMES or an { id: kind } map
   light: 2,          // the orange light on the strip: footprint in steps, or 0
-  shadow: 2,         // the desk shadow, moved this many steps along x, or 0
+  shadow: 0,         // a blocky desk shadow, moved this many steps along x, or 0 (build.mjs draws a soft one)
 };
 
 const FACES = {
@@ -122,7 +129,14 @@ export function drawKeyboard(opts = {}) {
     }
   });
 
-  return o.shadow ? deskShadow(r, o.shadow, 'shadow') : r;
+  // The body's outline on the floor, in pixels of the returned raster: build.mjs
+  // draws the soft shadow from it.
+  const floor = [[0, 0], [BX, 0], [BX, BZ], [0, BZ]].map(([x, z]) => [iso.ox + sx(x, z), iso.oy + sy(x, z, 0)]);
+  const all = o.shadow ? deskShadow(r, o.shadow, 'shadow') : r;
+  const b = all.bounds();
+  const out = all.crop(b.x, b.y, b.w, b.h);
+  out.floor = floor.map(([x, y]) => [x - b.x, y - b.y]);
+  return out;
 }
 
 // A legend at the centre of a key top: a 3x5 letter, upright, or a pair of
@@ -139,21 +153,21 @@ function drawLegend(r, o, xc, zc, e, legend, mode) {
 // The keyboard at icon size (on a 1 dp grid) and for the favicon (1 pixel).
 export const SMALL = {
   layout: LAYOUT_SMALL, n: 3, gap: 1, keyH: 2, bodyH: 2, border: [3, 1, 1],
-  legends: 'mark', light: 1, shadow: 1,
+  legends: false, light: 0, shadow: 0, scheme: 'onOrange',
 };
 export const FAVICON = {
   layout: LAYOUT_TINY, n: 2, gap: 1, keyH: 1, bodyH: 2, border: [1, 1, 1],
-  legends: false, light: 0, shadow: 1,
+  legends: false, light: 0, shadow: 0, scheme: 'onOrange',
 };
 
-// The soft desk shadow: everything drawn so far, moved k steps along x (two
-// pixels across and one down a step), in one light step, under the object.
+// A blocky desk shadow (no longer the default): everything drawn so far, moved
+// k steps along x (two pixels across and one down a step), in one flat colour,
+// under the object.
 export function deskShadow(src, k, role) {
   const out = new Raster(src.w, src.h);
   for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
     if (src.get(x - 2 * k, y - k) != null) out.set(x, y, role);
   }
   out.blit(src, 0, 0);
-  const b = out.bounds();
-  return out.crop(b.x, b.y, b.w, b.h);
+  return out;
 }
