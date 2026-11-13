@@ -78,7 +78,9 @@ What the keyboard seals: one typing session as UTF-8 JSON.
 
 - `k`: what the key produced. Either one character (`"a"`, `"A"`, `" "`,
   `"\n"`), or a control key in angle brackets: `<bksp>`, `<shift>`, `<sym>`,
-  `<enter>`, `<lang>`.
+  `<enter>`, `<lang>`. When Enter inserts a line break, log `"\n"`; log
+  `<enter>` only when it runs the field's action (send, search) and inserts
+  nothing. Control keys add no text to the replay.
 - `d`, `u`: touch down and touch up, in ms since the session started.
 - `x`, `y`: the touch-down point minus the key's centre, as a fraction of the
   key's width and height (-1 to 1).
