@@ -314,6 +314,9 @@ Planned: `android/`, `relay/`, `web/`, `brand/`, `video/`.
 
 - All code was written inside the hackathon window; the first commit is dated
   2026-11-13. There is no earlier code base.
+- The same author also enters a second, independent project (rule Q-015):
+  Realsies, <https://github.com/sgraphics/realsies>. The two projects share no
+  code.
 - Third-party code: OutLayer SDK (`outlayer` 0.2.1, MIT/Apache-2.0), RustCrypto
   and dalek crates, `serde`, `hex`, `base64`, `bs58`, `@noble/*` (MIT),
   `near-api-js` (MIT/Apache-2.0). OutLayer's documentation:
