@@ -147,7 +147,7 @@ async function checkBox(ev) {
   const text = box.value;
   const tags = findTags(text);
   if (!tags.length) {
-    showNotice('No NTK tag found. A tag looks like [NTK e65ee28db5].');
+    showNotice('No NTK tag found. A tag is NTK and a 10-character id in square brackets, at the end of the text.');
     box.focus();
     return;
   }
