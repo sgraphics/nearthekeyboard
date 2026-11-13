@@ -23,7 +23,9 @@
     <color name="ntk_orange">#FFFF4F00</color>
     <color name="ntk_accent">#FFFD5B15</color>
     <color name="ntk_accent_pressed">#FFE24E0F</color>
-    <color name="ntk_on_accent">#FF000000</color>
+    <color name="ntk_on_accent">#FFFFFFFF</color>
+    <!-- Over the keys while a Sign or Enroll call runs. -->
+    <color name="ntk_veil">#B81D2026</color>
 
     <!-- The base under the keys. -->
     <color name="ntk_base">#FF2A2E36</color>

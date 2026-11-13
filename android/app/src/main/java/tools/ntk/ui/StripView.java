@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.text.TextPaint;
@@ -15,8 +16,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import rkr.simplekeyboard.inputmethod.R;
@@ -32,13 +31,13 @@ import tools.ntk.TypingSession;
  * The strip above the keys (TODO.md 3.6, 3.7), flat and light as in the owner's
  * mock: at the left the small NTK mark, a status light and the account name (or
  * a message) in small thin type; at the right the Sign key, a flat orange tile
- * with a thin black label and a row of ticks that turn black as the session
- * approaches the taps a stamp needs.
+ * with a white label and a row of ticks that turn white as the session approaches
+ * the taps a stamp needs.
  *
- * While a Sign or Enroll call runs (seconds to minutes), the middle is a dial,
- * after an old radio's tuning scale: fine black ticks, a few tiny numbers
- * (seconds, closer together as they grow) and an orange needle that moves with
- * time toward 90% of the scale; when the call ends it swings to the end, or back
+ * While a Sign or Enroll call runs (seconds to minutes), typing is held: the keys
+ * lie under a veil, and the middle of the strip is a dial, after an old radio's
+ * tuning scale: evenly spaced fine black ticks from 0 to 100% and an orange needle
+ * that moves with time toward 90%; when the call ends it swings to 100%, or back
  * to 0 if it failed. The mark is a vector drawable (BadgeView) whose gaps are
  * painted in ntk_display, the strip's colour. The strip's height is fixed, so the
  * keys never move.
@@ -54,33 +53,23 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
     private static final float EXPECTED_S = 60f;
     /** The needle's swing when a call ends, and how long the dial stays before the message shows. */
     private static final long SWING_MS = 700, HOLD_MS = 900;
-    /** The dial's numbers, in seconds. */
-    private static final int[] DIAL_NUMBERS = { 0, 5, 10, 20, 30, 60 };
-    /** The dial's ticks, in seconds: half seconds at first, then sparser, like a radio's MW scale. */
-    private static final float[] DIAL_TICKS;
-    static {
-        final List<Float> t = new ArrayList<>();
-        for (float s = 0f; s < 10f; s += 0.5f) t.add(s);
-        for (float s = 10f; s < 20f; s += 1f) t.add(s);
-        for (float s = 20f; s < 40f; s += 2f) t.add(s);
-        for (float s = 40f; s < 60f; s += 5f) t.add(s);
-        for (float s = 60f; s <= 80f; s += 10f) t.add(s);
-        DIAL_TICKS = new float[t.size()];
-        for (int i = 0; i < DIAL_TICKS.length; i++) DIAL_TICKS[i] = t.get(i);
-    }
-    /** Ticks on the Sign key that turn black as the session fills. */
+    /** The dial's scale: evenly spaced ticks from 0 to 100%, a longer one every quarter. */
+    private static final int DIAL_STEPS = 40, DIAL_LONG_EVERY = 10;
+    /** Ticks on the Sign key that turn white as the session fills. */
     private static final int SIGN_TICKS = 16;
 
     private final float mDp;
     private final TextPaint mText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final TextPaint mKeyText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-    private final TextPaint mDialText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint mLine = new Paint();
     private final Rect mSignRect = new Rect();
     private final Rect mBadgeRect = new Rect();
     private final Drawable mBadge;
     private final Tile mSignTile = new Tile();
+    /** Over the keys while typing is held (a call runs): they cannot be used then. */
+    private final ColorDrawable mVeil;
+    private View mVeiled;
 
     private final int cDisplay, cInk, cMuted, cMutedLight, cAccent, cAccentPressed, cOnAccent, cKey, cKeyPressed;
 
@@ -115,12 +104,9 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         mText.setTextSize(13 * sp);
         mText.setTypeface(thin);
         mKeyText.setTextSize(15 * sp);
-        mKeyText.setTypeface(thin);
+        mKeyText.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL)); // white on orange stays legible
         mKeyText.setTextAlign(Paint.Align.CENTER);
-        mDialText.setTextSize(9 * sp);
-        mDialText.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
-        mDialText.setTextAlign(Paint.Align.CENTER);
-        mDialText.setColor(cInk);
+        mVeil = new ColorDrawable(context.getColor(R.color.ntk_veil));
         mLine.setStrokeWidth(Math.max(1f, Math.round(0.4f * mDp))); // hairlines, on whole pixels
         mBadge = BadgeView.load(context); // its gaps are painted in ntk_display, the strip's colour
         setBackgroundColor(cDisplay);
@@ -134,6 +120,7 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         BuildHooks.onKeyboardViews(getRootView().findViewById(R.id.keyboard_view), this);
         removeCallbacks(mTick);
         post(mTick);
+        updateVeil();
     }
 
     @Override
@@ -141,6 +128,10 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         NtkCapture.get().removeListener(this);
         NtkController.get(getContext()).removeListener(this);
         removeCallbacks(mTick);
+        if (mVeiled != null) {
+            mVeiled.getOverlay().remove(mVeil);
+            mVeiled = null;
+        }
         super.onDetachedFromWindow();
     }
 
@@ -148,6 +139,7 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         @Override
         public void run() {
             invalidate();
+            updateVeil();
             postDelayed(this, mDialCall != 0 ? 33 : NtkController.get(getContext()).isBusy() ? 250 : 1000);
         }
     };
@@ -155,6 +147,28 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
     @Override
     public void onCaptureChanged() {
         invalidate();
+        updateVeil();
+    }
+
+    /**
+     * While typing is held (a Sign or Enroll call runs), the keys lie under a veil
+     * of the floor's colour, so it is clear they cannot be used; the system's
+     * navigation area below them stays clear. Drawing only.
+     */
+    private void updateVeil() {
+        final View kv = getRootView().findViewById(R.id.keyboard_view);
+        final View want = NtkCapture.get().isHolding() && kv != null && kv.isShown() ? kv : null;
+        if (mVeiled != null && mVeiled != want) {
+            mVeiled.getOverlay().remove(mVeil);
+            mVeiled = null;
+        }
+        if (want != null) {
+            mVeil.setBounds(0, 0, want.getWidth(), want.getHeight() - want.getPaddingBottom());
+            if (mVeiled == null) {
+                want.getOverlay().add(mVeil);
+                mVeiled = want;
+            }
+        }
     }
 
     @Override
@@ -290,34 +304,23 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         drawSignKey(c, account, s, busy, cap);
     }
 
-    /** The dial: a hairline with fine ticks, tiny numbers over the long ones, and the orange needle. */
+    /** The dial: a hairline with evenly spaced fine ticks from 0 to 100%, and the orange needle. */
     private void drawDial(Canvas c, float l, float r, float needle) {
         if (r - l < 40f * mDp) return;
         final float h = getHeight();
-        final float base = h / 2f + 9f * mDp;       // the ticks stand on this line
-        final float major = 9f * mDp, minor = 4.5f * mDp;
+        final float base = h / 2f + 6f * mDp;        // the ticks stand on this line
+        final float tall = 10f * mDp, small = 5f * mDp;
         mLine.setColor(cInk);
         c.drawLine(l, px(base), r, px(base), mLine);
-        for (float t : DIAL_TICKS) {
-            final float x = px(l + (r - l) * dial(t));
-            c.drawLine(x, base - (isNumbered(t) ? major : minor), x, base, mLine);
+        for (int i = 0; i <= DIAL_STEPS; i++) {
+            final float x = px(l + (r - l) * i / DIAL_STEPS);
+            c.drawLine(x, base - (i % DIAL_LONG_EVERY == 0 ? tall : small), x, base, mLine);
         }
-        c.drawLine(px(r), base - major, px(r), base, mLine); // the end: the call is done
-        final Paint.FontMetrics fm = mDialText.getFontMetrics();
-        final float numbers = base - major - 2.5f * mDp - fm.descent;
-        for (int n : DIAL_NUMBERS) {
-            c.drawText(Integer.toString(n), l + (r - l) * dial(n), numbers, mDialText);
-        }
-        // The needle, from above the numbers to below the line.
+        // The needle, from above the long ticks to below the line.
         final float x = l + (r - l) * Math.max(0f, Math.min(1f, needle));
         mPaint.setColor(cAccent);
         final float half = 0.75f * mDp;
-        c.drawRect(x - half, h / 2f - 15f * mDp, x + half, base + 4f * mDp, mPaint);
-    }
-
-    private static boolean isNumbered(float t) {
-        for (int n : DIAL_NUMBERS) if (n == t) return true;
-        return false;
+        c.drawRect(x - half, base - tall - 6f * mDp, x + half, base + 5f * mDp, mPaint);
     }
 
     /** The centre of the pixel at {@code v}: hairlines land on whole pixels. */
@@ -347,8 +350,8 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
             if (s.changedReason() != null || !cap.isPortrait()) enabled = false;
         }
         mDrawnLabel = label;
-        // A flat tile inside the key's bounds: orange with a thin black label, or the keys'
-        // grey with a muted label when Sign cannot be used now. Pressed: no shadow.
+        // A flat tile inside the key's bounds: orange with a white label, or the keys' grey
+        // with a muted label when Sign cannot be used now. Pressed: no shadow.
         final boolean down = mSignPressed;
         final float fl = r.left + mDp, ft = r.top + 0.5f * mDp, fr = r.right - mDp, fb = r.bottom - 2f * mDp;
         mSignTile.face = enabled ? (down ? cAccentPressed : cAccent) : (down ? cKeyPressed : cKey);
@@ -359,14 +362,14 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         mKeyText.setColor(enabled ? cOnAccent : cMuted);
         c.drawText(label.toLowerCase(Locale.ROOT), (fl + fr) / 2f, cy - (fm.ascent + fm.descent) / 2f, mKeyText);
         if (ticks) {
-            // A row of ticks along the bottom: black up to how far the session has come.
+            // A row of ticks along the bottom: white up to how far the session has come.
             final float tl = fl + 14f * mDp, tr = fr - 14f * mDp;
             final float tb = fb - 5f * mDp, tt = tb - 3f * mDp;
             final int on = Math.round(fill * SIGN_TICKS);
             for (int i = 0; i < SIGN_TICKS; i++) {
                 final float x = px(tl + (tr - tl) * i / (SIGN_TICKS - 1));
                 mLine.setColor(cOnAccent);
-                mLine.setAlpha(i < on ? 255 : 64);
+                mLine.setAlpha(i < on ? 255 : 90);
                 c.drawLine(x, tt, x, tb, mLine);
             }
             mLine.setAlpha(255);

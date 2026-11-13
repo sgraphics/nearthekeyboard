@@ -51,11 +51,12 @@ calls, bundled binaries.
   (`ui/FloorDrawable`); dark greys in dark mode. Legends in the system
   sans-serif's thin weight, large lowercase letters, thin line icons
   (`drawable/ntk_sym_*.xml`). The strip has the small NTK mark, the account in
-  thin type and the Sign key as a flat orange tile whose ticks fill with the
-  session; while a Sign or Enroll call runs, a dial (fine ticks, a few numbers in
-  seconds, an orange needle) shows it. The brand badge and launcher icon come
-  from `brand/out/android/`; the badge is the NTK mark as vector drawables,
-  `drawable/ntk_badge_light.xml` and `ntk_badge_dark.xml`, whose gaps are
+  thin type and the Sign key as a flat orange tile (white label) whose ticks fill
+  with the session; while a Sign or Enroll call runs, the keys are veiled and a
+  dial (evenly spaced fine ticks, 0 to 100%, an orange needle) shows it. The
+  brand badge and launcher icon come from `brand/out/android/`; the badge is the
+  NTK mark as vector drawables, `drawable/ntk_badge_light.xml` and
+  `ntk_badge_dark.xml`, whose gaps are
   painted in each theme's `ntk_display`, the strip and header colour it sits on;
   `ui/BadgeView` picks the one for the current theme and draws it smoothly at
   any height. The setup and enrollment screens and the stamp buttons use the

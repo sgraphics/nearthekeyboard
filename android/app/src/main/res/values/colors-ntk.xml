@@ -23,11 +23,13 @@
     <color name="ntk_hint">#FF8E98B1</color>
 
     <!-- The accent: flat orange (Sign, main actions, the meter's needle, the stamp
-         buttons); ntk_orange is the NTK mark's own. -->
+         buttons) with white text in a medium weight on it; ntk_orange is the NTK mark's own. -->
     <color name="ntk_orange">#FFFF4F00</color>
     <color name="ntk_accent">#FFFD5B15</color>
     <color name="ntk_accent_pressed">#FFE24E0F</color>
-    <color name="ntk_on_accent">#FF000000</color>
+    <color name="ntk_on_accent">#FFFFFFFF</color>
+    <!-- Over the keys while a Sign or Enroll call runs: typing is held, the keys are dimmed. -->
+    <color name="ntk_veil">#B8E6EAF2</color>
 
     <!-- The base under the keys, where the system draws its navigation buttons. -->
     <color name="ntk_base">#FFBDC3D3</color>

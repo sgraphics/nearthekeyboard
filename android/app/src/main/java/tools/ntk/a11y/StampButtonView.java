@@ -14,14 +14,14 @@ import tools.ntk.ui.Tile;
 /**
  * The button drawn over a stamp tag in another app, in the NTK look: a flat
  * orange tile (tools.ntk.ui.Tile) with rounded corners and a barely visible
- * shadow, "NTK" and a thin check mark in black. Pressed, it darkens and loses its
- * shadow. The look does not follow dark mode: it sits on other apps' screens and
+ * shadow, "NTK" and a check mark in white, in a medium weight. Pressed, it darkens
+ * and loses its shadow. The look does not follow dark mode: it sits on other apps' screens and
  * must read as NTK's on any background.
  */
 final class StampButtonView extends View {
     static final int ORANGE = 0xFFFD5B15;
     static final int ORANGE_PRESSED = 0xFFE24E0F;
-    static final int INK = 0xFF000000;
+    static final int INK = 0xFFFFFFFF; // white on orange
 
     private final int mStep;
     private final float mDp;
@@ -38,12 +38,12 @@ final class StampButtonView extends View {
         mStep = Math.max(1, Math.round(1.5f * mDp));
         mTile.set(ORANGE, 0x2E1E2A3D, mDp, 5f, 1.5f, 0.75f);
         mText.setColor(INK);
-        mText.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+        mText.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         mText.setLetterSpacing(0.06f);
         mText.setTextSize(13 * c.getResources().getDisplayMetrics().scaledDensity);
         mCheck.setColor(INK);
         mCheck.setStyle(Paint.Style.STROKE);
-        mCheck.setStrokeWidth(1.2f * mDp);
+        mCheck.setStrokeWidth(1.6f * mDp);
         mCheck.setStrokeCap(Paint.Cap.ROUND);
         mCheck.setStrokeJoin(Paint.Join.ROUND);
         setClickable(true);
