@@ -12,15 +12,16 @@ import android.view.View;
 import tools.ntk.ui.Tile;
 
 /**
- * The button drawn over a stamp tag in another app, in the NTK look: a white
- * tile with rounded corners, a thin front edge and a soft shadow (tools.ntk.ui.
- * Tile), with "NTK" in near-black and a thin check mark in the orange of the NTK
- * mark. Pressing it pushes the tile in. The look does not follow dark mode: it
- * sits on other apps' screens and must read as NTK's on any background.
+ * The button drawn over a stamp tag in another app, in the NTK look: a flat
+ * orange tile (tools.ntk.ui.Tile) with rounded corners and a barely visible
+ * shadow, "NTK" and a thin check mark in black. Pressed, it darkens and loses its
+ * shadow. The look does not follow dark mode: it sits on other apps' screens and
+ * must read as NTK's on any background.
  */
 final class StampButtonView extends View {
-    static final int ORANGE = 0xFFFF4F00;
-    static final int INK = 0xFF111318;
+    static final int ORANGE = 0xFFFD5B15;
+    static final int ORANGE_PRESSED = 0xFFE24E0F;
+    static final int INK = 0xFF000000;
 
     private final int mStep;
     private final float mDp;
@@ -35,21 +36,21 @@ final class StampButtonView extends View {
         super(c);
         mDp = c.getResources().getDisplayMetrics().density;
         mStep = Math.max(1, Math.round(1.5f * mDp));
-        mTile.sizes(mDp, 5f, 1f, 2f, 0f).colours(0xFFFFFFFF, 0xFFF3F4F6, 0xFFD3D7DD, 0, 0x66000000);
+        mTile.set(ORANGE, 0x2E1E2A3D, mDp, 5f, 1.5f, 0.75f);
         mText.setColor(INK);
-        mText.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        mText.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
         mText.setLetterSpacing(0.06f);
         mText.setTextSize(13 * c.getResources().getDisplayMetrics().scaledDensity);
-        mCheck.setColor(ORANGE);
+        mCheck.setColor(INK);
         mCheck.setStyle(Paint.Style.STROKE);
-        mCheck.setStrokeWidth(1.7f * mDp);
+        mCheck.setStrokeWidth(1.2f * mDp);
         mCheck.setStrokeCap(Paint.Cap.ROUND);
         mCheck.setStrokeJoin(Paint.Join.ROUND);
         setClickable(true);
         setFocusable(false);
     }
 
-    /** Room in pixels: the window is one step wider and taller than the key, for its lip and shadow. */
+    /** Room in pixels: the window is one step wider and taller than the key, for its shadow. */
     int step() {
         return mStep;
     }
@@ -95,10 +96,9 @@ final class StampButtonView extends View {
         final int w = getWidth() - s;
         final int h = getHeight() - s;
         if (w <= 4 * s || h <= 4 * s) return;
-        // The face fills the key less its lip; the lip and the shadow use the step of room.
-        final float faceB = h - mTile.lipHeight;
-        mTile.draw(c, 0, 0, w, faceB, mDown, 255, null);
-        final float o = mDown ? mTile.lipHeight : 0f; // pressed: the face sits on its lip
+        // The face fills the key; the step of room on the right and at the bottom holds the shadow.
+        mTile.face = mDown ? ORANGE_PRESSED : ORANGE;
+        mTile.draw(c, 0, 0, w, h, mDown, 255, null);
 
         // "NTK" and the check mark, centred together on the face.
         final float textW = mText.measureText(mLabel);
@@ -107,11 +107,10 @@ final class StampButtonView extends View {
         final int checkH = checkHeight();
         final float total = textW + gap + checkW;
         final float x0 = (w - total) / 2f;
-        final float cyFace = o + faceB / 2f;
         final Paint.FontMetrics fm = mText.getFontMetrics();
-        c.drawText(mLabel, x0, cyFace - (fm.ascent + fm.descent) / 2f, mText);
+        c.drawText(mLabel, x0, h / 2f - (fm.ascent + fm.descent) / 2f, mText);
         final float cx = x0 + textW + gap;
-        final float cy = cyFace - checkH / 2f;
+        final float cy = (h - checkH) / 2f;
         mCheckPath.rewind();
         mCheckPath.moveTo(cx, cy + checkH * 0.55f);
         mCheckPath.lineTo(cx + checkW * 0.36f, cy + checkH);

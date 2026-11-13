@@ -62,7 +62,7 @@ Release builds only use the relay at `https://ntk.tools/api` and hold no key.
 
 ## Tests
 
-| What | Command (repository root) | Last result on the Android 16 emulator, 2026-11-13 (Polestar look, enclave 0d198051…) |
+| What | Command (repository root) | Last result on the Android 16 emulator, 2026-11-13 (flat look, enclave 0d198051…) |
 |---|---|---|
 | Unit: crypto vectors, text rule, sessions, verify and login links, tag text, badge | `cd android && ./gradlew testDebugUnitTest` | 30 tests pass |
 | Capture: the keyboard records what the robot injected | `bash scripts/device/robot.sh` | pass: 72 of 72 taps, times exact, offsets within 0.005 |

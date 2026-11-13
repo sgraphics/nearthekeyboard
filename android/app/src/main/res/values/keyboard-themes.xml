@@ -51,7 +51,7 @@
     </string-array>
 
     <array name="keyboard_theme_colors" translatable="false">
-        <item>@color/ntk_seam_bottom</item>
+        <item>@color/ntk_floor</item>
         <item>@color/background_lxx_system</item>
         <item>@color/background_lxx_system</item>
         <item>@color/background_lxx_light</item>

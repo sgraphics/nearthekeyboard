@@ -1,29 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- tools.ntk.ui.TileDrawable (a tools.ntk.ui.Tile, up or pressed) and
-         tools.ntk.ui.SeamDrawable (ntkFace to ntkFaceBottom only). -->
+    <!-- tools.ntk.ui.TileDrawable (a flat tools.ntk.ui.Tile, up or pressed) and
+         tools.ntk.ui.FloorDrawable (ntkFace and the ntkBase* attributes only). -->
     <declare-styleable name="NtkTile">
         <attr name="ntkState">
             <enum name="up" value="1" />
             <enum name="pressed" value="2" />
         </attr>
-        <!-- The face: a vertical gradient from ntkFace to ntkFaceBottom (default: flat). -->
+        <!-- The face's one colour, and its soft shadow's (pressed tiles have none). -->
         <attr name="ntkFace" format="color" />
-        <attr name="ntkFaceBottom" format="color" />
-        <!-- The front edge under the face, the faint line along its top edge, the drop shadow. -->
-        <attr name="ntkLip" format="color" />
-        <attr name="ntkHighlight" format="color" />
         <attr name="ntkShadow" format="color" />
-        <!-- A short bar near the bottom of the face (the Enter key's gold). -->
-        <attr name="ntkAccent" format="color" />
         <attr name="ntkRadius" format="dimension" />
-        <attr name="ntkLipHeight" format="dimension" />
         <attr name="ntkBlur" format="dimension" />
-        <attr name="ntkHairline" format="dimension" />
-        <attr name="ntkAccentWidth" format="dimension" />
-        <attr name="ntkAccentHeight" format="dimension" />
-        <attr name="ntkAccentLift" format="dimension" />
-        <!-- Where the face is: the bounds less these (room for the lip and the shadow). -->
+        <attr name="ntkDrop" format="dimension" />
+        <!-- Where the face is: the bounds less these (the room its shadow fades out in). -->
         <attr name="ntkInsetLeft" format="dimension" />
         <attr name="ntkInsetTop" format="dimension" />
         <attr name="ntkInsetRight" format="dimension" />
@@ -33,5 +23,10 @@
         <attr name="ntkPaddingTop" format="dimension" />
         <attr name="ntkPaddingRight" format="dimension" />
         <attr name="ntkPaddingBottom" format="dimension" />
+        <!-- FloorDrawable: the base under the keys, a band of ntkBase (ntkBaseBand tall)
+             over ntkBaseLow. -->
+        <attr name="ntkBase" format="color" />
+        <attr name="ntkBaseLow" format="color" />
+        <attr name="ntkBaseBand" format="dimension" />
     </declare-styleable>
 </resources>

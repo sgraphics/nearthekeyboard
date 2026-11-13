@@ -17,10 +17,10 @@ import java.io.IOException;
 import rkr.simplekeyboard.inputmethod.R;
 
 /**
- * A key, button, card, field or panel in the NTK look: a {@link Tile}, drawn
- * inside its bounds. The face is the bounds less {@code ntkInset*} (keys leave
- * room on the right and at the bottom for the lip and the shadow);
- * {@code app:ntkState="pressed"} draws it pushed in. Inflated from XML
+ * A key, button, field or panel in the NTK look: a flat {@link Tile} drawn
+ * inside its bounds. The face is the bounds less {@code ntkInset*}, the room
+ * its soft shadow fades out in; {@code app:ntkState="pressed"} draws it without
+ * the shadow (give it its pressed colour). Inflated from XML
  * (res/drawable/ntk_*.xml) with
  * {@code <drawable class="tools.ntk.ui.TileDrawable" app:ntkFace=… />}.
  * It changes how a key is drawn, never where it is or how big.
@@ -30,12 +30,11 @@ public final class TileDrawable extends Drawable {
     private boolean mPressed;
     private float mInsetL, mInsetT, mInsetR, mInsetB; // pixels
     private final Rect mPadding = new Rect();
-    private float mDensity = 1f;
     private int mAlpha = 255;
     private ColorFilter mFilter;
 
     public TileDrawable() {
-        mTile.colours(0xFFFFFFFF, 0xFFF5F6F8, 0, 0, 0x66000000);
+        mTile.face = 0xFFECEFF6;
     }
 
     @Override
@@ -46,22 +45,13 @@ public final class TileDrawable extends Drawable {
                 ? theme.obtainStyledAttributes(attrs, R.styleable.NtkTile, 0, 0)
                 : r.obtainAttributes(attrs, R.styleable.NtkTile);
         try {
-            mDensity = r.getDisplayMetrics().density;
-            final float dp = mDensity;
+            final float dp = r.getDisplayMetrics().density;
             final Tile t = mTile;
-            t.top = a.getColor(R.styleable.NtkTile_ntkFace, t.top);
-            t.bottom = a.getColor(R.styleable.NtkTile_ntkFaceBottom, t.top);
-            t.lip = a.getColor(R.styleable.NtkTile_ntkLip, 0);
-            t.highlight = a.getColor(R.styleable.NtkTile_ntkHighlight, 0);
-            t.shadow = a.getColor(R.styleable.NtkTile_ntkShadow, t.shadow);
-            t.accent = a.getColor(R.styleable.NtkTile_ntkAccent, 0);
-            t.radius = a.getDimension(R.styleable.NtkTile_ntkRadius, 6f * dp);
-            t.lipHeight = a.getDimension(R.styleable.NtkTile_ntkLipHeight, 1.5f * dp);
-            t.blur = a.getDimension(R.styleable.NtkTile_ntkBlur, 3f * dp);
-            t.hairline = a.getDimension(R.styleable.NtkTile_ntkHairline, 0.6f * dp);
-            t.accentWidth = a.getDimension(R.styleable.NtkTile_ntkAccentWidth, 10f * dp);
-            t.accentHeight = a.getDimension(R.styleable.NtkTile_ntkAccentHeight, 2f * dp);
-            t.accentLift = a.getDimension(R.styleable.NtkTile_ntkAccentLift, 6f * dp);
+            t.face = a.getColor(R.styleable.NtkTile_ntkFace, t.face);
+            t.shadow = a.getColor(R.styleable.NtkTile_ntkShadow, 0);
+            t.radius = a.getDimension(R.styleable.NtkTile_ntkRadius, 8f * dp);
+            t.blur = a.getDimension(R.styleable.NtkTile_ntkBlur, 2f * dp);
+            t.drop = a.getDimension(R.styleable.NtkTile_ntkDrop, 0.75f * dp);
             mPressed = a.getInt(R.styleable.NtkTile_ntkState, 1) == 2;
             mInsetL = a.getDimension(R.styleable.NtkTile_ntkInsetLeft, 0f);
             mInsetT = a.getDimension(R.styleable.NtkTile_ntkInsetTop, 0f);
@@ -82,7 +72,7 @@ public final class TileDrawable extends Drawable {
         final Rect b = getBounds();
         if (b.isEmpty()) return;
         c.save();
-        c.clipRect(b); // the lip and the shadow too stay inside the bounds
+        c.clipRect(b); // the shadow too stays inside the bounds
         mTile.draw(c, b.left + mInsetL, b.top + mInsetT, b.right - mInsetR, b.bottom - mInsetB,
                 mPressed, mAlpha, mFilter);
         c.restore();
@@ -90,12 +80,9 @@ public final class TileDrawable extends Drawable {
 
     /**
      * Where a key's legends go, in the coordinates of {@code bounds} (the bounds
-     * the key's background is drawn in). Legends stay where they were when users
-     * enrolled (the fingerprint stores where fingers land on a key): the bounds
-     * less one step (2 dp, in whole pixels) on the right and four at the bottom,
-     * the top face of the earlier block keys. A key tile's face has the same
-     * width and is about 3 dp taller, so legends sit about 1.5 dp above its
-     * centre. Pressed, they move down with the face. Other backgrounds: the bounds.
+     * the key's background is drawn in): the tile's face, so legends are centred
+     * on the key as drawn (about 1 dp above the centre of its bounds). Other
+     * backgrounds: the bounds.
      */
     public static void legendBox(Drawable d, Rect bounds, Rect out) {
         final Drawable cur = d == null ? null : d.getCurrent();
@@ -104,9 +91,8 @@ public final class TileDrawable extends Drawable {
             return;
         }
         final TileDrawable k = (TileDrawable) cur;
-        final int s = Math.max(1, Math.round(2f * k.mDensity));
-        final int down = k.mPressed ? Math.round(k.mTile.lipHeight) : 0;
-        out.set(bounds.left, bounds.top + down, bounds.right - s, bounds.bottom - 4 * s + down);
+        out.set(Math.round(bounds.left + k.mInsetL), Math.round(bounds.top + k.mInsetT),
+                Math.round(bounds.right - k.mInsetR), Math.round(bounds.bottom - k.mInsetB));
     }
 
     @Override

@@ -3,13 +3,11 @@ package tools.ntk.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.SystemClock;
 import android.text.TextPaint;
 import android.text.TextUtils;
@@ -17,6 +15,8 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import rkr.simplekeyboard.inputmethod.R;
@@ -29,34 +29,60 @@ import tools.ntk.SignFlow;
 import tools.ntk.TypingSession;
 
 /**
- * The strip above the keys (TODO.md 3.6, 3.7), a dark display like the car's
- * screen: at the left the NTK mark, a status light and the account name (or a
- * message) in thin light type; at the right the Sign key, a graphite tile that
- * fills with metallic gold as the session approaches the taps a stamp needs. The
- * light and the key are drawn in code (the key is a {@link Tile}), the mark is a
- * vector drawable (BadgeView) whose gaps are painted in ntk_display, the strip's
- * colour. Its height is fixed, so the keys never move.
+ * The strip above the keys (TODO.md 3.6, 3.7), flat and light as in the owner's
+ * mock: at the left the small NTK mark, a status light and the account name (or
+ * a message) in small thin type; at the right the Sign key, a flat orange tile
+ * with a thin black label and a row of ticks that turn black as the session
+ * approaches the taps a stamp needs.
+ *
+ * While a Sign or Enroll call runs (seconds to minutes), the middle is a dial,
+ * after an old radio's tuning scale: fine black ticks, a few tiny numbers
+ * (seconds, closer together as they grow) and an orange needle that moves with
+ * time toward 90% of the scale; when the call ends it swings to the end, or back
+ * to 0 if it failed. The mark is a vector drawable (BadgeView) whose gaps are
+ * painted in ntk_display, the strip's colour. The strip's height is fixed, so the
+ * keys never move.
  */
 public final class StripView extends View implements NtkCapture.Listener, NtkController.Listener {
     public static final int MSG_INFO = 0;
     public static final int MSG_GOOD = 1;
     public static final int MSG_BAD = 2;
 
+    /** The mark's height as a share of the strip's: 15 dp on the 44 dp strip. */
+    private static final float BADGE_HEIGHT = 15f / 44f;
+    /** A typical enclave call, in seconds: by then the needle is near 90% of the scale. */
+    private static final float EXPECTED_S = 60f;
+    /** The needle's swing when a call ends, and how long the dial stays before the message shows. */
+    private static final long SWING_MS = 700, HOLD_MS = 900;
+    /** The dial's numbers, in seconds. */
+    private static final int[] DIAL_NUMBERS = { 0, 5, 10, 20, 30, 60 };
+    /** The dial's ticks, in seconds: half seconds at first, then sparser, like a radio's MW scale. */
+    private static final float[] DIAL_TICKS;
+    static {
+        final List<Float> t = new ArrayList<>();
+        for (float s = 0f; s < 10f; s += 0.5f) t.add(s);
+        for (float s = 10f; s < 20f; s += 1f) t.add(s);
+        for (float s = 20f; s < 40f; s += 2f) t.add(s);
+        for (float s = 40f; s < 60f; s += 5f) t.add(s);
+        for (float s = 60f; s <= 80f; s += 10f) t.add(s);
+        DIAL_TICKS = new float[t.size()];
+        for (int i = 0; i < DIAL_TICKS.length; i++) DIAL_TICKS[i] = t.get(i);
+    }
+    /** Ticks on the Sign key that turn black as the session fills. */
+    private static final int SIGN_TICKS = 16;
+
     private final float mDp;
     private final TextPaint mText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final TextPaint mKeyText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+    private final TextPaint mDialText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint mGlow = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint mLine = new Paint();
     private final Rect mSignRect = new Rect();
     private final Rect mBadgeRect = new Rect();
     private final Drawable mBadge;
-    /** The Sign key: graphite where it has not filled, gold where it has. */
-    private final Tile mGraphite = new Tile(), mGold = new Tile();
+    private final Tile mSignTile = new Tile();
 
-    /** The mark's height as a share of the strip's: 24 dp on the 44 dp strip. */
-    private static final float BADGE_HEIGHT = 24f / 44f;
-
-    private final int cDisplay, cEdge, cText, cMuted, cDot, cOrange, cOnGold, cOnGraphite, cOnGraphiteMuted;
+    private final int cDisplay, cInk, cMuted, cMutedLight, cAccent, cAccentPressed, cOnAccent, cKey, cKeyPressed;
 
     private String mFlash;
     private int mFlashKind;
@@ -65,37 +91,37 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
     private String mDrawnText = "";
     private String mDrawnLabel = "";
 
+    // The dial: the call it shows (its busySince; 0 for none), and where the needle is.
+    private long mDialCall;
+    private boolean mDialEnding;
+    private float mNeedle, mSwingFrom, mSwingTo = 1f;
+    private long mSwingAt;
+
     public StripView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mDp = getResources().getDisplayMetrics().density;
         cDisplay = context.getColor(R.color.ntk_display);
-        cEdge = context.getColor(R.color.ntk_display_edge);
-        cText = context.getColor(R.color.ntk_display_text);
-        cMuted = context.getColor(R.color.ntk_display_muted);
-        cDot = context.getColor(R.color.ntk_display_dot);
-        cOrange = context.getColor(R.color.ntk_orange);
-        cOnGold = context.getColor(R.color.ntk_on_gold);
-        cOnGraphite = context.getColor(R.color.ntk_on_graphite);
-        cOnGraphiteMuted = context.getColor(R.color.ntk_on_graphite_muted);
-        final int shadow = context.getColor(R.color.ntk_display_shadow);
-        mGraphite.sizes(mDp, 6f, 1.5f, 2.5f, 0.6f).colours(context.getColor(R.color.ntk_graphite),
-                context.getColor(R.color.ntk_graphite_bottom), context.getColor(R.color.ntk_graphite_lip),
-                context.getColor(R.color.ntk_graphite_highlight), shadow);
-        mGold.sizes(mDp, 6f, 1.5f, 2.5f, 0.6f).colours(context.getColor(R.color.ntk_gold),
-                context.getColor(R.color.ntk_gold_bottom), context.getColor(R.color.ntk_gold_lip),
-                context.getColor(R.color.ntk_gold_highlight), shadow);
+        cInk = context.getColor(R.color.ntk_legend);
+        cMuted = context.getColor(R.color.ntk_muted);
+        cMutedLight = context.getColor(R.color.ntk_muted_light);
+        cAccent = context.getColor(R.color.ntk_accent);
+        cAccentPressed = context.getColor(R.color.ntk_accent_pressed);
+        cOnAccent = context.getColor(R.color.ntk_on_accent);
+        cKey = context.getColor(R.color.ntk_key);
+        cKeyPressed = context.getColor(R.color.ntk_key_pressed);
+        mSignTile.set(cAccent, context.getColor(R.color.ntk_key_shadow), mDp, 8f, 2f, 0.75f);
         final float sp = getResources().getDisplayMetrics().scaledDensity;
+        final Typeface thin = Typeface.create("sans-serif-thin", Typeface.NORMAL);
         mText.setTextSize(13 * sp);
-        mText.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
-        mText.setLetterSpacing(0.02f);
-        mText.setColor(cText);
-        mKeyText.setTextSize(13.5f * sp);
-        mKeyText.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        mKeyText.setLetterSpacing(0.04f);
+        mText.setTypeface(thin);
+        mKeyText.setTextSize(15 * sp);
+        mKeyText.setTypeface(thin);
         mKeyText.setTextAlign(Paint.Align.CENTER);
-        mGlow.setColor(cOrange);
-        mGlow.setAlpha(110);
-        mGlow.setMaskFilter(new BlurMaskFilter(4f * mDp, BlurMaskFilter.Blur.NORMAL)); // the light's glow
+        mDialText.setTextSize(9 * sp);
+        mDialText.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+        mDialText.setTextAlign(Paint.Align.CENTER);
+        mDialText.setColor(cInk);
+        mLine.setStrokeWidth(Math.max(1f, Math.round(0.4f * mDp))); // hairlines, on whole pixels
         mBadge = BadgeView.load(context); // its gaps are painted in ntk_display, the strip's colour
         setBackgroundColor(cDisplay);
     }
@@ -122,7 +148,7 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         @Override
         public void run() {
             invalidate();
-            postDelayed(this, NtkController.get(getContext()).isBusy() ? 250 : 1000);
+            postDelayed(this, mDialCall != 0 ? 33 : NtkController.get(getContext()).isBusy() ? 250 : 1000);
         }
     };
 
@@ -136,11 +162,18 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         invalidate();
     }
 
-    /** Shows a message in place of the account name for a while. */
+    /** Shows a message in place of the account name for a while; after a call, it also sets where the needle goes. */
     public void flash(String message, int kind) {
         mFlash = message;
         mFlashKind = kind;
         mFlashUntil = SystemClock.uptimeMillis() + (kind == MSG_INFO ? 6000 : 12000);
+        if (mDialCall != 0) {
+            mSwingTo = kind == MSG_BAD ? 0f : 1f;
+            if (mDialEnding) {
+                mSwingFrom = mNeedle;
+                mSwingAt = SystemClock.uptimeMillis();
+            }
+        }
         invalidate();
     }
 
@@ -162,9 +195,14 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         mSignRect.set(w - pad - keyW, pad, w - pad, pad + keyH);
         final int badgeH = Math.round(h * BADGE_HEIGHT);
         final int badgeW = BadgeView.widthFor(mBadge, badgeH);
-        final int left = Math.round(12 * mDp);
+        final int left = Math.round(14 * mDp);
         mBadgeRect.set(left, (h - badgeH) / 2, left + badgeW, (h - badgeH) / 2 + badgeH);
         mBadge.setBounds(mBadgeRect);
+    }
+
+    /** Where the needle points after {@code seconds} of a call: toward 90% of the scale. */
+    private static float dial(float seconds) {
+        return 0.9f * (1f - (float) Math.exp(-3f * Math.max(0f, seconds) / EXPECTED_S));
     }
 
     @Override
@@ -178,36 +216,40 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         final boolean busy = ctl.isBusy();
         final long now = SystemClock.uptimeMillis();
 
-        // The display's top edge: a hairline of light, as on glass.
-        mPaint.setColor(cEdge);
-        c.drawRect(0, 0, getWidth(), Math.max(1f, Math.round(mDp * 0.6f)), mPaint);
-
         mBadge.draw(c);
 
-        // Status light: a small dot, dim when nothing is recorded, orange while recording,
-        // blinking while a call runs.
-        boolean lit = s != null && account != null;
-        if (busy) lit = (now / 400) % 2 == 0;
-        final float dot = 3f * mDp;
-        final float dx = mBadgeRect.right + 12f * mDp + dot;
-        final float dy = getHeight() / 2f;
-        if (lit && (!c.isHardwareAccelerated() || Build.VERSION.SDK_INT >= 28)) c.drawCircle(dx, dy, dot, mGlow);
-        mPaint.setColor(lit ? cOrange : cDot);
-        c.drawCircle(dx, dy, dot, mPaint);
+        // The dial follows Sign and Enroll calls; it stays a moment after one ends.
+        final String op = ctl.busyOp();
+        if (busy && ("stamp".equals(op) || "enroll".equals(op))) {
+            if (mDialCall != ctl.busySince()) {
+                mDialCall = ctl.busySince();
+                mDialEnding = false;
+                mSwingTo = 1f;
+            }
+            mNeedle = dial((System.currentTimeMillis() - mDialCall) / 1000f);
+        } else if (mDialCall != 0) {
+            if (!mDialEnding) {
+                mDialEnding = true;
+                mSwingFrom = mNeedle;
+                mSwingAt = now;
+            }
+            final float k = Math.min(1f, (now - mSwingAt) / (float) SWING_MS);
+            final float eased = 1f - (1f - k) * (1f - k) * (1f - k);
+            mNeedle = mSwingFrom + (mSwingTo - mSwingFrom) * eased;
+            if (now - mSwingAt > SWING_MS + HOLD_MS) mDialCall = 0;
+        }
 
         // Text: a message, the call in progress, why we do not record, or the account.
         String text;
-        int color = cText;
+        int color = cInk;
         if (busy) {
             final long sec = (System.currentTimeMillis() - ctl.busySince()) / 1000;
-            final String op = ctl.busyOp();
             final String st = ctl.busyStatus();
             text = ("stamp".equals(op) ? "Checking with the enclave" : "enroll".equals(op) ? "Sealing into the enclave"
                     : "account".equals(op) ? "Setting up the account" : "Asking the enclave")
                     + (st.isEmpty() ? "" : " (" + st + ")") + String.format(Locale.ROOT, " %d:%02d", sec / 60, sec % 60);
         } else if (mFlash != null && now < mFlashUntil) {
             text = mFlash;
-            color = cText;
         } else if (account == null) {
             text = "Not set up: tap Set up";
             color = cMuted;
@@ -223,28 +265,76 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
             text = account.accountId;
         }
         if (mFlash != null && now >= mFlashUntil) mFlash = null;
-        mText.setColor(color);
-        final float tx = dx + dot + Math.round(9 * mDp);
-        final float avail = mSignRect.left - tx - Math.round(10 * mDp);
-        final CharSequence shown = TextUtils.ellipsize(text, mText, Math.max(0, avail), TextUtils.TruncateAt.END);
         mDrawnText = text;
-        final Paint.FontMetrics fm = mText.getFontMetrics();
-        c.drawText(shown, 0, shown.length(), tx, getHeight() / 2f - (fm.ascent + fm.descent) / 2f, mText);
+
+        final float midL = mBadgeRect.right + 14f * mDp;
+        final float midR = mSignRect.left - 14f * mDp;
+        if (mDialCall != 0) {
+            drawDial(c, midL, midR, mNeedle);
+        } else {
+            // Status light: a small dot, orange while recording, blinking while a call runs.
+            boolean lit = s != null && account != null;
+            if (busy) lit = (now / 400) % 2 == 0;
+            final float dot = 2f * mDp;
+            final float dx = midL - 2f * mDp + dot;
+            mPaint.setColor(lit ? cAccent : cMutedLight);
+            c.drawCircle(dx, getHeight() / 2f, dot, mPaint);
+            mText.setColor(color);
+            final float tx = dx + dot + 8f * mDp;
+            final float avail = midR - tx;
+            final CharSequence shown = TextUtils.ellipsize(text, mText, Math.max(0, avail), TextUtils.TruncateAt.END);
+            final Paint.FontMetrics fm = mText.getFontMetrics();
+            c.drawText(shown, 0, shown.length(), tx, getHeight() / 2f - (fm.ascent + fm.descent) / 2f, mText);
+        }
 
         drawSignKey(c, account, s, busy, cap);
+    }
+
+    /** The dial: a hairline with fine ticks, tiny numbers over the long ones, and the orange needle. */
+    private void drawDial(Canvas c, float l, float r, float needle) {
+        if (r - l < 40f * mDp) return;
+        final float h = getHeight();
+        final float base = h / 2f + 9f * mDp;       // the ticks stand on this line
+        final float major = 9f * mDp, minor = 4.5f * mDp;
+        mLine.setColor(cInk);
+        c.drawLine(l, px(base), r, px(base), mLine);
+        for (float t : DIAL_TICKS) {
+            final float x = px(l + (r - l) * dial(t));
+            c.drawLine(x, base - (isNumbered(t) ? major : minor), x, base, mLine);
+        }
+        c.drawLine(px(r), base - major, px(r), base, mLine); // the end: the call is done
+        final Paint.FontMetrics fm = mDialText.getFontMetrics();
+        final float numbers = base - major - 2.5f * mDp - fm.descent;
+        for (int n : DIAL_NUMBERS) {
+            c.drawText(Integer.toString(n), l + (r - l) * dial(n), numbers, mDialText);
+        }
+        // The needle, from above the numbers to below the line.
+        final float x = l + (r - l) * Math.max(0f, Math.min(1f, needle));
+        mPaint.setColor(cAccent);
+        final float half = 0.75f * mDp;
+        c.drawRect(x - half, h / 2f - 15f * mDp, x + half, base + 4f * mDp, mPaint);
+    }
+
+    private static boolean isNumbered(float t) {
+        for (int n : DIAL_NUMBERS) if (n == t) return true;
+        return false;
+    }
+
+    /** The centre of the pixel at {@code v}: hairlines land on whole pixels. */
+    private static float px(float v) {
+        return (float) Math.floor(v) + 0.5f;
     }
 
     private void drawSignKey(Canvas c, AccountStore.Account account, TypingSession s, boolean busy, NtkCapture cap) {
         final Rect r = mSignRect;
         String label;
-        float fill = 0f;
+        float fill = -1f; // no ticks
         boolean enabled = true;
         if (account == null) {
             label = "Set up";
         } else if (busy) {
             final long sec = (System.currentTimeMillis() - NtkController.get(getContext()).busySince()) / 1000;
             label = String.format(Locale.ROOT, "%d:%02d", sec / 60, sec % 60);
-            fill = 1f;
         } else if (s == null) {
             label = "Sign";
             enabled = false;
@@ -257,42 +347,30 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
             if (s.changedReason() != null || !cap.isPortrait()) enabled = false;
         }
         mDrawnLabel = label;
-        // A tile inside the key's bounds, room below for its lip and shadow: graphite
-        // that turns into gold (dark legend) from the left as the session approaches the
-        // taps a stamp needs. Disabled: graphite, muted legend. Pressed: pushed in.
+        // A flat tile inside the key's bounds: orange with a thin black label, or the keys'
+        // grey with a muted label when Sign cannot be used now. Pressed: no shadow.
         final boolean down = mSignPressed;
-        final float fl = r.left + mDp, ft = r.top, fr = r.right - mDp, fb = r.bottom - 3.5f * mDp; // the face, up
-        final float shift = down ? mGold.lipHeight : 0f;
-        final float f = enabled ? Math.max(0f, Math.min(1f, fill)) : 0f;
-        final float split = f >= 1f ? r.right : fl + (fr - fl) * f;
-        c.save();
-        c.clipRect(r);
-        if (split < r.right) mGraphite.draw(c, fl, ft, fr, fb, down, 255, null);
-        if (split > fl) {
-            c.save();
-            c.clipRect(r.left, r.top, split, r.bottom);
-            mGold.draw(c, fl, ft, fr, fb, down, 255, null);
-            c.restore();
-        }
-        // The label on the face: dark over the gold part, light over the rest.
+        final float fl = r.left + mDp, ft = r.top + 0.5f * mDp, fr = r.right - mDp, fb = r.bottom - 2f * mDp;
+        mSignTile.face = enabled ? (down ? cAccentPressed : cAccent) : (down ? cKeyPressed : cKey);
+        mSignTile.draw(c, fl, ft, fr, fb, down, 255, null);
+        final boolean ticks = enabled && fill >= 0f;
         final Paint.FontMetrics fm = mKeyText.getFontMetrics();
-        final float tx = (fl + fr) / 2f;
-        final float ty = (ft + fb) / 2f + shift - (fm.ascent + fm.descent) / 2f;
-        if (split < r.right) {
-            c.save();
-            c.clipRect(split, r.top, r.right, r.bottom);
-            mKeyText.setColor(enabled ? cOnGraphite : cOnGraphiteMuted);
-            c.drawText(label, tx, ty, mKeyText);
-            c.restore();
+        final float cy = (ft + fb) / 2f - (ticks ? 2.5f * mDp : 0f);
+        mKeyText.setColor(enabled ? cOnAccent : cMuted);
+        c.drawText(label.toLowerCase(Locale.ROOT), (fl + fr) / 2f, cy - (fm.ascent + fm.descent) / 2f, mKeyText);
+        if (ticks) {
+            // A row of ticks along the bottom: black up to how far the session has come.
+            final float tl = fl + 14f * mDp, tr = fr - 14f * mDp;
+            final float tb = fb - 5f * mDp, tt = tb - 3f * mDp;
+            final int on = Math.round(fill * SIGN_TICKS);
+            for (int i = 0; i < SIGN_TICKS; i++) {
+                final float x = px(tl + (tr - tl) * i / (SIGN_TICKS - 1));
+                mLine.setColor(cOnAccent);
+                mLine.setAlpha(i < on ? 255 : 64);
+                c.drawLine(x, tt, x, tb, mLine);
+            }
+            mLine.setAlpha(255);
         }
-        if (split > fl) {
-            c.save();
-            c.clipRect(r.left, r.top, split, r.bottom);
-            mKeyText.setColor(cOnGold);
-            c.drawText(label, tx, ty, mKeyText);
-            c.restore();
-        }
-        c.restore();
     }
 
     @Override

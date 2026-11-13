@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- NTK keyboard theme (TODO.md 3.7): one design in light and dark, following the
-     system's dark mode through values-night/colors-ntk.xml. After a Polestar interior:
-     white tiles on thin dark seams, thin legends and line icons, gold on Enter. It
-     changes only how keys are drawn; key positions and sizes are the base keyboard's. -->
+     system's dark mode through values-night/colors-ntk.xml. Dieter Rams, after the
+     owner's mock: flat tiles on a flat floor, thin black legends, thin line icons, one
+     orange accent. It changes only how keys are drawn; key positions and sizes are the
+     base keyboard's. -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
     <style name="KeyboardTheme.NTK">
         <item name="inputViewStyle">@style/InputView</item>
@@ -12,9 +13,9 @@
         <item name="moreKeysKeyboardStyle">@style/MoreKeysKeyboard.NTK</item>
         <item name="moreKeysKeyboardViewStyle">@style/MoreKeysKeyboardView.NTK</item>
         <item name="functionalTextColor">@color/ntk_legend</item>
-        <item name="popupPanelBackgroundColor">@color/ntk_key_face</item>
+        <item name="popupPanelBackgroundColor">@color/ntk_display</item>
         <item name="keyPressedBackgroundColor">@color/ntk_key_pressed</item>
-        <item name="keyNormalBackgroundColor">@color/ntk_key_face</item>
+        <item name="keyNormalBackgroundColor">@color/ntk_key</item>
         <!-- Thin line icons (KeyboardIconsSet). -->
         <item name="iconShiftKey">@drawable/ntk_sym_shift</item>
         <item name="iconShiftKeyShifted">@drawable/ntk_sym_shift_shifted</item>
@@ -36,15 +37,17 @@
         <item name="keyBackground">@drawable/ntk_key_background</item>
         <item name="functionalKeyBackground">@drawable/ntk_functional_key_background</item>
         <item name="spacebarBackground">@drawable/ntk_spacebar_background</item>
-        <item name="keyTypeface">light</item>
+        <item name="keyTypeface">thin</item>
+        <item name="keyLetterSize">@fraction/ntk_key_letter_ratio</item>
+        <item name="keyHintLetterRatio">@fraction/ntk_key_hint_letter_ratio</item>
         <item name="keyTextColor">@color/ntk_legend</item>
-        <item name="keyTextInactivatedColor">@color/ntk_key_hint</item>
+        <item name="keyTextInactivatedColor">@color/ntk_muted</item>
         <item name="keyHintLetterColor">@color/ntk_key_hint</item>
         <item name="keyHintLabelColor">@color/ntk_key_hint</item>
-        <item name="keyShiftedLetterHintInactivatedColor">@color/ntk_key_hint</item>
+        <item name="keyShiftedLetterHintInactivatedColor">@color/ntk_muted</item>
         <item name="keyShiftedLetterHintActivatedColor">@color/ntk_legend</item>
         <item name="keyPreviewTextColor">@color/ntk_legend</item>
-        <item name="languageOnSpacebarTextColor">@color/ntk_key_hint</item>
+        <item name="languageOnSpacebarTextColor">@color/ntk_muted</item>
     </style>
     <style name="MainKeyboardView.NTK" parent="KeyboardView.NTK">
         <item name="keyPreviewBackground">@drawable/ntk_key_preview</item>
@@ -61,42 +64,64 @@
     <style name="MoreKeysKeyboardView.NTK" parent="KeyboardView.NTK">
         <item name="android:background">@drawable/ntk_popup_panel</item>
         <item name="keyBackground">@drawable/ntk_more_key_background</item>
-        <item name="keyTypeface">light</item>
+        <item name="keyLetterSize">@fraction/config_key_letter_ratio_lxx</item>
         <item name="verticalCorrection">@dimen/config_more_keys_keyboard_vertical_correction</item>
     </style>
 
-    <!-- The NTK app screens: setup, consent, enrollment. White tiles with soft shadows
-         on a light grey, a dark display for the header, thin type, gold marks. -->
+    <!-- The NTK app screens: setup, consent, enrollment. The same baseline: a light header
+         with the small mark, flat tiles on a flat background, thin type, one orange action. -->
     <style name="NtkAppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/ntk_background</item>
+        <item name="android:windowBackground">@color/ntk_display</item>
         <item name="android:colorBackground">@color/ntk_background</item>
         <item name="android:textColorPrimary">@color/ntk_legend</item>
         <item name="android:textColorSecondary">@color/ntk_muted</item>
         <item name="android:textColorHint">@color/ntk_hint</item>
-        <item name="android:colorAccent">@color/ntk_gold_bottom</item>
+        <item name="android:colorAccent">@color/ntk_accent</item>
         <item name="android:colorControlActivated">@color/ntk_legend</item>
-        <item name="android:statusBarColor">@color/ntk_background</item>
-        <item name="android:navigationBarColor">@color/ntk_background</item>
+        <item name="android:statusBarColor">@color/ntk_display</item>
+        <item name="android:navigationBarColor">@color/ntk_display</item>
         <item name="android:windowLightStatusBar">true</item>
+    </style>
+    <!-- The header: the small mark at the left; at the right, the screen's name above
+         NEAR THE KEYBOARD. -->
+    <style name="NtkHeader">
+        <item name="android:background">@color/ntk_display</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">20dp</item>
+        <item name="android:paddingRight">20dp</item>
+        <item name="android:paddingTop">22dp</item>
+        <item name="android:paddingBottom">22dp</item>
+    </style>
+    <style name="NtkHeaderScreen">
+        <item name="android:textColor">@color/ntk_legend</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:fontFamily">sans-serif-thin</item>
+        <item name="android:gravity">end</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+    <style name="NtkHeaderName">
+        <item name="android:textColor">@color/ntk_legend</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:gravity">end</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:layout_marginTop">3dp</item>
     </style>
     <style name="NtkTitle">
         <item name="android:textColor">@color/ntk_legend</item>
-        <item name="android:textSize">30sp</item>
-        <item name="android:fontFamily">sans-serif-light</item>
-        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:fontFamily">sans-serif-thin</item>
         <item name="android:lineSpacingMultiplier">1.05</item>
     </style>
     <style name="NtkHeading">
         <item name="android:textColor">@color/ntk_legend</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:letterSpacing">0.16</item>
-        <item name="android:drawableStart">@drawable/ntk_heading_mark</item>
-        <item name="android:drawablePadding">10dp</item>
-        <item name="android:gravity">center_vertical</item>
-        <item name="android:layout_marginTop">28dp</item>
-        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:fontFamily">sans-serif-thin</item>
+        <item name="android:layout_marginTop">30dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
     </style>
     <style name="NtkBody">
         <item name="android:textColor">@color/ntk_legend</item>
@@ -105,22 +130,26 @@
         <item name="android:lineSpacingMultiplier">1.2</item>
     </style>
     <style name="NtkSmall">
-        <item name="android:textColor">@color/ntk_muted</item>
+        <item name="android:textColor">@color/ntk_legend</item>
         <item name="android:textSize">13sp</item>
-        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:lineSpacingMultiplier">1.2</item>
     </style>
     <style name="NtkButton">
         <item name="android:background">@drawable/ntk_button_background</item>
         <item name="android:textColor">@color/ntk_legend</item>
-        <item name="android:textSize">15sp</item>
-        <item name="android:fontFamily">sans-serif</item>
-        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:stateListAnimator">@null</item>
-        <item name="android:minHeight">58dp</item>
+        <item name="android:minHeight">56dp</item>
         <item name="android:layout_marginTop">6dp</item>
         <item name="android:gravity">center_vertical|start</item>
+    </style>
+    <!-- The main action on a screen: a flat orange tile. -->
+    <style name="NtkButton.Primary">
+        <item name="android:background">@drawable/ntk_button_primary_background</item>
+        <item name="android:textColor">@color/ntk_on_accent</item>
     </style>
     <style name="NtkField">
         <item name="android:background">@drawable/ntk_field</item>
@@ -131,19 +160,5 @@
         <item name="android:gravity">top|start</item>
         <item name="android:minHeight">104dp</item>
         <item name="android:layout_marginTop">8dp</item>
-    </style>
-    <!-- The display header at the top of the app screens. -->
-    <style name="NtkDisplay">
-        <item name="android:background">@drawable/ntk_display_tile</item>
-        <item name="android:orientation">horizontal</item>
-        <item name="android:gravity">center_vertical</item>
-    </style>
-    <style name="NtkDisplayCaption">
-        <item name="android:textColor">@color/ntk_display_muted</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:fontFamily">sans-serif</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:letterSpacing">0.2</item>
-        <item name="android:gravity">end|center_vertical</item>
     </style>
 </resources>

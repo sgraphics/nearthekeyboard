@@ -90,9 +90,8 @@ public class KeyboardView extends View {
     private final Drawable mSpacebarBackground;
     private final Rect mKeyBackgroundPadding = new Rect();
     // NTK: the part of a key its legends are laid out in. On a key tile (tools.ntk.ui.
-    // TileDrawable) it is where legends were when users enrolled, a little up and left
-    // of the key's centre, on the tile's face; lower when pressed. Drawing only: the
-    // key's bounds stay.
+    // TileDrawable) it is the tile's face, so legends are centred on the key as drawn.
+    // Drawing only: the key's bounds stay.
     private final Rect mKeyFace = new Rect();
     private final Rect mKeyBounds = new Rect();
     private static final float KET_TEXT_SHADOW_RADIUS_DISABLED = -1.0f;
@@ -211,6 +210,15 @@ public class KeyboardView extends View {
         final int width = keyboard.mOccupiedWidth + getPaddingLeft() + getPaddingRight();
         final int height = keyboard.mOccupiedHeight + getPaddingTop() + getPaddingBottom();
         setMeasuredDimension(width, height);
+    }
+
+    @Override
+    protected void onLayout(final boolean changed, final int left, final int top, final int right,
+            final int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        // NTK: the floor paints the area under the keys where the system draws its navigation
+        // buttons (this view's bottom padding) as a base. Drawing only.
+        tools.ntk.ui.FloorDrawable.setBase(getBackground(), getPaddingBottom());
     }
 
     @Override

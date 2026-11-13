@@ -14,8 +14,8 @@ import rkr.simplekeyboard.inputmethod.R;
  * drawable from brand/build.mjs (res/drawable/ntk_badge_light.xml and
  * ntk_badge_dark.xml), drawn smoothly at the view's height; the width follows
  * the mark's proportions. VectorDrawable has no masks, so the gaps between the
- * lines are painted in ntk_display, the dark display the mark sits on (the
- * keyboard's strip, the app's header, style NtkDisplay): draw it only on that colour.
+ * lines are painted in ntk_display, the surface the mark sits on (the keyboard's
+ * strip, the app's header, style NtkHeader): draw it only on that colour.
  */
 public final class BadgeView extends View {
     private final Drawable mMark;

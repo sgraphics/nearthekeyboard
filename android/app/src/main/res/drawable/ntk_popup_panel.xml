@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The long-press panel: one white tile that holds the more keys. -->
 <drawable xmlns:app="http://schemas.android.com/apk/res-auto"
     class="tools.ntk.ui.TileDrawable"
     app:ntkState="up"
-    app:ntkFace="@color/ntk_key_face"
-    app:ntkFaceBottom="@color/ntk_key_face_bottom"
-    app:ntkLip="@color/ntk_key_lip"
-    app:ntkHighlight="@color/ntk_key_highlight"
+    app:ntkFace="@color/ntk_display"
     app:ntkShadow="@color/ntk_key_shadow"
-    app:ntkRadius="8dp"
-    app:ntkLipHeight="@dimen/ntk_key_lip"
-    app:ntkBlur="@dimen/ntk_key_blur"
-    app:ntkInsetRight="2dp"
-    app:ntkInsetBottom="5dp"
-    app:ntkPaddingLeft="5dp" app:ntkPaddingTop="5dp" app:ntkPaddingRight="7dp" app:ntkPaddingBottom="10dp" />
+    app:ntkRadius="10dp"
+    app:ntkBlur="2dp" app:ntkDrop="0.75dp"
+    app:ntkInsetLeft="1dp" app:ntkInsetTop="0.5dp" app:ntkInsetRight="1dp" app:ntkInsetBottom="2.5dp"
+    app:ntkPaddingLeft="5dp" app:ntkPaddingTop="5dp" app:ntkPaddingRight="5dp" app:ntkPaddingBottom="7dp" />

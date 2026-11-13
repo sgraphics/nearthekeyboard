@@ -2,13 +2,9 @@
 <drawable xmlns:app="http://schemas.android.com/apk/res-auto"
     class="tools.ntk.ui.TileDrawable"
     app:ntkState="pressed"
-    app:ntkFace="@color/ntk_tile_pressed"
-    app:ntkFaceBottom="@color/ntk_tile_pressed_bottom"
-    app:ntkLip="@color/ntk_tile_lip"
-    app:ntkHighlight="@color/ntk_tile_highlight"
-    app:ntkShadow="@color/ntk_tile_shadow"
+    app:ntkFace="@color/ntk_key_pressed"
+    app:ntkShadow="@color/ntk_key_shadow"
     app:ntkRadius="10dp"
-    app:ntkLipHeight="1.5dp"
-    app:ntkBlur="4dp"
-    app:ntkInsetLeft="3dp" app:ntkInsetTop="1dp" app:ntkInsetRight="4dp" app:ntkInsetBottom="8dp"
-    app:ntkPaddingLeft="20dp" app:ntkPaddingTop="13dp" app:ntkPaddingRight="22dp" app:ntkPaddingBottom="21dp" />
+    app:ntkBlur="3dp" app:ntkDrop="1dp"
+    app:ntkInsetLeft="2dp" app:ntkInsetTop="1dp" app:ntkInsetRight="2dp" app:ntkInsetBottom="4dp"
+    app:ntkPaddingLeft="20dp" app:ntkPaddingTop="14dp" app:ntkPaddingRight="20dp" app:ntkPaddingBottom="17dp" />

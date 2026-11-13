@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The floor under the keys: the dark seams between the tiles. -->
+<!-- The floor under the keys: flat, with a muted base where the system draws its
+     navigation buttons. -->
 <drawable xmlns:app="http://schemas.android.com/apk/res-auto"
-    class="tools.ntk.ui.SeamDrawable"
-    app:ntkFace="@color/ntk_seam_top"
-    app:ntkFaceBottom="@color/ntk_seam_bottom" />
+    class="tools.ntk.ui.FloorDrawable"
+    app:ntkFace="@color/ntk_floor"
+    app:ntkBase="@color/ntk_base"
+    app:ntkBaseLow="@color/ntk_base_low"
+    app:ntkBaseBand="10dp" />

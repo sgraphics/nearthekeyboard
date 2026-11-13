@@ -7,13 +7,13 @@
     android:viewportHeight="24">
     <path
         android:strokeColor="?attr/functionalTextColor"
-        android:strokeWidth="1.4"
+        android:strokeWidth="1.1"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:pathData="M4,5L20.5,12L4,19L6.6,12Z" />
     <path
         android:strokeColor="?attr/functionalTextColor"
-        android:strokeWidth="1.4"
+        android:strokeWidth="1.1"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:pathData="M6.6,12H12" />

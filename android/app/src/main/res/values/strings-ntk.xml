@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="ntk_strip_height">44dp</dimen>
-    <!-- Key tiles (tools.ntk.ui.TileDrawable): corner radius, lip (front edge), shadow blur,
-         and the room the face leaves inside the key's bounds, on the right and at the bottom,
-         for the lip and the shadow. Drawing only: keys keep their bounds. -->
-    <dimen name="ntk_key_radius">6dp</dimen>
-    <dimen name="ntk_key_lip">1.5dp</dimen>
-    <dimen name="ntk_key_blur">3dp</dimen>
-    <dimen name="ntk_key_room_right">2dp</dimen>
-    <dimen name="ntk_key_room_bottom">5dp</dimen>
+    <!-- Key tiles (tools.ntk.ui.TileDrawable): corner radius, the soft shadow's blur and
+         drop, and the room the face leaves inside the key's bounds for the shadow to fade
+         out in. Legends are centred on the face. Drawing only: keys keep their bounds. -->
+    <dimen name="ntk_key_radius">8dp</dimen>
+    <dimen name="ntk_key_blur">2dp</dimen>
+    <dimen name="ntk_key_drop">0.75dp</dimen>
+    <dimen name="ntk_key_inset_side">1dp</dimen>
+    <dimen name="ntk_key_inset_top">0.5dp</dimen>
+    <dimen name="ntk_key_inset_bottom">2.5dp</dimen>
+    <!-- Lowercase letters large, as in the owner's mock (upstream: 55%). -->
+    <fraction name="ntk_key_letter_ratio">64%</fraction>
+    <!-- The small hint at a key's top right; a little smaller than upstream's 25% so it
+         clears the capitals. -->
+    <fraction name="ntk_key_hint_letter_ratio">22%</fraction>
     <string name="keyboard_theme_ntk" translatable="false">NTK (light and dark, follows the system)</string>
 
     <!-- The stamp buttons in other apps (accessibility service) and the text selection menu entry. -->

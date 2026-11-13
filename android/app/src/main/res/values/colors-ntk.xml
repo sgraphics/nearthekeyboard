@@ -1,60 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- NTK, light: after a Polestar interior. Matte white tiles with rounded corners, no
-     outlines and a soft shadow, on thin dark seams, like the white control tiles of the
-     reference's centre console; a dark "display" for the strip above the keys and the
-     app's header, like the car's screen; thin near-black legends; metallic gold on the
-     Sign key and the Enter key, the orange of the NTK mark unchanged. -->
+<!-- NTK, light: Dieter Rams, after the owner's mock. Flat surfaces of one colour each,
+     no gradients, no outlines; keys are flat tiles with a barely visible soft shadow on
+     a flat floor; thin black type; one accent, flat orange; muted greys for minor
+     elements. The NTK mark keeps its own orange. -->
 <resources>
-    <!-- App screens (setup, consent, enrollment). -->
-    <color name="ntk_background">#FFEDEFF2</color>
-    <color name="ntk_legend">#FF111318</color>
-    <color name="ntk_muted">#FF666C76</color>
-    <color name="ntk_hint">#FF80868F</color>
+    <!-- Surfaces. -->
+    <color name="ntk_background">#FFE6EAF2</color>
+    <color name="ntk_floor">#FFE6EAF2</color>
+    <!-- The strip above the keys and the app's header. The NTK mark's gaps are painted
+         in ntk_display (drawable/ntk_badge_light.xml): draw it only on it. -->
+    <color name="ntk_display">#FFF3F6FC</color>
+    <color name="ntk_key">#FFECEFF6</color>
+    <color name="ntk_key_pressed">#FFDCE1EA</color>
+    <color name="ntk_key_shadow">#1C1E2A3D</color>
+    <color name="ntk_field">#FFF3F6FC</color>
 
-    <!-- The display: the strip above the keys and the app's header. The NTK mark's gaps
-         are painted in ntk_display (drawable/ntk_badge_light.xml): draw it only on it. -->
-    <color name="ntk_display">#FF1C1E23</color>
-    <color name="ntk_display_edge">#FF2D3037</color>
-    <color name="ntk_display_text">#FFD9DCE1</color>
-    <color name="ntk_display_muted">#FF868C95</color>
-    <color name="ntk_display_dot">#FF4A4E56</color>
+    <!-- Ink. -->
+    <color name="ntk_legend">#FF000000</color>
+    <color name="ntk_key_hint">#FF000000</color>
+    <color name="ntk_muted">#FF8E98B1</color>
+    <color name="ntk_muted_light">#FFBDC3D3</color>
+    <color name="ntk_hint">#FF8E98B1</color>
 
-    <!-- Keys: white tiles on dark seams. -->
-    <color name="ntk_seam_top">#FF2A2E35</color>
-    <color name="ntk_seam_bottom">#FF1E2126</color>
-    <color name="ntk_key_face">#FFFFFFFF</color>
-    <color name="ntk_key_face_bottom">#FFF5F6F8</color>
-    <color name="ntk_key_lip">#FFD3D7DD</color>
-    <color name="ntk_key_highlight">#00FFFFFF</color>
-    <color name="ntk_key_pressed">#FFE9EBEF</color>
-    <color name="ntk_key_pressed_bottom">#FFE3E6EA</color>
-    <color name="ntk_key_shadow">#99000000</color>
-    <color name="ntk_key_hint">#FF767C85</color>
-
-    <!-- Tiles in the app: buttons, fields, cards. -->
-    <color name="ntk_tile">#FFFFFFFF</color>
-    <color name="ntk_tile_bottom">#FFF7F8FA</color>
-    <color name="ntk_tile_lip">#FFDDE0E5</color>
-    <color name="ntk_tile_highlight">#00FFFFFF</color>
-    <color name="ntk_tile_pressed">#FFECEEF1</color>
-    <color name="ntk_tile_pressed_bottom">#FFE6E8EC</color>
-    <color name="ntk_tile_shadow">#38101826</color>
-
-    <!-- Accents: the mark's orange; metallic gold (Sign, Enter, stamp check, headings). -->
+    <!-- The accent: flat orange (Sign, main actions, the meter's needle, the stamp
+         buttons); ntk_orange is the NTK mark's own. -->
     <color name="ntk_orange">#FFFF4F00</color>
-    <color name="ntk_gold">#FFE4C77A</color>
-    <color name="ntk_gold_bottom">#FFB8902F</color>
-    <color name="ntk_gold_lip">#FF86671F</color>
-    <color name="ntk_gold_highlight">#FFF7E8BC</color>
-    <color name="ntk_gold_accent">#FFCDA74C</color>
-    <color name="ntk_on_gold">#FF1E1708</color>
+    <color name="ntk_accent">#FFFD5B15</color>
+    <color name="ntk_accent_pressed">#FFE24E0F</color>
+    <color name="ntk_on_accent">#FF000000</color>
 
-    <!-- The Sign key before it fills: a graphite tile on the display. -->
-    <color name="ntk_graphite">#FF373A41</color>
-    <color name="ntk_graphite_bottom">#FF2C2F35</color>
-    <color name="ntk_graphite_lip">#FF0F1012</color>
-    <color name="ntk_graphite_highlight">#FF4A4E56</color>
-    <color name="ntk_on_graphite">#FFE6E8EB</color>
-    <color name="ntk_on_graphite_muted">#FF80868F</color>
-    <color name="ntk_display_shadow">#B3000000</color>
+    <!-- The base under the keys, where the system draws its navigation buttons. -->
+    <color name="ntk_base">#FFBDC3D3</color>
+    <color name="ntk_base_low">#FF8E98B1</color>
 </resources>

@@ -43,21 +43,23 @@ calls, bundled binaries.
   the browser when a button is tapped. It has no network code.
 - "Verify NTK stamp" in the text selection menu of any app
   (`ui/VerifySelectionActivity`, `ACTION_PROCESS_TEXT`).
-- The NTK keyboard theme: one design in light and dark, after a Polestar
-  interior (restyled 2026-11-13): keys drawn in code as matte white tiles
-  (`ui/Tile`, `ui/TileDrawable`: rounded corners, no outlines, a barely visible
-  vertical gradient, a thin front edge and a soft layered shadow, all inside the
-  key's bounds; a press pushes the tile in) on dark seams (`ui/SeamDrawable`);
-  dark grey tiles on near-black seams in dark mode. Legends in the system
-  sans-serif's light weight, thin line icons (`drawable/ntk_sym_*.xml`), a short
-  gold bar on Enter. The strip and the app's header are a dark display; the Sign
-  key is a graphite tile that fills with metallic gold. The brand badge and
-  launcher icon come from `brand/out/android/`; the badge is the NTK mark as
-  vector drawables, `drawable/ntk_badge_light.xml` and `ntk_badge_dark.xml`,
-  whose gaps are painted in each theme's `ntk_display`, the display it sits on;
+- The NTK keyboard theme: one design in light and dark, after the owner's mock
+  (Dieter Rams; restyled 2026-11-14): flat surfaces of one colour each, no
+  gradients. Keys are flat tiles drawn in code (`ui/Tile`, `ui/TileDrawable`:
+  rounded corners, a barely visible soft shadow, all inside the key's bounds; a
+  press shows a darker tile) on a flat floor with a muted base under the keys
+  (`ui/FloorDrawable`); dark greys in dark mode. Legends in the system
+  sans-serif's thin weight, large lowercase letters, thin line icons
+  (`drawable/ntk_sym_*.xml`). The strip has the small NTK mark, the account in
+  thin type and the Sign key as a flat orange tile whose ticks fill with the
+  session; while a Sign or Enroll call runs, a dial (fine ticks, a few numbers in
+  seconds, an orange needle) shows it. The brand badge and launcher icon come
+  from `brand/out/android/`; the badge is the NTK mark as vector drawables,
+  `drawable/ntk_badge_light.xml` and `ntk_badge_dark.xml`, whose gaps are
+  painted in each theme's `ntk_display`, the strip and header colour it sits on;
   `ui/BadgeView` picks the one for the current theme and draws it smoothly at
   any height. The setup and enrollment screens and the stamp buttons use the
-  same tiles.
+  same tiles, with one orange main action.
 - Debug builds only (`app/src/debug/`): sent sessions are saved in app-private
   storage (`files/typing-data/`), and a key-geometry hook serves the robot
   typist test. Release builds compile `app/src/release/`, which does neither.
@@ -81,11 +83,11 @@ calls, bundled binaries.
 | `latin/inputlogic/InputLogic.java` | Reports what each key produced (one character, `\n` for a line break, or `<bksp>`, `<shift>`, `<sym>`, `<enter>`, …) and how the cursor moved; text from the paste key is reported as inserted. |
 | `latin/LatinIME.java` | Tells `NtkCapture` when a field starts and ends and when the selection moves. |
 | `keyboard/MainKeyboardView.java` | Ignores touches while a stamp request runs (typing is held); the language name on the spacebar goes in the key's legend box. |
-| `keyboard/KeyboardView.java` | A key's legends, hint and icon are laid out in the legend box of a key tile (`ui/TileDrawable.legendBox`): where they were when users enrolled, a little up and left of the key's centre; lower while the key is pressed. In the NTK theme hint letters use the legend typeface. Drawing only: key bounds and touch areas are unchanged. |
-| `keyboard/internal/KeyVisualAttributes.java`, `res/values/attrs.xml` | `keyTypeface="light"`: the system sans-serif in its light weight (the NTK theme's legends). |
+| `keyboard/KeyboardView.java` | A key's legends, hint and icon are laid out on the face of a key tile (`ui/TileDrawable.legendBox`), centred on the key as drawn; in the NTK theme hint letters use the legend typeface; the floor under the keys learns the height of the navigation area (`ui/FloorDrawable.setBase`). Drawing only: key bounds and touch areas are unchanged. |
+| `keyboard/internal/KeyVisualAttributes.java`, `res/values/attrs.xml` | `keyTypeface="thin"`: the system sans-serif in its thin weight (the NTK theme's legends). |
 | `keyboard/internal/KeyboardIconsSet.java` | A keyboard theme may name its own key icons (the `icon*` attributes); the NTK theme's thin line icons. Other themes keep upstream's. |
 | `keyboard/KeyboardSwitcher.java` | The strip and the keys form one frame, which is what is shown and touchable. |
-| `keyboard/KeyboardTheme.java`, `res/values/attrs.xml`, `res/values/keyboard-themes.xml` | The NTK theme (id 7), the default; its colour (the navigation bar's) is the dark seam colour. |
+| `keyboard/KeyboardTheme.java`, `res/values/attrs.xml`, `res/values/keyboard-themes.xml` | The NTK theme (id 7), the default; its colour (the navigation bar's) is the floor colour. |
 | `latin/settings/Settings.java`, `res/xml/prefs_screen_preferences.xml`, `res/xml/prefs_screen_appearance.xml` | Space swipe and delete swipe always off and removed from settings; keyboard height and bottom offset locked (the fingerprint depends on where fingers land). |
 | `res/layout/input_view.xml`, `res/layout-v28/input_view.xml` | The strip above the keys, at a fixed height. |
 | `res/values/strings-appname.xml`, `res/values/strings.xml` | The name "NTK"; the privacy link points to NTK. |
