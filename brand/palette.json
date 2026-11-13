@@ -1,0 +1,53 @@
+{
+  "name": "NTK — Near The Keyboard",
+  "note": "build.mjs reads this file. Change a colour here, then run node build.mjs.",
+  "light": {
+    "white": { "hex": "#FFFFFF", "use": "objects: keys, the keyboard body, cards" },
+    "paper": { "hex": "#F4F4F1", "use": "backgrounds" },
+    "grey1": { "hex": "#D7D7D2", "use": "first shading step: key edges, front faces, hard shadows" },
+    "grey2": { "hex": "#B4B4AE", "use": "second shading step: recesses, gaps" },
+    "grey3": { "hex": "#6E6E69", "use": "secondary text only (4.6:1 on paper)" },
+    "black": { "hex": "#0A0A0A", "use": "outlines, legends, text" },
+    "orange": { "hex": "#FF4F00", "use": "the one active thing: the Sign key, a verified stamp, what moves" },
+    "orangeShade": { "hex": "#C23C00", "use": "the shaded face of an orange object, nothing else" }
+  },
+  "dark": {
+    "space": { "hex": "#121211", "use": "backgrounds" },
+    "body": { "hex": "#1C1C1A", "use": "large objects on space: the keyboard body; a pressed key" },
+    "key": { "hex": "#2A2A27", "use": "keys, cards" },
+    "edge": { "hex": "#3E3E3A", "use": "the lighter stepped edge of a key or card" },
+    "rim": { "hex": "#5A5A54", "use": "outlines of objects on space, dividers" },
+    "muted": { "hex": "#8C8C86", "use": "secondary text only (5.5:1 on space)" },
+    "offWhite": { "hex": "#EDEDE8", "use": "legends, text" },
+    "black": { "hex": "#0A0A0A", "use": "the darkest mark: the monolith, shadows" },
+    "orange": { "hex": "#FF4F00", "use": "the one active thing (same orange as light)" },
+    "orangeShade": { "hex": "#C23C00", "use": "the shaded face of an orange object, nothing else" }
+  },
+  "keyboard": {
+    "note": "Colours for the Android keyboard themes (TODO 3.7). A press darkens face and edge by one step. The Sign key legend is black in both themes: black on orange is 6.0:1, white on orange only 3.3:1.",
+    "light": {
+      "background": "#F4F4F1",
+      "key": "#FFFFFF",
+      "keyEdge": "#D7D7D2",
+      "keyPressed": "#D7D7D2",
+      "keyEdgePressed": "#B4B4AE",
+      "legend": "#0A0A0A",
+      "signKey": "#FF4F00",
+      "signKeyEdge": "#C23C00",
+      "signLegend": "#0A0A0A",
+      "badge": "ntk_badge_light.png"
+    },
+    "dark": {
+      "background": "#121211",
+      "key": "#2A2A27",
+      "keyEdge": "#3E3E3A",
+      "keyPressed": "#1C1C1A",
+      "keyEdgePressed": "#2A2A27",
+      "legend": "#EDEDE8",
+      "signKey": "#FF4F00",
+      "signKeyEdge": "#C23C00",
+      "signLegend": "#0A0A0A",
+      "badge": "ntk_badge_dark.png"
+    }
+  }
+}

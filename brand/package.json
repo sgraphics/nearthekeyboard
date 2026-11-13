@@ -1,0 +1,14 @@
+{
+  "name": "ntk-brand",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Builds the NTK logo, banners, icons and badge from source: node build.mjs",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2"
+  }
+}
