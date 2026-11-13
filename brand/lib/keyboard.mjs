@@ -8,7 +8,6 @@
 // screen), z runs away from you (up-right on screen), both in steps; heights
 // are in pixels. A step is two pixels across and one down or up.
 import { Raster } from './raster.mjs';
-import { drawBadge } from './badge.mjs';
 import { glyph } from './font3x5.mjs';
 
 // Rows far to near: [legend, width in u, id]. The id lets a scheme colour a
@@ -51,7 +50,6 @@ export const KEYBOARD_DEFAULTS = {
   border: [7, 2, 2], // body around the keys, steps: back (the strip), sides, front
   legends: 'mark',   // 'glyph' (3x5 letters), 'mark' (a dark pixel pair) or false
   scheme: 'blocks',  // a name in SCHEMES or an { id: kind } map
-  badge: true,       // the NTK mark and lines printed on the strip
   light: 2,          // the orange light on the strip: footprint in steps, or 0
   shadow: 2,         // the desk shadow, moved this many steps along x, or 0
 };
@@ -88,17 +86,6 @@ export function isoBlock(r, o, x0, z0, dx, dz, e, h, [top, front, side]) {
   }
 }
 
-// Write a flat raster (the badge) along the keyboard, the way iso pixel art
-// writes labels: letters stay upright, the baseline steps one pixel down for
-// every two across (the x direction). (x, y): screen position of the first
-// column's top.
-function isoLabel(r, art, x, y, map) {
-  for (let row = 0; row < art.h; row++) for (let c = 0; c < art.w; c++) {
-    const role = art.get(c, row);
-    if (role != null) r.set(x + c, y + row + Math.floor(c / 2), map[role] ?? role);
-  }
-}
-
 export function drawKeyboard(opts = {}) {
   const o = { ...KEYBOARD_DEFAULTS, ...opts };
   const layout = o.layout, N = o.n;
@@ -113,14 +100,8 @@ export function drawKeyboard(opts = {}) {
 
   isoBlock(r, iso, 0, 0, BX, BZ, 0, o.bodyH, FACES.body);
 
-  // The strip: the badge printed at the left, the light at the right.
-  if (o.badge) {
-    // On the strip's centre line, starting above the first key column.
-    const b = drawBadge(STRIP_BADGE);
-    const zc = bFront + keysZ + (bBack + o.gap) / 2, x0 = bSide + 1;
-    const px = Math.round(iso.ox + sx(x0, zc)), py = Math.round(iso.oy + sy(x0, zc, o.bodyH) - b.h / 2);
-    isoLabel(r, b, px, py, { ink: 'stripInk', line: 'stripInk', accent: 'stripAccent' });
-  }
+  // The strip: the orange light at the right, and no label (the NTK mark is
+  // smooth vector lines, which do not resolve at the strip's few pixels).
   if (o.light) {
     const L = o.light;
     isoBlock(r, iso, bSide + keysX - L, bFront + keysZ + Math.floor((bBack - L) / 2) + 1, L, L, o.bodyH, Math.max(1, o.keyH - 1), FACES.accent);
@@ -155,18 +136,14 @@ function drawLegend(r, o, xc, zc, e, legend, mode) {
   }
 }
 
-// The badge on the strip: five-row letters and two lines, not slanted (the
-// iso shear of the label slants it already).
-export const STRIP_BADGE = { size: 5, lines: 2, accentLine: 1, lineLength: 9, slantEvery: 99, gapLetters: 1, gapLines: 2 };
-
 // The keyboard at icon size (on a 1 dp grid) and for the favicon (1 pixel).
 export const SMALL = {
   layout: LAYOUT_SMALL, n: 3, gap: 1, keyH: 2, bodyH: 2, border: [3, 1, 1],
-  legends: 'mark', badge: false, light: 1, shadow: 1,
+  legends: 'mark', light: 1, shadow: 1,
 };
 export const FAVICON = {
   layout: LAYOUT_TINY, n: 2, gap: 1, keyH: 1, bodyH: 2, border: [1, 1, 1],
-  legends: false, badge: false, light: 0, shadow: 1,
+  legends: false, light: 0, shadow: 1,
 };
 
 // The soft desk shadow: everything drawn so far, moved k steps along x (two

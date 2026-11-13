@@ -3,12 +3,11 @@ package tools.ntk.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.text.TextPaint;
 import android.text.TextUtils;
@@ -28,10 +27,11 @@ import tools.ntk.SignFlow;
 import tools.ntk.TypingSession;
 
 /**
- * The strip above the keys (TODO.md 3.6, 3.7): at the left the NTK badge, a
+ * The strip above the keys (TODO.md 3.6, 3.7): at the left the NTK mark, a
  * status light and the account name (or a message); at the right the Sign key,
- * which fills as the session approaches the taps a stamp needs. Drawn in code
- * on the pixel grid. Its height is fixed, so the keys never move.
+ * which fills as the session approaches the taps a stamp needs. The light and
+ * the key are drawn in code on the pixel grid, the mark is a vector drawable
+ * (BadgeView). Its height is fixed, so the keys never move.
  */
 public final class StripView extends View implements NtkCapture.Listener, NtkController.Listener {
     public static final int MSG_INFO = 0;
@@ -45,7 +45,10 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
     private final Paint mPaint = Pixel.paint(0);
     private final Rect mSignRect = new Rect();
     private final Rect mBadgeRect = new Rect();
-    private final Bitmap mBadge;
+    private final Drawable mBadge;
+
+    /** The mark's height as a share of the strip's: 24 dp on the 44 dp strip. */
+    private static final float BADGE_HEIGHT = 24f / 44f;
 
     private final int cBackground, cText, cMuted, cOrange, cOrangeShade, cKeyFace, cKeyEdge, cKeyShadow, cOnOrange;
 
@@ -74,13 +77,8 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         mKeyText.setTextSize(14 * getResources().getDisplayMetrics().scaledDensity);
         mKeyText.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         mKeyText.setTextAlign(Paint.Align.CENTER);
-        mBadge = loadBadge(context);
+        mBadge = BadgeView.load(context); // its gaps are painted in ntk_background, the strip's colour
         setBackgroundColor(cBackground);
-    }
-
-    /** The brand badge if the build has one (res/drawable-nodpi/ntk_badge.png), else null and a drawn placeholder. */
-    private static Bitmap loadBadge(Context c) {
-        return BadgeView.load(c);
     }
 
     @Override
@@ -143,12 +141,11 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         final int keyW = Math.round(88 * mDp);
         final int keyH = h - 2 * pad;
         mSignRect.set(w - pad - keyW, pad, w - pad, pad + keyH);
-        final int rows = BadgeView.rows(mBadge);
-        final int badgeH = rows * Math.max(1, Math.round(13 * mDp / rows));
-        final int badgeW = mBadge != null ? Math.round(badgeH * (float) mBadge.getWidth() / mBadge.getHeight())
-                : Math.round(58 * mDp);
+        final int badgeH = Math.round(h * BADGE_HEIGHT);
+        final int badgeW = BadgeView.widthFor(mBadge, badgeH);
         final int left = Math.round(10 * mDp);
         mBadgeRect.set(left, (h - badgeH) / 2, left + badgeW, (h - badgeH) / 2 + badgeH);
+        mBadge.setBounds(mBadgeRect);
     }
 
     @Override
@@ -162,7 +159,7 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         final boolean busy = ctl.isBusy();
         final long now = SystemClock.uptimeMillis();
 
-        drawBadge(c);
+        mBadge.draw(c);
 
         // Status light: muted when nothing is recorded, legend colour while recording, blinking while a call runs.
         int light = cMuted;
@@ -211,10 +208,6 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         c.drawText(shown, 0, shown.length(), tx, getHeight() / 2f - (fm.ascent + fm.descent) / 2f, mText);
 
         drawSignKey(c, account, s, busy, cap);
-    }
-
-    private void drawBadge(Canvas c) {
-        BadgeView.draw(c, mBadgeRect, mBadge, mPaint, cText, cOrange);
     }
 
     private void drawSignKey(Canvas c, AccountStore.Account account, TypingSession s, boolean busy, NtkCapture cap) {

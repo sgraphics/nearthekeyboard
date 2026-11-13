@@ -77,10 +77,17 @@ export function svgDoc(w, h, body, bg) {
     (bg ? `<rect width="${w}" height="${h}" fill="${bg}"/>\n` : '') + body + '\n</svg>\n';
 }
 
-// Render an SVG document to a PNG buffer. Pixel art is crisp (crispEdges on
-// its group); text outlines keep their anti-aliasing.
-export function renderPNG(svg, width) {
-  const opts = resvgOptions(width ? { fitTo: { mode: 'width', value: width } } : {});
-  const img = new Resvg(svg, opts).render();
-  return encodePNG({ width: img.width, height: img.height, rgba: img.pixels });
+// Render an SVG document to a PNG buffer, at its own size, `fit` px wide, or
+// { height } px tall. Pixel art is crisp (crispEdges on its group); text
+// outlines and the NTK mark keep their anti-aliasing.
+export function renderPNG(svg, fit) {
+  const fitTo = typeof fit === 'number' ? { mode: 'width', value: fit } : fit?.height ? { mode: 'height', value: fit.height } : null;
+  const img = new Resvg(svg, resvgOptions(fitTo ? { fitTo } : {})).render();
+  // resvg's pixels are premultiplied by alpha; PNG stores them straight.
+  const rgba = new Uint8Array(img.pixels);
+  for (let i = 0; i < rgba.length; i += 4) {
+    const a = rgba[i + 3];
+    if (a > 0 && a < 255) for (let c = 0; c < 3; c++) rgba[i + c] = Math.min(255, Math.round((rgba[i + c] * 255) / a));
+  }
+  return encodePNG({ width: img.width, height: img.height, rgba });
 }

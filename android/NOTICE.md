@@ -46,9 +46,10 @@ calls, bundled binaries.
 - The NTK keyboard theme: one design in light and dark, pixel steps at key
   corners and edges drawn in code (`ui/PixelKeyDrawable`), colours from
   `brand/palette.json`, the brand badge and launcher icon from `brand/out/android/`
-  (redrawn 2026-11-13: the badge is 8 grid rows of 12 px, the light and dark
-  versions are `drawable-nodpi/ntk_badge.png` and `drawable-night-nodpi/ntk_badge.png`;
-  `ui/BadgeView` scales it by whole grid cells, taking the row count from the bitmap).
+  (redrawn 2026-11-13: the badge is the NTK mark as vector drawables,
+  `drawable/ntk_badge_light.xml` and `ntk_badge_dark.xml`, whose gaps are painted
+  in each theme's `ntk_background`; `ui/BadgeView` picks the one for the current
+  theme and draws it smoothly at any height).
 - Debug builds only (`app/src/debug/`): sent sessions are saved in app-private
   storage (`files/typing-data/`), and a key-geometry hook serves the robot
   typist test. Release builds compile `app/src/release/`, which does neither.

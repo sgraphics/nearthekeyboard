@@ -7,7 +7,7 @@ an image editor.
 ```bash
 cd brand
 npm install        # @resvg/resvg-js: renders SVG and turns text into outlines
-node build.mjs     # writes out/ (about 0.25 MB) and lists every file
+node build.mjs     # writes out/ (about 0.4 MB) and lists every file
 ```
 
 | Source | What it holds |
@@ -15,7 +15,7 @@ node build.mjs     # writes out/ (about 0.25 MB) and lists every file
 | `palette.json` | Every colour, light and dark, and the keyboard theme colours. `build.mjs` reads it. |
 | `lib/keyboard.mjs` | The keyboard in 2:1 pixel isometric, built from blocks: the hero illustration (`KEYBOARD_DEFAULTS`), the icon keyboard (`SMALL`) and the favicon one (`FAVICON`). |
 | `lib/font3x5.mjs` | 3x5 pixel letters, available for key legends (`legends: 'glyph'`); the keys use dark marks at the sizes we ship. |
-| `lib/badge.mjs` | The 8-bit NTK badge, letters as text pixel grids. |
+| `lib/badge.mjs` | The NTK mark: N, T and K as two parallel lines, built from centerlines as vector shapes; writes the SVG and the Android VectorDrawables. |
 | `lib/png.mjs`, `lib/raster.mjs`, `lib/svg.mjs` | PNG encoder (node:zlib), pixel canvas, SVG and text helpers. |
 | `fonts/Inter-Bold.ttf` | Inter 4.1 Bold from github.com/rsms/inter, under the SIL Open Font License (`fonts/OFL.txt`). |
 
@@ -27,7 +27,7 @@ lies on the desk, seen from above at an angle, in classic 2:1 pixel isometric
 top face, a lit front face, a shaded right face. There are no outlines; an
 edge is where one face meets another. Shadows are soft and blocky, one light
 step darker than what they fall on. Orange marks the accents: the Enter (Sign) key, the light on the
-strip, a verified stamp, and the icon background. One dark block, the
+strip, a verified stamp, the icon background, and the NTK mark. One dark block, the
 spacebar, is the monolith of "2001: A Space Odyssey" in soft grey.
 
 | Light | Hex | Use |
@@ -65,11 +65,13 @@ a dark one. The Sign key is an orange block with a `#1A1A1A` legend (5.3:1;
 neighbour (5 px a pixel in the logo). Isometric lines step two across for one
 down. No anti-aliasing, no gradients, no outlines. Every block shows three
 faces: top, lit front, shaded right. Legends are dark marks on the key tops.
-Shadows are one soft step.
+Shadows are one soft step. The one exception is the NTK mark (see The badge):
+smooth vector lines, never put on the pixel grid.
 
 **Type.** Inter Bold for the wordmark and any text on the web and in the
 video, in ink `#2B2B2B` (offWhite on dark); the system font in the Android
-app. Pixel letters are only for the badge, never for text. In SVGs the
+app. Pixel letters are only for key legends in the illustration, never for text;
+the NTK mark is drawn, not set in a font. In SVGs the
 wordmark is outlines, so no font needs to be installed.
 
 ## Files in out/
@@ -85,7 +87,7 @@ wordmark is outlines, so no font needs to be installed.
 | `icon/ntk-icon-512.png` | Store and legacy 512 icon, full bleed. |
 | `icon/favicon.ico`, `favicon-32.png`, `apple-touch-icon-180.png` | Web. |
 | `android/` | Ready-to-copy resources, see below. |
-| `badge/ntk-badge-{light,dark}-{1,4,8,16}x.png`, `.svg` | The 8-bit NTK badge. `light` = for light backgrounds (dark marks), `dark` = for dark backgrounds (light marks). |
+| `badge/ntk-badge-{light,dark}.svg`, `-{32,64,128,256}.png` | The NTK mark, 300 x 100: SVG with the gaps cut out by a mask (they show what lies behind), and smooth PNGs 32 to 256 px tall, transparent. `light` is for light backgrounds, `dark` for dark ones; both are the same orange today. |
 
 README header with a dark-mode switch:
 
@@ -110,26 +112,48 @@ adaptive launcher icon (`mipmap-anydpi-v26/ic_launcher.xml` and
 `ic_launcher_round.xml`: orange background colour, the white keyboard as
 foreground, a monochrome layer for themed icons), PNGs for every density, the
 legacy icons for Android 7 and older, and the badge as
-`drawable-nodpi/ntk_badge_light.png` and `ntk_badge_dark.png`.
+`drawable/ntk_badge_light.xml` and `ntk_badge_dark.xml`.
 
 The icon art sits on 1 dp cells (108 across): 1, 2, 3 and 4 whole pixels a
 cell at mdpi, xhdpi, xxhdpi and xxxhdpi; hdpi is sampled nearest-neighbour, so
 it stays hard-edged. The keyboard stays inside the 66 dp safe circle and reads
 at 48 dp on its orange background.
 
-The badge PNGs are 12 pixels a cell, 96 px high. Shown 32 dp high on an
-xxhdpi screen they are 1:1; at 16 dp, exactly half. For any other size, wrap
-the PNG so Android scales it without smoothing:
-
-```xml
-<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:src="@drawable/ntk_badge_light" android:filter="false" />
-```
+The badge drawables are VectorDrawables, 72 x 24 dp, and stay smooth at any
+size. VectorDrawable has no masks, so each paints the orange lines and then
+the gaps between them in the background of the strip it sits on:
+`ntk_background`, which `build.mjs` reads from the app's
+`res/values/colors-ntk.xml` (light) and `res/values-night/colors-ntk.xml`
+(dark). Draw each only on that colour, and rebuild when it changes. The app
+picks the one for the current theme (`ui/BadgeView`).
 
 ## The badge
 
-`NTK` in chunky, slanted pixel capitals with stepped corners, standing out as
-blocks with a soft drop, then four thin flat lines, the last one orange: in the
-manner of the maker's badge on a 1980s synthesizer. It copies no maker's
-wordmark. It is the only branding on the keyboard (top left of the strip) and
-the 8-bit logo wherever one is needed.
+`NTK`, each letter drawn as two parallel orange lines of equal thickness with
+an even gap between them, in the manner of a synthesizer maker's double-line
+mark. The letters are our own; the mark copies no maker's mark or wordmark.
+
+Each letter is a few strokes along centerlines (`lib/badge.mjs`). A stroke is
+a wide band, 2t + g across, with a gap g cut along its middle: the mark is the
+union of the bands minus the union of the gaps. Where strokes meet, their gaps
+run into each other like roads at a junction.
+
+- Proportions: cap height 100, lines t = 8 (8 % of the cap height), gap
+  g = 11.2 (1.4 t), letters 15 apart. The mark is 300 x 100, exactly 3:1.
+- N: one double line that zig-zags, open at the foot of the left stem and at
+  the top of the right one. Its two acute corners are cut flat at the cap line
+  and the baseline, so the outer line turns them at its own thickness.
+- T: the bar, open at both ends; the stem, open at the foot, its gap running
+  into the bar's.
+- K: the stem, open at both ends; arm and leg leave the middle of its gap and
+  end level with the cap line and the baseline.
+- Corners are square, open ends are cut square: across the line, or level with
+  the cap line or the baseline. Upright, no slant, no extra stripes.
+- Orange `#FF4F00` on light and dark: 3:1 on the light strip (`#F4F4F1`),
+  5.7:1 on the dark one (`#121211`). It reads at 20 px tall in the site's
+  header and at 24 dp on the keyboard strip.
+
+It is the only branding on the keyboard (top left of the strip, 24 dp tall)
+and the logo in the site's page headers. The pixel keyboard does not carry
+it: at the strip's few pixels the lines do not resolve, so the illustration's
+strip keeps only its orange light.

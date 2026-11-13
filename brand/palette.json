@@ -50,7 +50,7 @@
       "signKeyEdgeLit": "#E04600",
       "signKeyEdgeShade": "#C23D00",
       "signLegend": "#1A1A1A",
-      "badge": "ntk_badge_light.png"
+      "badge": "ntk_badge_light.xml"
     },
     "dark": {
       "background": "#121211",
@@ -65,7 +65,7 @@
       "signKeyEdgeLit": "#E04600",
       "signKeyEdgeShade": "#C23D00",
       "signLegend": "#1A1A1A",
-      "badge": "ntk_badge_dark.png"
+      "badge": "ntk_badge_dark.xml"
     }
   }
 }
