@@ -12,12 +12,12 @@
         <item name="moreKeysKeyboardViewStyle">@style/MoreKeysKeyboardView.NTK</item>
         <item name="functionalTextColor">@color/ntk_legend</item>
         <item name="popupPanelBackgroundColor">@color/ntk_key_func_face</item>
-        <item name="keyPressedBackgroundColor">@color/ntk_key_face_pressed</item>
+        <item name="keyPressedBackgroundColor">@color/ntk_key_func_face</item>
         <item name="keyNormalBackgroundColor">@color/ntk_key_face</item>
     </style>
     <style name="Keyboard.NTK" parent="Keyboard" />
     <style name="KeyboardView.NTK" parent="KeyboardView">
-        <item name="android:background">@color/ntk_background</item>
+        <item name="android:background">@drawable/ntk_keyboard_floor</item>
         <item name="keyBackground">@drawable/ntk_key_background</item>
         <item name="functionalKeyBackground">@drawable/ntk_functional_key_background</item>
         <item name="spacebarBackground">@drawable/ntk_spacebar_background</item>

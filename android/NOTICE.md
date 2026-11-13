@@ -43,10 +43,11 @@ calls, bundled binaries.
   the browser when a button is tapped. It has no network code.
 - "Verify NTK stamp" in the text selection menu of any app
   (`ui/VerifySelectionActivity`, `ACTION_PROCESS_TEXT`).
-- The NTK keyboard theme: one design in light and dark, keys drawn in code as
-  blocks like the site's buttons (`ui/PixelKeyDrawable`, `ui/Pixel.block`: a
-  top face, lit and shaded side faces, a soft drop, all inside the key's
-  bounds; a press moves the top face down), colours from
+- The NTK keyboard theme: one design in light and dark, high-key white like the
+  brand's scene: keys drawn in code as blocks (`ui/PixelKeyDrawable`,
+  `ui/Pixel.block`: a white top face, very light side faces cut at 45 degrees and
+  a soft blurred shadow, all inside the key's bounds; a press moves the top face
+  down) on a floor with a faint grid (`ui/GridDrawable`), colours from
   `brand/palette.json`, the brand badge and launcher icon from `brand/out/android/`
   (redrawn 2026-11-13: the badge is the NTK mark as vector drawables,
   `drawable/ntk_badge_light.xml` and `ntk_badge_dark.xml`, whose gaps are painted

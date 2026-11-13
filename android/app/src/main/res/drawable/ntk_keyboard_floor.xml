@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The floor under the keys: the background with a faint square grid, as on the site. -->
+<drawable xmlns:app="http://schemas.android.com/apk/res-auto"
+    class="tools.ntk.ui.GridDrawable"
+    app:ntkFace="@color/ntk_background"
+    app:ntkShade="@color/ntk_grid"
+    app:ntkStep="28dp" />

@@ -1,27 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- NTK: the dark theme, the same design (brand/palette.json "keyboard.dark").
-     Near-black background; keys are blocks with dark top faces and lighter side
-     faces, as on the site in the dark; off-white legends, the same orange. -->
+<!-- NTK: the dark theme, the same idea in the dark (brand/palette.json "dark"):
+     near-black background, dark grey blocks with slightly lighter side faces and a
+     deep soft shadow, off-white legends, the same orange. -->
 <resources>
-    <color name="ntk_background">#FF121211</color>
-    <color name="ntk_legend">#FFEDEDE8</color>
-    <color name="ntk_muted">#FF8C8C86</color>
+    <color name="ntk_background">#FF111316</color>
+    <color name="ntk_grid">#FF1A1D22</color>
+    <color name="ntk_legend">#FFEDEEF0</color>
+    <color name="ntk_muted">#FF9CA3AF</color>
     <color name="ntk_orange">#FFFF4F00</color>
     <color name="ntk_orange_lit">#FFE04600</color>
     <color name="ntk_orange_shade">#FFC23D00</color>
-    <color name="ntk_on_orange">#FF0A0A0A</color>
-    <color name="ntk_key_face">#FF2A2A27</color>
-    <color name="ntk_key_edge">#FF3E3E3A</color>
-    <color name="ntk_key_shadow">#FF0A0A0A</color>
-    <color name="ntk_key_face_pressed">#FF1C1C1A</color>
-    <color name="ntk_key_edge_pressed">#FF2A2A27</color>
-    <color name="ntk_key_func_face">#FF1C1C1A</color>
-    <color name="ntk_key_func_face_pressed">#FF121211</color>
-    <color name="ntk_key_lit">#FF3E3E3A</color>
-    <color name="ntk_key_shade">#FF34342F</color>
-    <color name="ntk_key_drop">#FF0A0A09</color>
-    <color name="ntk_key_func_lit">#FF33332F</color>
-    <color name="ntk_key_func_shade">#FF2A2A26</color>
-    <color name="ntk_panel">#FF2A2A27</color>
-    <color name="ntk_hint">#FF8C8C86</color>
+    <color name="ntk_on_orange">#FF111418</color>
+    <color name="ntk_key_face">#FF272B31</color>
+    <color name="ntk_key_lit">#FF32373E</color>
+    <color name="ntk_key_shade">#FF2C3036</color>
+    <color name="ntk_key_func_face">#FF1F2227</color>
+    <color name="ntk_key_func_lit">#FF2A2E34</color>
+    <color name="ntk_key_func_shade">#FF25282E</color>
+    <color name="ntk_key_drop">#B3000000</color>
+    <color name="ntk_panel">#FF1C1F24</color>
+    <color name="ntk_hint">#FF9CA3AF</color>
 </resources>

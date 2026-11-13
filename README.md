@@ -28,7 +28,7 @@ Updated 2026-11-13. What is still open is in [TODO.md](TODO.md).
 
 | Part | Path | State |
 |---|---|---|
-| Enclave v0.2.0 (Rust, wasm32-wasip2) | `enclave/` | Live on OutLayer testnet as `nearthekeyboard.testnet/ntk`; 16 unit tests |
+| Enclave v0.2.0 (Rust, wasm32-wasip2) | `enclave/` | Live on OutLayer testnet as `nearthekeyboard.testnet/ntk`; reproducible build (Docker), active version `0d198051…`; 16 unit tests |
 | Protocol client, end-to-end suite | `client/` | 36 of 36 checks against the live enclave (2026-11-13), synthetic typists |
 | Verify page, demo feed, web embed, privacy page | `web/` | Live at <https://ntk.tools> |
 | Relay (holds the payment key) | `relay/` | Live at `https://ntk.tools/api`; web and relay: 107 tests |
@@ -103,24 +103,27 @@ cd .. && node --test web/test/ relay/test/  # 107 tests: 106 pass, 1 live test s
 
 ### 6. Rebuild the binary that is live
 
-Needs Rust with the `wasm32-wasip2` target.
+Needs Docker.
 
 ```bash
-cd enclave && cargo build --target wasm32-wasip2 --release
-sha256sum target/wasm32-wasip2/release/ntk-enclave.wasm
+bash enclave/build-reproducible.sh
 ```
 
-See: on the author's machine (Windows, Rust 1.91.1) this prints
-`4d3e32583b92651fcfc11229cf0380e7ca40247e970fdd817e73957d9ada853b`, the active
-version of the project on chain. Other machines may print a different hash
-until the build is pinned (TODO.md, section 1). The version list is public:
+See: `0d198051c5dc2b0084f9b1f43e479e6b43358e51a1209497a9d00ed519e74ac1  ntk-enclave.wasm`,
+the hash of the version that is active on chain. The build runs in the
+official Rust 1.91.1 image pinned by digest, with the dependencies pinned by
+`Cargo.lock` and every path fixed inside the container, so it gives the same
+bytes on any machine (two clean builds compared byte for byte). The version
+list is public:
 
 ```bash
 curl -s https://rpc.testnet.fastnear.com -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"query","params":{"request_type":"call_function","finality":"final","account_id":"outlayer.testnet","method_name":"list_versions","args_base64":"eyJwcm9qZWN0X2lkIjoibmVhcnRoZWtleWJvYXJkLnRlc3RuZXQvbnRrIn0="}}'
 ```
 
-See: `result.result` is a byte array holding JSON with four versions; the one
-with `"is_active":true` has `wasm_hash` `4d3e3258…`.
+See: `result.result` is a byte array holding JSON with five versions; the one
+with `"is_active":true` has `wasm_hash` `0d198051…`. Every OutLayer call's
+attestation names the hash of the code that ran, so a stamp's `call_id` ties it
+to this build.
 
 ### 7. Run the end-to-end suite on your own deployment
 
@@ -281,7 +284,8 @@ keyboard all check themselves against. In short:
   that seals fingerprints and the key that signs stamps. Every call has a TDX
   attestation naming the code hash, input hash and output hash.
 - **The chain records which code may use those keys.** The project's version
-  list is in the `outlayer.testnet` contract (Try it, step 6).
+  list is in the `outlayer.testnet` contract, and the active version can be
+  rebuilt byte for byte (Try it, step 6).
 - **Stamps are public records.** They sit in OutLayer's public storage and are
   read by id without an account.
 - **NEAR AI Cloud is not used yet.** It is planned for one job: judging, inside

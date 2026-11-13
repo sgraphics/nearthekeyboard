@@ -11,16 +11,18 @@ import android.view.View;
 import tools.ntk.ui.Pixel;
 
 /**
- * The button drawn over a stamp tag in another app: a white key with an orange
- * stepped edge, a hard black shadow one grid step down and to the right, and
- * "NTK" with a pixel check mark. Pressing it moves the key onto its shadow, like
- * the web embed's button. The look does not follow dark mode: it sits on other
- * apps' screens and must read as the NTK mark on any background.
+ * The button drawn over a stamp tag in another app: an orange block (the top
+ * face, a lit face along its bottom and a shaded face along its right, one grid
+ * step deep) with "NTK" and a pixel check mark in near-black. Pressing it moves
+ * the top face onto its side faces, like the web embed's button. The look does
+ * not follow dark mode: it sits on other apps' screens and must read as the NTK
+ * mark on any background.
  */
 final class StampButtonView extends View {
     static final int ORANGE = 0xFFFF4F00;
-    static final int WHITE = 0xFFFFFFFF;
-    static final int BLACK = 0xFF0A0A0A;
+    static final int ORANGE_LIT = 0xFFE04600;
+    static final int ORANGE_SHADE = 0xFFC23D00;
+    static final int INK = 0xFF111418;
 
     /** The check mark on a 7 x 6 grid. */
     private static final String[] CHECK = {
@@ -34,6 +36,7 @@ final class StampButtonView extends View {
 
     private final int mStep;
     private final Paint mPaint = Pixel.paint(0);
+    private final Paint mFaces = Pixel.paint(0xFF000000); // opaque: Pixel.sides applies its alpha
     private final TextPaint mText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final String mLabel = "NTK";
     private boolean mDown;
@@ -41,14 +44,14 @@ final class StampButtonView extends View {
     StampButtonView(Context c) {
         super(c);
         mStep = Pixel.step(c);
-        mText.setColor(BLACK);
+        mText.setColor(INK);
         mText.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         mText.setTextSize(13 * c.getResources().getDisplayMetrics().scaledDensity);
         setClickable(true);
         setFocusable(false);
     }
 
-    /** The grid step in pixels; the window is one step wider and taller than the key, for the shadow. */
+    /** The grid step in pixels; the window is one step wider and taller than the key, for its side faces. */
     int step() {
         return mStep;
     }
@@ -90,15 +93,10 @@ final class StampButtonView extends View {
         final int w = getWidth() - s;
         final int h = getHeight() - s;
         if (w <= 4 * s || h <= 4 * s) return;
-        final int o = mDown ? s : 0; // pressed: the key sits on its shadow
-        if (!mDown) {
-            mPaint.setColor(BLACK);
-            Pixel.stepped(c, s, s, w + s, h + s, s, 1, mPaint);
-        }
+        final int o = mDown ? s : 0; // pressed: the top face sits on its side faces
+        if (!mDown) Pixel.sides(c, 0, 0, w, h, s, ORANGE_LIT, ORANGE_SHADE, mFaces);
         mPaint.setColor(ORANGE);
-        Pixel.stepped(c, o, o, w + o, h + o, s, 1, mPaint);
-        mPaint.setColor(WHITE);
-        Pixel.stepped(c, o + s, o + s, w + o - s, h + o - s, s, 1, mPaint);
+        c.drawRect(o, o, w + o, h + o, mPaint);
 
         // "NTK" and the check mark, centred together.
         final int cp = checkPx();
@@ -111,7 +109,7 @@ final class StampButtonView extends View {
         final Paint.FontMetrics fm = mText.getFontMetrics();
         final float baseline = o + h / 2f - (fm.ascent + fm.descent) / 2f;
         c.drawText(mLabel, x0, baseline, mText);
-        mPaint.setColor(ORANGE);
+        mPaint.setColor(INK);
         final int cx = Math.round(x0 + textW + gap);
         final int cy = Math.round(o + (h - checkH) / 2f);
         for (int row = 0; row < CHECK.length; row++) {

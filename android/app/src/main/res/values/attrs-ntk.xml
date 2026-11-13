@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- tools.ntk.ui.PixelKeyDrawable -->
+    <!-- tools.ntk.ui.PixelKeyDrawable: a block (Pixel.block), up or pressed. -->
     <declare-styleable name="NtkPixelKey">
-        <attr name="ntkFace" format="color" />
-        <attr name="ntkEdge" format="color" />
-        <attr name="ntkShadow" format="color" />
-        <!-- Draw a block as on the site (Pixel.block): up, or pressed. ntkFace is
-             its top face, with ntkLit, ntkShade and ntkDrop for its faces. -->
         <attr name="ntkBlock">
-            <enum name="none" value="0" />
             <enum name="up" value="1" />
             <enum name="pressed" value="2" />
         </attr>
+        <attr name="ntkFace" format="color" />
         <attr name="ntkLit" format="color" />
         <attr name="ntkShade" format="color" />
         <attr name="ntkDrop" format="color" />

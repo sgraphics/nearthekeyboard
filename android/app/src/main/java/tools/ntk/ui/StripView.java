@@ -30,20 +30,20 @@ import tools.ntk.TypingSession;
  * The strip above the keys (TODO.md 3.6, 3.7): at the left the NTK mark, a
  * status light and the account name (or a message); at the right the Sign key,
  * which fills as the session approaches the taps a stamp needs. The light and
- * the key are drawn in code on the pixel grid, the mark is a vector drawable
- * (BadgeView). Its height is fixed, so the keys never move.
+ * the key are drawn in code (the key is a block, Pixel.block), the mark is a
+ * vector drawable (BadgeView). Its height is fixed, so the keys never move.
  */
 public final class StripView extends View implements NtkCapture.Listener, NtkController.Listener {
     public static final int MSG_INFO = 0;
     public static final int MSG_GOOD = 1;
     public static final int MSG_BAD = 2;
 
-    private final int mStep;
     private final int mKeyStep;
     private final float mDp;
     private final TextPaint mText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final TextPaint mKeyText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final Paint mPaint = Pixel.paint(0);
+    private final Paint mBlockPaint = Pixel.paint(0xFF000000); // opaque: Pixel.block applies its alpha
     private final Rect mSignRect = new Rect();
     private final Rect mBadgeRect = new Rect();
     private final Rect mSignFace = new Rect();
@@ -65,7 +65,6 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
     public StripView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mDp = getResources().getDisplayMetrics().density;
-        mStep = Pixel.step(context);
         mKeyStep = Math.max(1, getResources().getDimensionPixelSize(R.dimen.ntk_key_step)); // as the keys
         cBackground = context.getColor(R.color.ntk_background);
         cText = context.getColor(R.color.ntk_legend);
@@ -178,7 +177,7 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         final int lx = mBadgeRect.right + Math.round(10 * mDp);
         final int ly = (getHeight() - ls) / 2;
         mPaint.setColor(light);
-        Pixel.stepped(c, lx, ly, lx + ls, ly + ls, Math.max(1, mStep / 2 + 1), 1, mPaint);
+        c.drawRect(lx, ly, lx + ls, ly + ls, mPaint);
 
         // Text: a message, the call in progress, why we do not record, or the account.
         String text;
@@ -253,12 +252,12 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         final int split = f >= 1f ? r.right : mSignFace.left + Math.round(mSignFace.width() * f);
         if (split < r.right) {
             Pixel.block(c, r.left, r.top, r.right, r.bottom, st, down, enabled ? cKeyFace : cFuncFace,
-                    enabled ? cKeyLit : cFuncLit, enabled ? cKeyShade : cFuncShade, cKeyDrop, mPaint);
+                    enabled ? cKeyLit : cFuncLit, enabled ? cKeyShade : cFuncShade, cKeyDrop, mBlockPaint);
         }
         if (split > mSignFace.left) {
             c.save();
             c.clipRect(r.left, r.top, split, r.bottom);
-            Pixel.block(c, r.left, r.top, r.right, r.bottom, st, down, cOrange, cOrangeLit, cOrangeShade, cKeyDrop, mPaint);
+            Pixel.block(c, r.left, r.top, r.right, r.bottom, st, down, cOrange, cOrangeLit, cOrangeShade, cKeyDrop, mBlockPaint);
             c.restore();
         }
         // The label on the top face: black over the orange part, the legend colour over the rest.

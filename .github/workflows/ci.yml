@@ -19,11 +19,11 @@ jobs:
       - name: Unit tests (text rule, crypto, shared test vectors)
         run: cargo test --release
         working-directory: enclave
-      - name: Build the wasm and print its hash
+      - name: Reproducible build; its hash must be the one the README names
         run: |
-          cargo build --target wasm32-wasip2 --release
-          sha256sum target/wasm32-wasip2/release/ntk-enclave.wasm
-        working-directory: enclave
+          bash enclave/build-reproducible.sh | tee /tmp/wasm-hash
+          hash=$(tail -1 /tmp/wasm-hash | cut -d' ' -f1)
+          grep -q "$hash" README.md || { echo "README.md does not name $hash"; exit 1; }
 
   web-and-relay:
     runs-on: ubuntu-latest
