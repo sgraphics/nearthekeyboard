@@ -9,7 +9,7 @@
 #
 # While the GitHub repository is private the server cannot pull. Push from a
 # development machine instead; NO_PULL=1 fast-forwards main to the pushed branch:
-#   ssh root@<server> 'git init -q /opt/ntk'                      # once
+#   ssh root@<server> 'git init -q /opt/ntk && git config --global --add safe.directory /opt/ntk/.git'   # once
 #   git push root@<server>:/opt/ntk main:refs/heads/incoming
 #   ssh root@<server> 'cd /opt/ntk && NO_PULL=1 bash deploy/deploy.sh'
 # The first time, the working tree is still empty, so run the pushed copy:
@@ -40,8 +40,11 @@ command -v nginx >/dev/null || die "nginx is not installed"
 id ntk >/dev/null 2>&1 || useradd --system --home-dir "$APP" --shell /usr/sbin/nologin ntk
 
 # git runs as root on a tree that belongs to ntk
-git config --global --get-all safe.directory 2>/dev/null | grep -qxF "$APP" \
-  || git config --global --add safe.directory "$APP"
+# Both forms: a push into the repository (git receive-pack) checks the .git path.
+for d in "$APP" "$APP/.git"; do
+  git config --global --get-all safe.directory 2>/dev/null | grep -qxF "$d" \
+    || git config --global --add safe.directory "$d"
+done
 
 # ---- code ----------------------------------------------------------------
 if [ ! -d "$APP/.git" ]; then
