@@ -70,10 +70,51 @@ pub struct Event {
 pub struct Session {
     #[serde(default)]
     pub v: u32,
-    /// Keyboard layout id; reserved for per-layout fingerprints.
+    /// Keyboard layout and orientation; reserved for per-layout fingerprints.
     #[serde(default)]
     pub layout: Option<String>,
+    /// On enrollment sessions: "compose" (the typist's own words) or "copy" (a
+    /// shown sentence). Counted per fingerprint so that composed and copied
+    /// typing can be told apart later.
+    #[serde(default)]
+    pub mode: Option<String>,
     pub events: Vec<Event>,
+}
+
+/// What kind of typing an enrollment session holds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Mode {
+    Compose,
+    Copy,
+}
+
+impl Session {
+    /// The session's `mode`: None when it has none, an error for a value the
+    /// protocol does not define.
+    pub fn enrollment_mode(&self) -> Result<Option<Mode>, &'static str> {
+        match self.mode.as_deref() {
+            None => Ok(None),
+            Some("compose") => Ok(Some(Mode::Compose)),
+            Some("copy") => Ok(Some(Mode::Copy)),
+            Some(_) => Err("session.mode must be \"compose\" or \"copy\""),
+        }
+    }
+}
+
+/// Enrollment sessions per mode. Counts only: no text and no timing.
+#[derive(Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ModeCounts {
+    pub compose: u32,
+    pub copy: u32,
+}
+
+impl ModeCounts {
+    pub fn add(&mut self, mode: Mode) {
+        match mode {
+            Mode::Compose => self.compose += 1,
+            Mode::Copy => self.copy += 1,
+        }
+    }
 }
 
 /// Running statistics of one feature: (count, mean, variance).
@@ -185,11 +226,58 @@ pub fn extract(events: &[Event]) -> Features {
     f
 }
 
+/// Whitespace in text rule v2: exactly the Unicode White_Space code points,
+/// written out (docs/protocol.md, "Text rule v2"), so that the enclave, the
+/// keyboard and every verifier agree whatever their language counts as
+/// whitespace.
+pub fn is_text_space(c: char) -> bool {
+    matches!(
+        c,
+        '\u{0009}'..='\u{000D}'
+            | '\u{0020}'
+            | '\u{0085}'
+            | '\u{00A0}'
+            | '\u{1680}'
+            | '\u{2000}'..='\u{200A}'
+            | '\u{2028}'
+            | '\u{2029}'
+            | '\u{202F}'
+            | '\u{205F}'
+            | '\u{3000}'
+    )
+}
+
+/// Text rule v2, the text a stamp's hash covers: every run of whitespace becomes
+/// one space (U+0020) and whitespace at both ends is removed. Nothing else
+/// changes: no Unicode normalisation, letters keep their case.
+pub fn canonical_text(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut gap = false;
+    for c in s.chars() {
+        if is_text_space(c) {
+            gap = !out.is_empty();
+        } else {
+            if gap {
+                out.push(' ');
+                gap = false;
+            }
+            out.push(c);
+        }
+    }
+    out
+}
+
 /// The text a session leaves in the field, replayed from its events, and how
 /// much of it came from key taps.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Replay {
+    /// The replayed text made canonical (text rule v2): what a stamp's
+    /// `text_sha256` is the hash of.
     pub text: String,
+    /// Its length in Unicode scalar values: a stamp's `text_chars`.
+    pub text_chars: usize,
+    /// Characters from key taps, and all characters, of the replayed text with
+    /// CR removed and the ends trimmed (not collapsed): the typed share.
     pub typed_chars: usize,
     pub total_chars: usize,
 }
@@ -204,8 +292,9 @@ impl Replay {
     }
 }
 
-/// Replays taps, backspaces and insertions; the result is normalised the way a
-/// verifier normalises the text it checks: CR removed, surrounding whitespace trimmed.
+/// Replays taps, backspaces and insertions. The text comes out canonical, the
+/// way a verifier makes the text before a tag canonical; the typed share is
+/// measured as in v0.1.
 pub fn replay(events: &[Event]) -> Replay {
     let mut buf: Vec<(char, bool)> = Vec::new(); // (character, came from a key tap)
     for e in events.iter().take(MAX_EVENTS) {
@@ -222,24 +311,28 @@ pub fn replay(events: &[Event]) -> Replay {
             None => {}
         }
     }
+    let text = canonical_text(&buf.iter().map(|(c, _)| *c).collect::<String>());
     buf.retain(|(c, _)| *c != '\r');
-    let start = buf.iter().position(|(c, _)| !c.is_whitespace()).unwrap_or(buf.len());
+    let start = buf.iter().position(|(c, _)| !is_text_space(*c)).unwrap_or(buf.len());
     let end = buf
         .iter()
-        .rposition(|(c, _)| !c.is_whitespace())
+        .rposition(|(c, _)| !is_text_space(*c))
         .map(|i| i + 1)
         .unwrap_or(start)
         .max(start);
     let kept = &buf[start..end];
     Replay {
-        text: kept.iter().map(|(c, _)| *c).collect(),
+        text_chars: text.chars().count(),
+        text,
         typed_chars: kept.iter().filter(|(_, t)| *t).count(),
         total_chars: kept.len(),
     }
 }
 
 /// A typist's fingerprint. Lives only sealed, inside the enclave's storage.
+/// Fields added later default when an older fingerprint is read.
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[serde(default)]
 pub struct Profile {
     pub v: u32,
     pub sessions: u32,
@@ -253,6 +346,8 @@ pub struct Profile {
     pub flight: BTreeMap<String, Stat>,
     pub off_x: BTreeMap<String, Stat>,
     pub off_y: BTreeMap<String, Stat>,
+    /// Enrollment sessions per mode (v0.2).
+    pub modes: ModeCounts,
 }
 
 fn merge(p: &mut BTreeMap<String, Stat>, s: &BTreeMap<String, Vec<f64>>) {
@@ -379,16 +474,46 @@ pub fn score(p: &Profile, f: &Features) -> Score {
     Score { score: if den > 0.0 { num / den } else { 0.0 }, dwell, flight, offset }
 }
 
+/// Why a session gets no stamp (a NO_MATCH answer). The code is stable, for
+/// the keyboard's messages; the reason text may change.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Refusal {
+    Empty,
+    TooShort,
+    Pasted,
+    Mismatch,
+}
+
+impl Refusal {
+    pub fn code(self) -> &'static str {
+        match self {
+            Refusal::Empty => "R_EMPTY",
+            Refusal::TooShort => "R_TOO_SHORT",
+            Refusal::Pasted => "R_PASTED",
+            Refusal::Mismatch => "R_MISMATCH",
+        }
+    }
+
+    pub fn reason(self) -> &'static str {
+        match self {
+            Refusal::Empty => "empty text",
+            Refusal::TooShort => "too short: not enough key taps to tell who typed it",
+            Refusal::Pasted => "too much of the text was pasted or inserted, not typed",
+            Refusal::Mismatch => "typing does not match this account's fingerprint",
+        }
+    }
+}
+
 /// MATCH, or why not.
-pub fn verdict(score: f64, typed_ratio: f64, taps: usize, chars: usize) -> Result<(), &'static str> {
+pub fn verdict(score: f64, typed_ratio: f64, taps: usize, chars: usize) -> Result<(), Refusal> {
     if chars == 0 {
-        Err("empty text")
+        Err(Refusal::Empty)
     } else if taps < MIN_STAMP_TAPS {
-        Err("too short: not enough key taps to tell who typed it")
+        Err(Refusal::TooShort)
     } else if typed_ratio < MIN_TYPED_RATIO {
-        Err("too much of the text was pasted or inserted, not typed")
+        Err(Refusal::Pasted)
     } else if score < MATCH_THRESHOLD {
-        Err("typing does not match this account's fingerprint")
+        Err(Refusal::Mismatch)
     } else {
         Ok(())
     }
@@ -475,7 +600,95 @@ mod tests {
         ];
         let r = replay(&ev);
         assert_eq!(r.text, "Hi there");
+        assert_eq!(r.text_chars, 8);
         assert_eq!((r.typed_chars, r.total_chars), (2, 8));
+    }
+
+    fn typed(text: &str) -> Vec<Event> {
+        text.chars()
+            .enumerate()
+            .map(|(i, c)| tap(&c.to_string(), i as f64 * 150.0, i as f64 * 150.0 + 80.0, 0.0, 0.0))
+            .collect()
+    }
+
+    /// docs/test-vectors/text-v2.json, shared with the keyboard and every verifier.
+    const TEXT_VECTORS: &str = include_str!("../../docs/test-vectors/text-v2.json");
+
+    #[test]
+    fn canonical_text_matches_the_shared_vectors() {
+        use sha2::{Digest, Sha256};
+        let v: serde_json::Value = serde_json::from_str(TEXT_VECTORS).unwrap();
+        let cases = v["canonical"].as_array().unwrap();
+        assert!(cases.len() >= 10);
+        for c in cases {
+            let name = c["name"].as_str().unwrap();
+            let got = canonical_text(c["input"].as_str().unwrap());
+            assert_eq!(got, c["canonical"].as_str().unwrap(), "{name}");
+            assert_eq!(got.chars().count() as u64, c["chars"].as_u64().unwrap(), "{name}");
+            assert_eq!(hex::encode(Sha256::digest(got.as_bytes())), c["sha256"].as_str().unwrap(), "{name}");
+        }
+        // What a v2 stamp covers: the last text_chars of the canonical text before its tag.
+        for c in v["covered"].as_array().unwrap().iter().filter(|c| c["v"] == 2) {
+            let canon: Vec<char> = canonical_text(c["prefix"].as_str().unwrap()).chars().collect();
+            let n = c["chars"].as_u64().unwrap() as usize;
+            let covered = (canon.len() >= n).then(|| canon[canon.len() - n..].iter().collect::<String>());
+            assert_eq!(covered.as_deref(), c["covered"].as_str(), "{}", c["name"]);
+        }
+    }
+
+    #[test]
+    fn replay_gives_the_canonical_text_and_keeps_the_typed_share() {
+        use sha2::{Digest, Sha256};
+        // Runs of whitespace collapse in the stamped text...
+        let r = replay(&typed("  Hello  world\n \n"));
+        assert_eq!((r.text.as_str(), r.text_chars), ("Hello world", 11));
+        // ...while the typed share is still counted over the trimmed text, uncollapsed.
+        assert_eq!((r.typed_chars, r.total_chars), (12, 12));
+        // A lone CR is whitespace, as in every verifier.
+        assert_eq!(replay(&typed("a\rb")).text, "a b");
+        // The demo reply typed key by key hashes to the shared vector.
+        let v: serde_json::Value = serde_json::from_str(TEXT_VECTORS).unwrap();
+        let demo = v["canonical"].as_array().unwrap().iter().find(|c| c["name"] == "the demo reply").unwrap();
+        let r = replay(&typed(demo["input"].as_str().unwrap()));
+        assert_eq!(hex::encode(Sha256::digest(r.text.as_bytes())), demo["sha256"].as_str().unwrap());
+        assert_eq!(r.text_chars as u64, demo["chars"].as_u64().unwrap());
+        assert_eq!(r.typed_ratio(), 1.0);
+    }
+
+    #[test]
+    fn whitespace_is_the_explicit_list() {
+        let listed = [0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x20, 0x85, 0xa0, 0x1680, 0x2028, 0x2029, 0x202f, 0x205f, 0x3000];
+        for cp in listed.into_iter().chain(0x2000..=0x200a) {
+            assert!(is_text_space(char::from_u32(cp).unwrap()), "U+{cp:04X}");
+        }
+        for c in ['\u{200B}', '\u{FEFF}', '\u{001C}', '\u{180E}', '\u{2060}', 'a', '_'] {
+            assert!(!is_text_space(c), "U+{:04X}", c as u32);
+        }
+        assert_eq!((0..=0x10FFFF).filter_map(char::from_u32).filter(|c| is_text_space(*c)).count(), 25);
+    }
+
+    #[test]
+    fn enrollment_mode_is_counted_and_older_fingerprints_still_load() {
+        let s: Session = serde_json::from_str(r#"{"v":1,"layout":"qwerty-en-portrait-v1","mode":"copy","events":[]}"#).unwrap();
+        assert_eq!(s.enrollment_mode(), Ok(Some(Mode::Copy)));
+        let none: Session = serde_json::from_str(r#"{"v":1,"events":[]}"#).unwrap();
+        assert_eq!(none.enrollment_mode(), Ok(None));
+        let bad: Session = serde_json::from_str(r#"{"mode":"dictate","events":[]}"#).unwrap();
+        assert!(bad.enrollment_mode().is_err());
+
+        let mut p = Profile::default();
+        for m in [Mode::Compose, Mode::Copy, Mode::Compose] {
+            p.modes.add(m);
+        }
+        assert_eq!(p.modes, ModeCounts { compose: 2, copy: 1 });
+        // counts only: two numbers, nothing typed
+        assert_eq!(serde_json::to_value(p.modes).unwrap(), serde_json::json!({ "compose": 2, "copy": 1 }));
+
+        // A fingerprint stored by v0.1 has no mode counts and still loads.
+        let old = r#"{"v":1,"sessions":3,"taps":318,"stamps":1,"last_ts":5,"fails":[],"dwell":{"*":[3.0,90.0,100.0]},"flight":{},"off_x":{},"off_y":{}}"#;
+        let p: Profile = serde_json::from_str(old).unwrap();
+        assert_eq!((p.sessions, p.taps, p.modes), (3, 318, ModeCounts::default()));
+        assert_eq!(p.dwell[ALL], Stat(3.0, 90.0, 100.0));
     }
 
     #[test]
@@ -493,8 +706,11 @@ mod tests {
     #[test]
     fn verdict_requires_length_typing_and_match() {
         assert!(verdict(0.9, 1.0, 50, 50).is_ok());
-        assert!(verdict(0.9, 1.0, 10, 10).is_err());
-        assert!(verdict(0.9, 0.5, 50, 50).is_err());
-        assert!(verdict(0.5, 1.0, 50, 50).is_err());
+        assert_eq!(verdict(0.9, 1.0, 50, 0), Err(Refusal::Empty));
+        assert_eq!(verdict(0.9, 1.0, 10, 10), Err(Refusal::TooShort));
+        assert_eq!(verdict(0.9, 0.5, 50, 50), Err(Refusal::Pasted));
+        assert_eq!(verdict(0.5, 1.0, 50, 50), Err(Refusal::Mismatch));
+        let codes = [Refusal::Empty, Refusal::TooShort, Refusal::Pasted, Refusal::Mismatch].map(Refusal::code);
+        assert_eq!(codes, ["R_EMPTY", "R_TOO_SHORT", "R_PASTED", "R_MISMATCH"]);
     }
 }

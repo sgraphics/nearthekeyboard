@@ -39,8 +39,10 @@ in `enclave/src/enclave.rs`.
 
 A stamp answer: `{"ok": true, "verdict": "MATCH", "id", "tag": "[NTK <id>]",
 "stamp": {"id", "record", "sig", "pk"}, "detail"}`. A refusal: `{"ok": true,
-"verdict": "NO_MATCH", "reason", "score_pct", "typed_pct", "taps"}`, where the
-score is rounded down to a multiple of 5.
+"verdict": "NO_MATCH", "reason", "code", "score_pct", "typed_pct", "taps"}`,
+where the score is rounded down to a multiple of 5 and `code` is `R_EMPTY`,
+`R_TOO_SHORT`, `R_PASTED` or `R_MISMATCH`. `enroll` and `status` answers also
+count enrollment sessions per mode (`modes`).
 
 ## Calling the enclave
 

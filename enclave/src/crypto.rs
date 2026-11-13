@@ -129,6 +129,40 @@ pub fn stamp_id(signature: &[u8]) -> String {
     hex::encode(&Sha256::digest(signature)[..5])
 }
 
+/// The tag the keyboard puts after the stamped text. The record names the
+/// account; the stamp is looked up by id alone.
+pub fn tag(id: &str) -> String {
+    format!("[NTK {id}]")
+}
+
+/// A stamp ready to publish: the record as signed, its signature and its id.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Signed {
+    pub record: String,
+    pub sig: Vec<u8>,
+    pub id: String,
+}
+
+/// A published stamp is never overwritten. `sign(t)` signs the record issued at
+/// `t` ms; while `taken(id)` says the signature's id is already published, the
+/// record is signed again one millisecond later, `tries` times at most. None
+/// when every id tried was taken.
+pub fn sign_free_id<E>(
+    issued_at_ms: u64,
+    tries: u64,
+    mut sign: impl FnMut(u64) -> Result<(String, Vec<u8>), E>,
+    mut taken: impl FnMut(&str) -> Result<bool, E>,
+) -> Result<Option<Signed>, E> {
+    for t in issued_at_ms..issued_at_ms.saturating_add(tries) {
+        let (record, sig) = sign(t)?;
+        let id = stamp_id(&sig);
+        if !taken(&id)? {
+            return Ok(Some(Signed { record, sig, id }));
+        }
+    }
+    Ok(None)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -165,5 +199,112 @@ mod tests {
         let pk = parse_ed25519_pk("ed25519:11111111111111111111111111111111").unwrap();
         assert_eq!(pk, [0u8; 32]);
         assert_eq!(stamp_id(b"sig").len(), 10);
+    }
+
+    #[test]
+    fn the_tag_is_the_short_form() {
+        assert_eq!(tag("e65ee28db5"), "[NTK e65ee28db5]");
+    }
+
+    #[test]
+    fn a_taken_id_is_signed_again_one_millisecond_later() {
+        let sk = SigningKey::from_bytes(&[4u8; 32]);
+        let sign = |t: u64| -> Result<(String, Vec<u8>), String> {
+            let record = format!(r#"{{"issued_at_ms":{t}}}"#);
+            let sig = sk.sign(&stamp_message(&record)).to_bytes().to_vec();
+            Ok((record, sig))
+        };
+        let first = stamp_id(&sign(1000).unwrap().1);
+        let second = stamp_id(&sign(1001).unwrap().1);
+        assert_ne!(first, second);
+
+        let free = sign_free_id(1000, 3, sign, |_| Ok(false)).unwrap().unwrap();
+        assert_eq!((free.id.as_str(), free.record.as_str()), (first.as_str(), r#"{"issued_at_ms":1000}"#));
+
+        let published = [first.clone()];
+        let again = sign_free_id(1000, 3, sign, |id| Ok(published.contains(&id.to_string()))).unwrap().unwrap();
+        assert_eq!((again.id.as_str(), again.record.as_str()), (second.as_str(), r#"{"issued_at_ms":1001}"#));
+
+        // Every id taken: no stamp, nothing overwritten. A failed lookup is an error, not a free id.
+        assert_eq!(sign_free_id(1000, 3, sign, |_| Ok(true)), Ok(None));
+        assert!(sign_free_id(1000, 3, sign, |_| Err("storage".to_string())).is_err());
+    }
+
+    /// docs/test-vectors/crypto-v1.json, shared with the keyboard and every verifier.
+    const CRYPTO_VECTORS: &str = include_str!("../../docs/test-vectors/crypto-v1.json");
+
+    fn vectors() -> serde_json::Value {
+        serde_json::from_str(CRYPTO_VECTORS).unwrap()
+    }
+
+    fn s<'a>(v: &'a serde_json::Value, key: &str) -> &'a str {
+        v[key].as_str().unwrap_or_else(|| panic!("{key} missing"))
+    }
+
+    fn b64(v: &serde_json::Value, key: &str) -> Vec<u8> {
+        use base64::{engine::general_purpose::STANDARD, Engine};
+        STANDARD.decode(s(v, key)).unwrap()
+    }
+
+    fn bytes<const N: usize>(hex_str: &str) -> [u8; N] {
+        hex::decode(hex_str).unwrap().try_into().unwrap()
+    }
+
+    #[test]
+    fn shared_vector_sealed_session_opens_in_the_enclave() {
+        let v = vectors();
+        let seal_v = &v["seal"];
+        let t = Transport::from_seed(bytes(s(seal_v, "transport_seed_hex")));
+        assert_eq!(hex::encode(t.public), s(seal_v, "transport_pk_hex"));
+        let epk: [u8; 32] = bytes(s(seal_v, "epk_hex"));
+        let nonce: [u8; 12] = bytes(s(seal_v, "nonce_hex"));
+        let ct = b64(seal_v, "ct_b64");
+        let aad = s(seal_v, "aad");
+        assert_eq!(aad, format!("ntk/v1|{}|{}", s(seal_v, "op"), s(seal_v, "account")));
+
+        let plain = t.open(&epk, &nonce, &ct, aad.as_bytes()).unwrap();
+        assert_eq!(plain, s(seal_v, "plaintext").as_bytes());
+        let session: crate::model::Session = serde_json::from_slice(&plain).unwrap();
+        assert_eq!(session.events.len(), 2);
+        assert!(t.open(&epk, &nonce, &ct, b"ntk/v1|enroll|ntk-alice.testnet").is_err());
+        assert_eq!(sealed_digest(&epk, &nonce, &ct), s(seal_v, "sealed_digest_hex"));
+
+        // The keyboard's side: the same ephemeral key and nonce give the same bytes.
+        let (epk2, ct2) = seal(&t.public, bytes(s(seal_v, "eph_secret_hex")), nonce, &plain, aad.as_bytes());
+        assert_eq!((epk2, ct2), (epk, ct));
+    }
+
+    #[test]
+    fn shared_vector_nep413_signature_verifies() {
+        let v = vectors();
+        let n = &v["nep413"];
+        let pk = parse_ed25519_pk(s(n, "public_key")).unwrap();
+        let sk = SigningKey::from_bytes(&bytes(s(n, "seed_hex")));
+        assert_eq!(pk, sk.verifying_key().to_bytes());
+        let nonce: [u8; 32] = b64(n, "nonce_b64").try_into().unwrap();
+        let (message, recipient) = (s(n, "message"), s(n, "recipient"));
+        assert_eq!(hex::encode(nep413_hash(message, &nonce, recipient, None)), s(n, "hash_hex"));
+        assert!(verify_nep413(&pk, &b64(n, "signature_b64"), message, &nonce, recipient).is_ok());
+        assert!(verify_nep413(&pk, &b64(n, "signature_b64"), message, &nonce, "near").is_err());
+        // The signed message commits to the sealed session of the seal vector.
+        let m: serde_json::Value = serde_json::from_str(message).unwrap();
+        assert_eq!(m["payload"], v["seal"]["sealed_digest_hex"]);
+    }
+
+    #[test]
+    fn shared_vector_real_stamp_id_and_signature() {
+        let v = vectors();
+        let st = &v["stamp"];
+        let sig = b64(st, "sig");
+        assert_eq!(stamp_id(&sig), s(st, "id"));
+        assert_eq!(hex::encode(Sha256::digest(&sig)), s(st, "sig_sha256_hex"));
+        assert_eq!(s(st, "pk"), "ed25519:HjjfT73KM5PpL9TEeqFbfWdVgsc5wysKt7mLCr4jsRLG");
+        let vk = ed25519_dalek::VerifyingKey::from_bytes(&parse_ed25519_pk(s(st, "pk")).unwrap()).unwrap();
+        let signature = ed25519_dalek::Signature::from_slice(&sig).unwrap();
+        assert!(vk.verify_strict(&stamp_message(s(st, "record")), &signature).is_ok());
+        assert!(vk.verify_strict(&stamp_message(&s(st, "record").replace("98", "99")), &signature).is_err());
+        // A v1 record: the hash is of the text with CR removed and trimmed.
+        let record: serde_json::Value = serde_json::from_str(s(st, "record")).unwrap();
+        assert_eq!(hex::encode(Sha256::digest(s(st, "text").trim().as_bytes())), s(&record, "text_sha256"));
     }
 }

@@ -84,9 +84,21 @@ export class Typist {
       tap(lower, ch);
       if (ch === ' ' && rnd() < pause) now += 1600 + 800 * rnd(); // a thought between words
     }
-    return { v: 1, layout: 'qwerty-en-v1', events };
+    return { v: 1, layout: 'qwerty-en-portrait-v1', events };
   }
 }
+
+/**
+ * The invented typists of the tests: rhythm (dwell, flight, travel per key
+ * width) and habitual offset from key centres. Alice and bob are the end-to-end
+ * suite's; carol types a little like alice, to give the tuning harness a close
+ * impostor.
+ */
+export const TYPISTS = {
+  alice: { seed: 11, dwell: 88, flight: 95, travel: 22, ox: 0.10, oy: 0.14 },
+  bob: { seed: 29, dwell: 118, flight: 150, travel: 30, ox: -0.12, oy: -0.06 },
+  carol: { seed: 47, dwell: 96, flight: 110, travel: 25, ox: 0.04, oy: 0.08 },
+};
 
 export const ENROLL_TEXTS = [
   'I usually write short notes on my phone while walking to the train, mostly lists and replies to friends.',
@@ -94,4 +106,10 @@ export const ENROLL_TEXTS = [
   'Yesterday I wrote a long message about the weekend plans and fixed a few typos before sending it.',
 ];
 
+/** The `mode` of each enrollment session, as the keyboard's three prompts are (TODO.md 3.5). */
+export const ENROLL_MODES = ['compose', 'copy', 'compose'];
+
 export const STAMP_TEXT = 'This reply was typed by me, a human, on my own phone, one key at a time.';
+
+/** The scripted reply of the demo video and the demo feed (TODO.md, section 0). */
+export const DEMO_REPLY = 'I agree with this, and I typed every word myself.';

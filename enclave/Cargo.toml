@@ -1,6 +1,6 @@
 [package]
 name = "ntk-enclave"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 description = "NTK (Near The Keyboard): a typing-fingerprint enclave that runs on NEAR OutLayer inside Intel TDX"
@@ -8,6 +8,15 @@ description = "NTK (Near The Keyboard): a typing-fingerprint enclave that runs o
 [[bin]]
 name = "ntk-enclave"
 path = "src/main.rs"
+
+# Tuning harness for the matcher, native only:
+#   cargo run --release --bin harness -- <folder of session files>
+# Cargo builds every binary of a package for every target, so on wasm32 this
+# one is an empty stub; it never enters the enclave.
+[[bin]]
+name = "harness"
+path = "src/harness.rs"
+test = false
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
