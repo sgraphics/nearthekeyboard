@@ -1,22 +1,28 @@
 /* Verify page. The blocks and colours are in /assets/ntk.css. */
 
-/* The logo, on the start page only: a block whose top face is the logo on its paper. */
+/* The start page only: the name as text on the left, the keyboard on the right. */
 .hero { display: none; }
-body[data-state="idle"] .hero { display: block; }
-.hero img {
-  --px: 6px;
+body[data-state="idle"] .hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(.75rem, 4vw, 2.5rem);
+  margin: .5rem 0 2rem;
+}
+.hero-title {
+  margin: 0;
+  font-size: clamp(1.7rem, 7.2vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.hero-art img {
   display: block;
-  width: min(100% - 18px, 22rem);
+  width: 100%;
   height: auto;
-  aspect-ratio: 32 / 27;   /* the square logo without most of its top and bottom margin */
-  object-fit: cover;
-  margin: 0 auto 2rem;
-  box-shadow:
-    3px 9px 0 -3px var(--c-lit),
-    6px 18px 0 -6px var(--c-lit),
-    6px 6px 0 0 var(--c-shade),
-    12px 12px 0 0 var(--c-shade),
-    18px 18px 0 0 var(--c-drop);
+  image-rendering: pixelated;
 }
 
 .results {

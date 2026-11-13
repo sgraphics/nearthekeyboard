@@ -39,10 +39,13 @@
   </header>
 
   <main class="wrap">
-    <picture class="hero">
-      <source srcset="/assets/ntk-logo-dark.svg?v=76fc233d" media="(prefers-color-scheme: dark)">
-      <img src="/assets/ntk-logo-light.svg?v=68830f7f" alt="Near The Keyboard: a white pixel-art keyboard with an orange Enter key" width="1024" height="1024">
-    </picture>
+    <div class="hero">
+      <p class="hero-title" aria-hidden="true">Near the<br>keyboard</p>
+      <picture class="hero-art">
+        <source srcset="/assets/ntk-keyboard-dark.svg?v=dd40c3cb" media="(prefers-color-scheme: dark)">
+        <img src="/assets/ntk-keyboard-light.svg?v=ce5a42da" alt="A white pixel-art keyboard with an orange Enter key, lying on a desk" width="744" height="384">
+      </picture>
+    </div>
 
     <section id="results" class="results" aria-live="polite"></section>
 

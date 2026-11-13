@@ -68,7 +68,7 @@ test('every page and every file it refers to resolves, with the right type', asy
     for (const must of ['/verify/main.js', '/verify/model.js', '/verify/sha-fallback.js', '/lib/ntk-verify.js',
       '/vendor/noble-ed25519.js', '/lib/pixel.js', '/feed/main.js', '/feed/model.js', '/feed/data.js',
       '/assets/ntk.css', '/verify/verify.css', '/feed/feed.css', '/embed/ntk-embed.js',
-      '/assets/ntk-badge-light.svg', '/assets/ntk-badge-dark.svg', '/assets/ntk-logo-light.svg', '/assets/ntk-logo-dark.svg',
+      '/assets/ntk-badge-light.svg', '/assets/ntk-badge-dark.svg', '/assets/ntk-keyboard-light.svg', '/assets/ntk-keyboard-dark.svg',
       '/assets/favicon.ico', '/assets/favicon-32.png', '/assets/apple-touch-icon.png', '/assets/ntk-social-1280x640.png',
       '/login/bundle.js', '/login/login.css']) {
       assert.ok(files.includes(must), `${must} is reachable from the pages`);
