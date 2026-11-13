@@ -1,0 +1,53 @@
+# Unit tests on every push. No secrets: nothing here calls the enclave or the relay.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  enclave:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+      - name: Unit tests (text rule, crypto, shared test vectors)
+        run: cargo test --release
+        working-directory: enclave
+      - name: Build the wasm and print its hash
+        run: |
+          cargo build --target wasm32-wasip2 --release
+          sha256sum target/wasm32-wasip2/release/ntk-enclave.wasm
+        working-directory: enclave
+
+  web-and-relay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify page, feed, embed, reference verifier, relay, deploy files
+        run: node --test web/test/ relay/test/
+      - name: Secret check
+        run: node scripts/check-secrets.mjs
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Trust check of the keyboard tree
+        run: bash scripts/audit-android.sh
+      - name: JVM unit tests (text rule, sealing, NEP-413, stamps)
+        run: ./gradlew --no-daemon testDebugUnitTest
+        working-directory: android
