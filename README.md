@@ -304,6 +304,7 @@ enclave/   Rust WASI component: model.rs (features, fingerprint, scoring),
            manifest.json (keys, storage and network policy, embedded in the wasm)
 client/    Node protocol client and tests: ntk.mjs (protocol), synth.mjs
            (synthetic typists), near.mjs (testnet accounts), e2e.mjs (end-to-end suite)
+scripts/   check-secrets.mjs: fails if a key or token is about to be committed
 TODO.md    Everything still to build, with priorities
 ```
 
