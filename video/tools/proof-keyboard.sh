@@ -9,6 +9,10 @@
 #   bash video/tools/proof-keyboard.sh          -> video/out/proof-keyboard.mp4 (+ .png poster)
 #   PART=stamp bash video/tools/proof-keyboard.sh   rehearse the feed part only, on the
 #                                                   account the app is logged in to; no recording
+#   ACCOUNT=wallet NTK_PARENT=<funded.testnet> bash video/tools/proof-keyboard.sh
+#       when the faucet is rate-limited (HTTP 429): before recording, the app logs in
+#       through the wallet route with a fresh sub-account (scripts/device/wallet-login.sh),
+#       and the video starts on the setup screen with that account instead of the faucet tap.
 #
 # Typing and waiting are sped up with fwd.mjs, which labels them "FWD >>"; the
 # label at the top says the typing is the test robot's. Needs the debug app and
@@ -26,6 +30,7 @@ PKG=tools.ntk.keyboard
 RUNNER=tools.ntk.keyboard.test/androidx.test.runner.AndroidJUnitRunner
 FEED="${FEED:-https://ntk.tools/feed/}"
 PART="${PART:-all}"
+ACCOUNT="${ACCOUNT:-faucet}"
 LABEL="NTK proof · testnet · typing by the test robot (synthetic typist)"
 MARKS="$RAW/$NAME.marks"
 : > "$MARKS"
@@ -108,6 +113,10 @@ if [ "$PART" = all ]; then
   adb shell pm clear "$PKG" >/dev/null # no account, no fingerprint: a fresh start
 fi
 bash "$D/ime-on.sh" >/dev/null
+if [ "$PART" = all ] && [ "$ACCOUNT" = wallet ]; then
+  bash "$D/wallet-login.sh" # a fresh account through the wallet route, before the recording
+  adb shell input keyevent KEYCODE_HOME
+fi
 adb shell settings delete secure enabled_accessibility_services >/dev/null || true # stamp buttons off here
 # The feed without replies of earlier runs (they are kept in Chrome's storage).
 adb shell am start -a android.intent.action.VIEW -d "$FEED" --es com.android.browser.application_id tools.ntk.video >/dev/null
@@ -117,6 +126,7 @@ for _ in 1 2 3 4 5 6; do # "Clear my replies" is at the bottom of the page; it d
   if [ -n "$y" ] && [ "$y" -lt 2250 ]; then bash "$D/ctap.sh" --exact "Clear my replies" >/dev/null; break; fi
   adb shell input swipe 540 1900 540 600 300; sleep 1
 done
+for _ in 1 2 3 4 5 6; do adb shell input swipe 540 700 540 2000 200; done # back to the top, where the video finds it
 adb shell input keyevent KEYCODE_HOME
 bash "$T/prep.sh" on
 
@@ -137,9 +147,13 @@ if [ "$PART" = all ]; then
   mark start
   adb shell am start -n "$PKG/tools.ntk.ui.SetupActivity" >/dev/null; mark app
   sleep 3.5
-  tap text "Create a testnet account for me"; mark create
-  wait_for "Created ntk-" 300; mark created
-  sleep 2.5
+  if [ "$ACCOUNT" = faucet ]; then
+    tap text "Create a testnet account for me"; mark create
+    wait_for "Created ntk-" 300; mark created
+    sleep 2.5
+  else
+    sleep 1 # the account from the wallet route is shown on the setup screen
+  fi
   tap text "Enroll: type three short texts"; mark enroll
   sleep 3.5 # the consent screen
   tap text "I agree. Start enrolling"; mark agree

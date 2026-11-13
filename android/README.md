@@ -62,12 +62,12 @@ Release builds only use the relay at `https://ntk.tools/api` and hold no key.
 
 ## Tests
 
-| What | Command (repository root) | Last result on the Android 16 emulator, 2026-11-13 |
+| What | Command (repository root) | Last result on the Android 16 emulator, 2026-11-13 (white look, enclave 0d198051…) |
 |---|---|---|
-| Unit: crypto vectors, text rule, sessions, verify and login links, tag text | `cd android && ./gradlew testDebugUnitTest` | 28 tests pass |
+| Unit: crypto vectors, text rule, sessions, verify and login links, tag text, badge | `cd android && ./gradlew testDebugUnitTest` | 30 tests pass |
 | Capture: the keyboard records what the robot injected | `bash scripts/device/robot.sh` | pass: 72 of 72 taps, times exact, offsets within 0.005 |
-| Flow: faucet account, three enrollments, stamp MATCH, impostor NO_MATCH | `bash scripts/device/robot.sh flow` | pass (earlier stamp `4420c168c8`) |
-| Wallet login without a wallet, then the flow on that account | `bash scripts/device/wallet-login.sh`, then `adb shell am instrument -w -e class tools.ntk.FlowTest -e account current tools.ntk.keyboard.test/androidx.test.runner.AndroidJUnitRunner` | pass: function-call key on `ntkw-1e2ec567.testnet`, stamp `1258da40d5` MATCH, impostor NO_MATCH (score 10%) |
+| Flow: faucet account, three enrollments, stamp MATCH, impostor NO_MATCH | `bash scripts/device/robot.sh flow` | pass earlier (stamp `4420c168c8`); in the last run the faucet answered HTTP 429 (a few accounts per address and day), so the flow ran on a wallet-route account (next line) |
+| Wallet login without a wallet, then the flow on that account | `bash scripts/device/wallet-login.sh` (with `NTK_PARENT=<funded testnet account>` it makes a sub-account instead of asking the faucet), then `adb shell am instrument -w -e class tools.ntk.FlowTest -e account current tools.ntk.keyboard.test/androidx.test.runner.AndroidJUnitRunner` | pass: function-call key on `ntkr-363e47a3.ntkw-1e2ec567.testnet`, three enrollments, stamp `0395d66e86` MATCH, impostor NO_MATCH (score 10%); earlier `ntkw-1e2ec567.testnet`, stamp `1258da40d5` |
 | Fields: password field, text without taps, cursor moved from outside, emptied field | `adb shell am instrument -w -e class tools.ntk.FieldTest tools.ntk.keyboard.test/androidx.test.runner.AndroidJUnitRunner` | 4 of 4 pass |
 | Button: the feed's tag gets a button; a tap opens the verify page with MATCH | `bash scripts/device/button-test.sh [feed url] [stamp id]` | pass, on the built-in reply (`e65ee28db5`) and on a reply typed in Chrome (`1488e8ed42`) |
 | Selection menu: Chrome, select text with a tag, ⋮, Verify NTK stamp | by hand (screenshots), or `adb shell am start -a android.intent.action.PROCESS_TEXT -t text/plain --es android.intent.extra.PROCESS_TEXT '<text with tag>' -n tools.ntk.keyboard/tools.ntk.ui.VerifySelectionActivity` | MATCH |

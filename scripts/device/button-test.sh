@@ -13,10 +13,12 @@ bash "$(dirname "$0")/a11y-on.sh"
 adb logcat -c
 adb shell am start -a android.intent.action.VIEW -d "$feed" --es com.android.browser.application_id tools.ntk.tests >/dev/null
 rect=""
-for _ in $(seq 1 30); do
+for i in $(seq 1 40); do
   sleep 1
-  rect=$(adb logcat -d -s NTK | tr -d '\r' | grep "buttons:" | grep -o "$id[@~][0-9 -]*" | tail -1 | sed "s/^$id[@~]//")
+  rect=$(adb logcat -d -s NTK | tr -d '\r' | grep "buttons:" | grep -o "$id[@~][0-9 -]*" | tail -1 | sed "s/^$id[@~]//" || true)
   [ -n "$rect" ] && break
+  # Tags off screen get no button: replies of earlier runs may push the reply down, so scroll a little.
+  if [ $((i % 6)) = 0 ]; then adb shell input swipe 540 1700 540 1100 400; fi
 done
 [ -n "$rect" ] || { echo "FAIL: no button for $id on $feed"; exit 1; }
 sleep 1

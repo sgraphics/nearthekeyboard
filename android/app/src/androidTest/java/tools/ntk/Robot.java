@@ -106,11 +106,21 @@ public final class Robot {
         final int[] at = onMain(() -> {
             final android.view.View v = NtkTestFocus.focusedEditor();
             if (v == null) return null;
+            // The instrumentation restarts the app's process, keyboard included. A show request
+            // made while the keyboard was not bound yet fails on the system side, and the window
+            // then drops later show requests as already made (Android 16, ImeTracker: "onCancelled
+            // at PHASE_CLIENT_REPORT_REQUESTED_VISIBLE_TYPES"). Asking to hide first clears that.
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && v.getWindowInsetsController() != null) {
+                v.getWindowInsetsController().hide(android.view.WindowInsets.Type.ime());
+            }
+            ((android.view.inputmethod.InputMethodManager) v.getContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE))
+                    .hideSoftInputFromWindow(v.getWindowToken(), 0);
             final int[] loc = new int[2];
             v.getLocationOnScreen(loc);
             return new int[] { loc[0] + v.getWidth() / 2, loc[1] + Math.min(v.getHeight() / 2, 60) };
         });
         if (at == null) return false;
+        SystemClock.sleep(300);
         tap(at[0], at[1]);
         return true;
     }
