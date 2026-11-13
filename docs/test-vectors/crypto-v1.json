@@ -1,0 +1,36 @@
+{
+  "spec": "docs/protocol.md",
+  "seal": {
+    "transport_seed_hex": "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+    "transport_pk_hex": "07a37cbc142093c8b755dc1b10e86cb426374ad16aa853ed0bdfc0b2b86d1c7c",
+    "eph_secret_hex": "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+    "epk_hex": "605a725d2a4adfeeb1a29e17edd621c1b7593ee8cdbc44ac6c4ab6e2f805d23c",
+    "nonce_hex": "101112131415161718191a1b",
+    "op": "stamp",
+    "account": "ntk-alice.testnet",
+    "aad": "ntk/v1|stamp|ntk-alice.testnet",
+    "plaintext": "{\"v\":1,\"layout\":\"qwerty-en-portrait-v1\",\"events\":[{\"k\":\"h\",\"d\":0,\"u\":85,\"x\":0.1,\"y\":-0.05},{\"k\":\"i\",\"d\":190,\"u\":262,\"x\":-0.02,\"y\":0.12}]}",
+    "shared_hex": "caa14fedd7bf6bb2504b5c4df39c84b9c8e6848b6e06d9d0fbbc5eabcaaa1759",
+    "key_hex": "d76747ee79ca1ffae248af9b17c4d874a153e7324d9291b3f8d43cd2bfb7a015",
+    "ct_b64": "0+bmEm68VzQszCcsEDgr5kvO9Hp8dT5e782aDAU8kfINi01/sRWGblq1hEcT5FeIbUzhEecp0wvTdwA8fUpGRxcZ5/ArItZDyIDg7ZDUOwXe/6kxZtDnfM+R4QpA8h+hZmCJZfaO83Tw9ItKVQbTs7BWmRrYZzyIiMg+6UZuNlScpNf/pCyEEd+EDLHiuBTUGrVJ4eLxzWN6",
+    "sealed_digest_hex": "34d0a81139028c61d3d52bed1ce33baa59e7b7d9e7f48c2b97683ca32fb32aab"
+  },
+  "nep413": {
+    "seed_hex": "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f",
+    "public_key": "ed25519:3WTypo2uYrwMHJ5yFFwUPX6T25n39PwNwke7pz22P4Ut",
+    "message": "{\"ntk\":1,\"op\":\"stamp\",\"account\":\"ntk-alice.testnet\",\"payload\":\"34d0a81139028c61d3d52bed1ce33baa59e7b7d9e7f48c2b97683ca32fb32aab\",\"ts\":1794569167000}",
+    "nonce_b64": "wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t8=",
+    "recipient": "near-the-keyboard",
+    "hash_hex": "4f6a8348220bd6a6398b1bce91fac73ba54a0f152a424d1ed2af0139e2745b42",
+    "signature_b64": "CbAlPZxVFFrKA1eDDkkETCcYui696sQdI7JLBxBuQ3/UZYJHjNeW4P7fSmHCO+xoB22vVxQhxy4D/gGvu6wRDA=="
+  },
+  "stamp": {
+    "id": "e65ee28db5",
+    "pk": "ed25519:HjjfT73KM5PpL9TEeqFbfWdVgsc5wysKt7mLCr4jsRLG",
+    "record": "{\"v\":1,\"kind\":\"ntk-stamp\",\"account\":\"ntk-alice.testnet\",\"text_sha256\":\"ff70b908dd7fd61ad557b4890f9fa5ad65c85c1cfcd13ac06783a35c40d56afc\",\"text_chars\":72,\"taps\":73,\"typed_pct\":100,\"score_pct\":98,\"threshold_pct\":65,\"profile_sessions\":3,\"issued_at_ms\":1794569167718,\"project\":\"nearthekeyboard.testnet/ntk\",\"network\":\"testnet\",\"call_id\":\"3437877d-fbaa-482b-a042-1673f4135fde\",\"enclave\":\"0.1.0\"}",
+    "sig": "CN/iLs/yDx/b2dddv0r5/njS791N8KClakHAbHS4WzB2lvigAUHtDg2HSUCj4FaQneCk6cj1YfzvAYp3/0avDw==",
+    "text": "This reply was typed by me, a human, on my own phone, one key at a time.",
+    "stamp_domain": "NTK-STAMP/v1\\n",
+    "sig_sha256_hex": "e65ee28db50607f8d3bb9e49da9b5b1c436afada87891ed6d350059b7ed3fb6f"
+  }
+}

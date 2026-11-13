@@ -324,5 +324,4 @@ Planned: `android/`, `relay/`, `web/`, `brand/`, `video/`.
 
 ## License
 
-MIT is proposed (`enclave/Cargo.toml` already says so). The LICENSE file is
-added before submission (TODO.md, section 0).
+MIT, see [LICENSE](LICENSE).

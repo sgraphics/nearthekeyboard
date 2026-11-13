@@ -1,0 +1,127 @@
+{
+  "spec": "docs/protocol.md, \"Text rule v2\"",
+  "whitespace": "U+0009-000D, U+0020, U+0085, U+00A0, U+1680, U+2000-200A, U+2028, U+2029, U+202F, U+205F, U+3000",
+  "canonical": [
+    {
+      "name": "collapses runs and trims",
+      "input": "  Hello   world \n",
+      "canonical": "Hello world",
+      "chars": 11,
+      "sha256": "64ec88ca00b268e5ba1a35678a1b5316d212f4f366b2477232534a8aeca37f3c"
+    },
+    {
+      "name": "CR LF is one space",
+      "input": "a\r\nb",
+      "canonical": "a b",
+      "chars": 3,
+      "sha256": "c8687a08aa5d6ed2044328fa6a697ab8e96dc34291e8c2034ae8c38e6fcc6d65"
+    },
+    {
+      "name": "tab and no-break space",
+      "input": "tab\tand nbsp",
+      "canonical": "tab and nbsp",
+      "chars": 12,
+      "sha256": "bd4fe188f8cbb6a06d7154acd06c97555596c11e8ab41b1ea2ef684dd8cf267f"
+    },
+    {
+      "name": "em space and ideographic space",
+      "input": " em space　ideographic",
+      "canonical": "em space ideographic",
+      "chars": 20,
+      "sha256": "6b1fc11e6ce7277e91d645889ac0d660474c132af83af8f8feb2ae0566c6a9bf"
+    },
+    {
+      "name": "empty",
+      "input": "",
+      "canonical": "",
+      "chars": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "only whitespace",
+      "input": " \t\n ",
+      "canonical": "",
+      "chars": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "non-ASCII letters and an emoji count as one scalar each",
+      "input": "émoji 👍 ok",
+      "canonical": "émoji 👍 ok",
+      "chars": 10,
+      "sha256": "4b07ab83099ec729d00804bf7c8d3649915143f69b04f4107bcdd7e1e06b3b9b"
+    },
+    {
+      "name": "zero-width space is not whitespace",
+      "input": "zero​width",
+      "canonical": "zero​width",
+      "chars": 10,
+      "sha256": "cabb886dc821c97ba07fc5a80689433008db346ffb00ac2b8b514e9850abc249"
+    },
+    {
+      "name": "line separator",
+      "input": "line1 line2",
+      "canonical": "line1 line2",
+      "chars": 11,
+      "sha256": "1f5c080ae39f741cb927bef27d0a79de3eb78187a13f04d17f43963dc3eb7684"
+    },
+    {
+      "name": "next line (U+0085) is whitespace",
+      "input": "NELx",
+      "canonical": "NEL x",
+      "chars": 5,
+      "sha256": "da18fa45e1833c6cb644c9a5f26b4db9a4d723299afe92d54ed7d159fd7e5664"
+    },
+    {
+      "name": "byte order mark (U+FEFF) is not whitespace",
+      "input": "bom﻿x",
+      "canonical": "bom﻿x",
+      "chars": 5,
+      "sha256": "bae3c065bb272aa6781a1b90f8a9da2cd3988b65615591008520fc5c649ecfd6"
+    },
+    {
+      "name": "information separator (U+001C) is not whitespace",
+      "input": "x\u001cy",
+      "canonical": "x\u001cy",
+      "chars": 3,
+      "sha256": "589c5028e8e92f34f48ac7514201bd20b74ec0b1cbf7ecfffd9f6f82e3ea5aa4"
+    },
+    {
+      "name": "the demo reply",
+      "input": "I agree with this, and I typed every word myself.",
+      "canonical": "I agree with this, and I typed every word myself.",
+      "chars": 49,
+      "sha256": "af5559987b68c79a433759c52dd22a79dc573c848d5d73c25635363b048a35fc"
+    }
+  ],
+  "covered": [
+    {
+      "name": "earlier text and odd spacing before the stamped text",
+      "prefix": "Earlier text.  I agree with this,\nand I typed every word myself. ",
+      "chars": 49,
+      "v": 2,
+      "covered": "I agree with this, and I typed every word myself."
+    },
+    {
+      "name": "an earlier tag is outside the covered text",
+      "prefix": "First part [NTK 0123456789] second part ",
+      "chars": 11,
+      "v": 2,
+      "covered": "second part"
+    },
+    {
+      "name": "prefix shorter than the stamped text",
+      "prefix": "too short",
+      "chars": 50,
+      "v": 2,
+      "covered": null
+    },
+    {
+      "name": "v1 stamps: CR removed and trimmed, no collapsing",
+      "prefix": " This reply was typed by me, a human, on my own phone, one key at a time. ",
+      "chars": 72,
+      "v": 1,
+      "covered": "This reply was typed by me, a human, on my own phone, one key at a time."
+    }
+  ]
+}
