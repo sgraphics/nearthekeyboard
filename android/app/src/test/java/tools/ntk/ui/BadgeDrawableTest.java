@@ -17,8 +17,9 @@ import java.util.regex.Pattern;
 
 /**
  * The NTK mark's drawables (from brand/build.mjs) paint the orange lines, then
- * the gaps between them in the background they sit on: VectorDrawable has no
- * masks. So each must carry its theme's ntk_orange and ntk_background exactly.
+ * the gaps between them in the surface they sit on, the dark display (the
+ * keyboard's strip, the app's header): VectorDrawable has no masks. So each must
+ * carry its theme's ntk_orange and ntk_display exactly.
  * If this fails, rebuild the brand (cd brand && node build.mjs) and copy
  * brand/out/android/drawable/ntk_badge_*.xml into res/drawable/.
  */
@@ -40,7 +41,7 @@ public class BadgeDrawableTest {
         final String theme = read(colours);
         assertEquals(drawable + ": two paths, the lines and then the gaps", 2, fills.size());
         assertEquals(drawable + ": the lines are ntk_orange", colour(theme, "ntk_orange"), fills.get(0));
-        assertEquals(drawable + ": the gaps are ntk_background", colour(theme, "ntk_background"), fills.get(1));
+        assertEquals(drawable + ": the gaps are ntk_display", colour(theme, "ntk_display"), fills.get(1));
     }
 
     private static String read(String res) throws IOException {

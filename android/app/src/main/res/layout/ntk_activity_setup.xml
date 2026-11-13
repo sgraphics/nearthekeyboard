@@ -16,15 +16,27 @@
         android:paddingTop="16dp"
         android:paddingBottom="24dp">
 
-        <tools.ntk.ui.BadgeView
-            android:layout_width="wrap_content"
-            android:layout_height="20dp" />
+        <!-- The header: the NTK mark on a dark display, like the keyboard's strip. -->
+        <LinearLayout
+            style="@style/NtkDisplay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <tools.ntk.ui.BadgeView
+                android:layout_width="wrap_content"
+                android:layout_height="22dp" />
+            <TextView
+                style="@style/NtkDisplayCaption"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Testnet" />
+        </LinearLayout>
 
         <TextView
             style="@style/NtkTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="18dp"
             android:text="NEAR THE\nKEYBOARD" />
 
         <TextView

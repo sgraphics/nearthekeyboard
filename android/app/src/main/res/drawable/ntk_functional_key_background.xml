@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Shift, delete, ?123: the same white tiles as the letters. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checkable="true" android:state_checked="true" android:drawable="@drawable/ntk_key_func_pressed" />
-    <item android:state_pressed="true" android:drawable="@drawable/ntk_key_func_pressed" />
-    <item android:drawable="@drawable/ntk_key_func" />
+    <item android:state_checkable="true" android:state_checked="true" android:drawable="@drawable/ntk_key_on" />
+    <item android:state_pressed="true" android:drawable="@drawable/ntk_key_pressed" />
+    <item android:drawable="@drawable/ntk_key_normal" />
 </selector>

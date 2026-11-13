@@ -3,55 +3,53 @@ package tools.ntk.a11y;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 import android.view.MotionEvent;
 import android.view.View;
 
-import tools.ntk.ui.Pixel;
+import tools.ntk.ui.Tile;
 
 /**
- * The button drawn over a stamp tag in another app: an orange block (the top
- * face, a lit face along its bottom and a shaded face along its right, one grid
- * step deep) with "NTK" and a pixel check mark in near-black. Pressing it moves
- * the top face onto its side faces, like the web embed's button. The look does
- * not follow dark mode: it sits on other apps' screens and must read as the NTK
- * mark on any background.
+ * The button drawn over a stamp tag in another app, in the NTK look: a white
+ * tile with rounded corners, a thin front edge and a soft shadow (tools.ntk.ui.
+ * Tile), with "NTK" in near-black and a thin check mark in the orange of the NTK
+ * mark. Pressing it pushes the tile in. The look does not follow dark mode: it
+ * sits on other apps' screens and must read as NTK's on any background.
  */
 final class StampButtonView extends View {
     static final int ORANGE = 0xFFFF4F00;
-    static final int ORANGE_LIT = 0xFFE04600;
-    static final int ORANGE_SHADE = 0xFFC23D00;
-    static final int INK = 0xFF111418;
-
-    /** The check mark on a 7 x 6 grid. */
-    private static final String[] CHECK = {
-        "......#",
-        ".....##",
-        "#...##.",
-        "##.##..",
-        ".###...",
-        "..#....",
-    };
+    static final int INK = 0xFF111318;
 
     private final int mStep;
-    private final Paint mPaint = Pixel.paint(0);
-    private final Paint mFaces = Pixel.paint(0xFF000000); // opaque: Pixel.sides applies its alpha
+    private final float mDp;
+    private final Tile mTile = new Tile();
+    private final Paint mCheck = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Path mCheckPath = new Path();
     private final TextPaint mText = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final String mLabel = "NTK";
     private boolean mDown;
 
     StampButtonView(Context c) {
         super(c);
-        mStep = Pixel.step(c);
+        mDp = c.getResources().getDisplayMetrics().density;
+        mStep = Math.max(1, Math.round(1.5f * mDp));
+        mTile.sizes(mDp, 5f, 1f, 2f, 0f).colours(0xFFFFFFFF, 0xFFF3F4F6, 0xFFD3D7DD, 0, 0x66000000);
         mText.setColor(INK);
-        mText.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        mText.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        mText.setLetterSpacing(0.06f);
         mText.setTextSize(13 * c.getResources().getDisplayMetrics().scaledDensity);
+        mCheck.setColor(ORANGE);
+        mCheck.setStyle(Paint.Style.STROKE);
+        mCheck.setStrokeWidth(1.7f * mDp);
+        mCheck.setStrokeCap(Paint.Cap.ROUND);
+        mCheck.setStrokeJoin(Paint.Join.ROUND);
         setClickable(true);
         setFocusable(false);
     }
 
-    /** The grid step in pixels; the window is one step wider and taller than the key, for its side faces. */
+    /** Room in pixels: the window is one step wider and taller than the key, for its lip and shadow. */
     int step() {
         return mStep;
     }
@@ -59,14 +57,18 @@ final class StampButtonView extends View {
     /** Width and height of the smallest key that fits the label, without the shadow. */
     int[] minKeySize() {
         final int pad = 3 * mStep;
-        final int w = (int) Math.ceil(mText.measureText(mLabel)) + mStep * 2 + CHECK[0].length() * checkPx() + 2 * pad;
+        final int w = (int) Math.ceil(mText.measureText(mLabel)) + mStep * 2 + checkWidth() + 2 * pad;
         final Paint.FontMetricsInt fm = mText.getFontMetricsInt();
-        final int h = Math.max(fm.descent - fm.ascent, CHECK.length * checkPx()) + 2 * mStep + 2 * mStep;
+        final int h = Math.max(fm.descent - fm.ascent, checkHeight()) + 2 * mStep + 2 * mStep;
         return new int[] { w, h };
     }
 
-    private int checkPx() {
-        return Math.max(1, Math.round(mStep * 0.75f));
+    private int checkWidth() {
+        return Math.round(8.5f * mDp);
+    }
+
+    private int checkHeight() {
+        return Math.round(6.5f * mDp);
     }
 
     @Override
@@ -93,31 +95,27 @@ final class StampButtonView extends View {
         final int w = getWidth() - s;
         final int h = getHeight() - s;
         if (w <= 4 * s || h <= 4 * s) return;
-        final int o = mDown ? s : 0; // pressed: the top face sits on its side faces
-        if (!mDown) Pixel.sides(c, 0, 0, w, h, s, ORANGE_LIT, ORANGE_SHADE, mFaces);
-        mPaint.setColor(ORANGE);
-        c.drawRect(o, o, w + o, h + o, mPaint);
+        // The face fills the key less its lip; the lip and the shadow use the step of room.
+        final float faceB = h - mTile.lipHeight;
+        mTile.draw(c, 0, 0, w, faceB, mDown, 255, null);
+        final float o = mDown ? mTile.lipHeight : 0f; // pressed: the face sits on its lip
 
-        // "NTK" and the check mark, centred together.
-        final int cp = checkPx();
+        // "NTK" and the check mark, centred together on the face.
         final float textW = mText.measureText(mLabel);
         final int gap = 2 * s;
-        final int checkW = CHECK[0].length() * cp;
-        final int checkH = CHECK.length * cp;
+        final int checkW = checkWidth();
+        final int checkH = checkHeight();
         final float total = textW + gap + checkW;
-        final float x0 = o + (w - total) / 2f;
+        final float x0 = (w - total) / 2f;
+        final float cyFace = o + faceB / 2f;
         final Paint.FontMetrics fm = mText.getFontMetrics();
-        final float baseline = o + h / 2f - (fm.ascent + fm.descent) / 2f;
-        c.drawText(mLabel, x0, baseline, mText);
-        mPaint.setColor(INK);
-        final int cx = Math.round(x0 + textW + gap);
-        final int cy = Math.round(o + (h - checkH) / 2f);
-        for (int row = 0; row < CHECK.length; row++) {
-            for (int col = 0; col < CHECK[row].length(); col++) {
-                if (CHECK[row].charAt(col) == '#') {
-                    c.drawRect(cx + col * cp, cy + row * cp, cx + (col + 1) * cp, cy + (row + 1) * cp, mPaint);
-                }
-            }
-        }
+        c.drawText(mLabel, x0, cyFace - (fm.ascent + fm.descent) / 2f, mText);
+        final float cx = x0 + textW + gap;
+        final float cy = cyFace - checkH / 2f;
+        mCheckPath.rewind();
+        mCheckPath.moveTo(cx, cy + checkH * 0.55f);
+        mCheckPath.lineTo(cx + checkW * 0.36f, cy + checkH);
+        mCheckPath.lineTo(cx + checkW, cy);
+        c.drawPath(mCheckPath, mCheck);
     }
 }

@@ -1,17 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- tools.ntk.ui.PixelKeyDrawable: a block (Pixel.block), up or pressed. -->
-    <declare-styleable name="NtkPixelKey">
-        <attr name="ntkBlock">
+    <!-- tools.ntk.ui.TileDrawable (a tools.ntk.ui.Tile, up or pressed) and
+         tools.ntk.ui.SeamDrawable (ntkFace to ntkFaceBottom only). -->
+    <declare-styleable name="NtkTile">
+        <attr name="ntkState">
             <enum name="up" value="1" />
             <enum name="pressed" value="2" />
         </attr>
+        <!-- The face: a vertical gradient from ntkFace to ntkFaceBottom (default: flat). -->
         <attr name="ntkFace" format="color" />
-        <attr name="ntkLit" format="color" />
-        <attr name="ntkShade" format="color" />
-        <attr name="ntkDrop" format="color" />
-        <attr name="ntkStep" format="dimension" />
-        <attr name="ntkInset" format="dimension" />
+        <attr name="ntkFaceBottom" format="color" />
+        <!-- The front edge under the face, the faint line along its top edge, the drop shadow. -->
+        <attr name="ntkLip" format="color" />
+        <attr name="ntkHighlight" format="color" />
+        <attr name="ntkShadow" format="color" />
+        <!-- A short bar near the bottom of the face (the Enter key's gold). -->
+        <attr name="ntkAccent" format="color" />
+        <attr name="ntkRadius" format="dimension" />
+        <attr name="ntkLipHeight" format="dimension" />
+        <attr name="ntkBlur" format="dimension" />
+        <attr name="ntkHairline" format="dimension" />
+        <attr name="ntkAccentWidth" format="dimension" />
+        <attr name="ntkAccentHeight" format="dimension" />
+        <attr name="ntkAccentLift" format="dimension" />
+        <!-- Where the face is: the bounds less these (room for the lip and the shadow). -->
+        <attr name="ntkInsetLeft" format="dimension" />
+        <attr name="ntkInsetTop" format="dimension" />
+        <attr name="ntkInsetRight" format="dimension" />
+        <attr name="ntkInsetBottom" format="dimension" />
+        <!-- Content padding of views with this background. -->
         <attr name="ntkPaddingLeft" format="dimension" />
         <attr name="ntkPaddingTop" format="dimension" />
         <attr name="ntkPaddingRight" format="dimension" />

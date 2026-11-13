@@ -21,6 +21,7 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.util.SparseIntArray;
+import android.util.TypedValue;
 
 import java.util.HashMap;
 
@@ -103,7 +104,7 @@ public final class KeyboardIconsSet {
         for (int index = 0; index < size; index++) {
             final int attrId = ATTR_ID_TO_ICON_ID.keyAt(index);
             try {
-                final Drawable icon = resources.getDrawable(attrId, theme);
+                final Drawable icon = resources.getDrawable(themedIcon(theme, attrId), theme);
                 setDefaultBounds(icon);
                 final Integer iconId = ATTR_ID_TO_ICON_ID.get(attrId);
                 mIcons[iconId] = icon;
@@ -113,6 +114,45 @@ public final class KeyboardIconsSet {
                         + " not found");
             }
         }
+    }
+
+    // NTK: a keyboard theme may draw an icon its own way: the icon* attribute (attrs.xml,
+    // Keyboard) set in its style names the drawable. The NTK theme uses it for thin line
+    // icons; themes that do not set it keep the default drawables.
+    private static final int[] THEMED_ICONS = {
+        R.drawable.sym_keyboard_shift,            R.attr.iconShiftKey,
+        R.drawable.sym_keyboard_shift_locked,     R.attr.iconShiftKeyShifted,
+        R.drawable.sym_keyboard_delete,           R.attr.iconDeleteKey,
+        R.drawable.sym_keyboard_settings,         R.attr.iconSettingsKey,
+        R.drawable.sym_keyboard_paste,            R.attr.iconPasteKey,
+        R.drawable.sym_keyboard_return,           R.attr.iconEnterKey,
+        R.drawable.sym_keyboard_go,               R.attr.iconGoKey,
+        R.drawable.sym_keyboard_search,           R.attr.iconSearchKey,
+        R.drawable.sym_keyboard_send,             R.attr.iconSendKey,
+        R.drawable.sym_keyboard_next,             R.attr.iconNextKey,
+        R.drawable.sym_keyboard_done,             R.attr.iconDoneKey,
+        R.drawable.sym_keyboard_previous,         R.attr.iconPreviousKey,
+        R.drawable.sym_keyboard_tab,              R.attr.iconTabKey,
+        R.drawable.sym_keyboard_space,            R.attr.iconSpaceKeyForNumberLayout,
+        R.drawable.sym_keyboard_language_switch,  R.attr.iconLanguageSwitchKey,
+        R.drawable.sym_keyboard_zwnj,             R.attr.iconZwnjKey,
+        R.drawable.sym_keyboard_zwj,              R.attr.iconZwjKey,
+    };
+
+    private static int themedIcon(final Resources.Theme theme, final int drawableId) {
+        if (theme == null) {
+            return drawableId;
+        }
+        for (int i = 0; i < THEMED_ICONS.length; i += 2) {
+            if (THEMED_ICONS[i] == drawableId) {
+                final TypedValue value = new TypedValue();
+                if (theme.resolveAttribute(THEMED_ICONS[i + 1], value, true) && value.resourceId != 0) {
+                    return value.resourceId;
+                }
+                break;
+            }
+        }
+        return drawableId;
     }
 
     private static boolean isValidIconId(final int iconId) {

@@ -6,7 +6,7 @@
         <item name="android:textColorPrimary">@color/ntk_legend</item>
         <item name="android:textColorSecondary">@color/ntk_muted</item>
         <item name="android:textColorHint">@color/ntk_hint</item>
-        <item name="android:colorAccent">@color/ntk_orange</item>
+        <item name="android:colorAccent">@color/ntk_gold_bottom</item>
         <item name="android:colorControlActivated">@color/ntk_legend</item>
         <item name="android:statusBarColor">@color/ntk_background</item>
         <item name="android:navigationBarColor">@color/ntk_background</item>

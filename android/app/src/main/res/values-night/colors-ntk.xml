@@ -1,23 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- NTK: the dark theme, the same idea in the dark (brand/palette.json "dark"):
-     near-black background, dark grey blocks with slightly lighter side faces and a
-     deep soft shadow, off-white legends, the same orange. -->
+<!-- NTK, dark: the same design in the dark. Dark grey tiles on near-black seams, a faint
+     highlight along each tile's top edge, light thin legends, the same display, gold
+     and orange. -->
 <resources>
-    <color name="ntk_background">#FF111316</color>
-    <color name="ntk_grid">#FF1A1D22</color>
-    <color name="ntk_legend">#FFEDEEF0</color>
-    <color name="ntk_muted">#FF9CA3AF</color>
+    <!-- App screens (setup, consent, enrollment). -->
+    <color name="ntk_background">#FF0F1012</color>
+    <color name="ntk_legend">#FFECEEF1</color>
+    <color name="ntk_muted">#FF9AA0A8</color>
+    <color name="ntk_hint">#FF7D838C</color>
+
+    <!-- The display. The NTK mark's gaps are painted in ntk_display
+         (drawable/ntk_badge_dark.xml): draw it only on it. -->
+    <color name="ntk_display">#FF16181C</color>
+    <color name="ntk_display_edge">#FF25282E</color>
+    <color name="ntk_display_text">#FFD9DCE1</color>
+    <color name="ntk_display_muted">#FF7F858E</color>
+    <color name="ntk_display_dot">#FF40444B</color>
+
+    <!-- Keys: dark grey tiles on near-black seams. -->
+    <color name="ntk_seam_top">#FF101114</color>
+    <color name="ntk_seam_bottom">#FF0A0B0D</color>
+    <color name="ntk_key_face">#FF2F3238</color>
+    <color name="ntk_key_face_bottom">#FF282B30</color>
+    <color name="ntk_key_lip">#FF1A1C20</color>
+    <color name="ntk_key_highlight">#FF42464E</color>
+    <color name="ntk_key_pressed">#FF25282D</color>
+    <color name="ntk_key_pressed_bottom">#FF212328</color>
+    <color name="ntk_key_shadow">#E6000000</color>
+    <color name="ntk_key_hint">#FF8E949D</color>
+
+    <!-- Tiles in the app: buttons, fields, cards. -->
+    <color name="ntk_tile">#FF2A2D33</color>
+    <color name="ntk_tile_bottom">#FF25282D</color>
+    <color name="ntk_tile_lip">#FF18191C</color>
+    <color name="ntk_tile_highlight">#FF3A3E45</color>
+    <color name="ntk_tile_pressed">#FF222429</color>
+    <color name="ntk_tile_pressed_bottom">#FF1E2024</color>
+    <color name="ntk_tile_shadow">#B3000000</color>
+
+    <!-- Accents. -->
     <color name="ntk_orange">#FFFF4F00</color>
-    <color name="ntk_orange_lit">#FFE04600</color>
-    <color name="ntk_orange_shade">#FFC23D00</color>
-    <color name="ntk_on_orange">#FF111418</color>
-    <color name="ntk_key_face">#FF272B31</color>
-    <color name="ntk_key_lit">#FF32373E</color>
-    <color name="ntk_key_shade">#FF2C3036</color>
-    <color name="ntk_key_func_face">#FF1F2227</color>
-    <color name="ntk_key_func_lit">#FF2A2E34</color>
-    <color name="ntk_key_func_shade">#FF25282E</color>
-    <color name="ntk_key_drop">#B3000000</color>
-    <color name="ntk_panel">#FF1C1F24</color>
-    <color name="ntk_hint">#FF9CA3AF</color>
+    <color name="ntk_gold">#FFE4C77A</color>
+    <color name="ntk_gold_bottom">#FFB8902F</color>
+    <color name="ntk_gold_lip">#FF86671F</color>
+    <color name="ntk_gold_highlight">#FFF7E8BC</color>
+    <color name="ntk_gold_accent">#FFCDA74C</color>
+    <color name="ntk_on_gold">#FF1E1708</color>
+
+    <!-- The Sign key before it fills. -->
+    <color name="ntk_graphite">#FF33363C</color>
+    <color name="ntk_graphite_bottom">#FF2A2D32</color>
+    <color name="ntk_graphite_lip">#FF0C0D0F</color>
+    <color name="ntk_graphite_highlight">#FF45494F</color>
+    <color name="ntk_on_graphite">#FFE6E8EB</color>
+    <color name="ntk_on_graphite_muted">#FF7D838C</color>
+    <color name="ntk_display_shadow">#CC000000</color>
 </resources>

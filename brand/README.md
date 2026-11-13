@@ -7,84 +7,112 @@ an image editor.
 ```bash
 cd brand
 npm install        # @resvg/resvg-js: renders SVG and turns text into outlines
-node build.mjs     # writes out/ (about 0.4 MB) and lists every file
+node build.mjs     # writes out/ (about 4 MB) and lists every file
 ```
 
 | Source | What it holds |
 |---|---|
-| `palette.json` | Every colour, light and dark, and the keyboard theme colours. `build.mjs` reads it. |
-| `lib/keyboard.mjs` | The keyboard in 2:1 pixel isometric, built from blocks: the hero illustration (`KEYBOARD_DEFAULTS`), the icon keyboard (`SMALL`) and the favicon one (`FAVICON`). |
-| `lib/font3x5.mjs` | 3x5 pixel letters, available for key legends (`legends: 'glyph'`); the keys use dark marks at the sizes we ship. |
+| `palette.json` | Every colour, light and dark, the gold, the icon colours, and the shared values for the keyboard app. `build.mjs` reads it. |
+| `lib/keyboard.mjs` | The keyboard illustration, a smooth 3D drawing in SVG: the hero (`MODELS.full`), the icon keyboard (`MODELS.small`) and the favicon one (`MODELS.tiny`). |
 | `lib/badge.mjs` | The NTK mark: N, T and K as two parallel lines, built from centerlines as vector shapes (polygons and arcs); writes the SVG and the Android VectorDrawables. |
-| `lib/png.mjs`, `lib/raster.mjs`, `lib/svg.mjs` | PNG encoder (node:zlib), pixel canvas, SVG and text helpers. |
-| `fonts/Inter-Bold.ttf` | Inter 4.1 Bold from github.com/rsms/inter, under the SIL Open Font License (`fonts/OFL.txt`). |
+| `lib/svg.mjs`, `lib/png.mjs` | Text as outlines and SVG rendering (resvg); a PNG encoder (node:zlib). |
+| `fonts/Inter-Bold.ttf`, `fonts/Inter-Light.ttf` | Inter 4.1 Bold and Light from github.com/rsms/inter, under the SIL Open Font License (`fonts/OFL.txt`). |
 
 ## Look
 
-Isometric 3D pixels, light and blocky, a little like Minecraft. The keyboard
-lies on the desk, seen from above at an angle, in classic 2:1 pixel isometric
-(edges step two pixels across for one down). Every object is a block: a light
-top face, a lit front face, a shaded right face. There are no outlines; an
-edge is where one face meets another. Shadows are soft and blocky, one light
-step darker than what they fall on. Orange marks the accents: the Enter (Sign) key, the light on the
-strip, a verified stamp, the icon background, and the NTK mark. One dark block, the
-spacebar, is the monolith of "2001: A Space Odyssey" in soft grey.
+A keyboard as if Polestar had made it; the high-key white of Mirror's Edge.
+Matte white surfaces with rounded corners and no outlines, thin dark seams
+between tiles, soft layered blurred shadows, dark glass for displays, and
+three accents: orange, brushed gold and black. The background is a soft
+studio light, white where the keyboard stands and falling off to a cool grey;
+no grid. Light comes from above, behind and to the left, so shadows fall
+towards the front right.
+
+**The keyboard.** A compact keyboard (five rows, 15 units) seen from the
+front left and above. A white body with softly rounded edges; matte white
+tiles, each with a rounded edge, standing a little proud of the deck with thin
+dark seams between them; thin engraved icons on Tab, Shift, Backspace and
+Enter, the letter keys blank; an orange Enter key. On the strip at the back:
+a dark glass display with a typing rhythm in thin bars (one in orange), a
+round orange status light with a soft glow, and a knurled gold knob at the top
+right in an engraved ring, casting a soft shadow. The dark version is the same
+keyboard in graphite, with a line of light along its edges.
+
+How it is drawn (`lib/keyboard.mjs`): the keyboard is modelled in
+millimetres (a key unit is 19.05 mm) and drawn in an orthographic
+three-quarter view (`CAMERA`: turned 22°, looking down at 46°), so every flat
+face is an exact projection and a rounded corner is an elliptical arc. The
+body's walls are thin horizontal slices from the floor up, each shaded by the
+way its wall faces and how far the rounded top and bottom edges have turned,
+so the shading follows the corners. The floor shadow is the footprint blurred
+in four layers (`SHADOW_LAYERS`), from a tight contact shadow to a wide soft
+one. The knob is a cylinder with metal bands, a lattice of small pyramids for
+the knurling, a polished chamfer and a brushed top with a soft sheen.
+`MODELS.small` (three rows, six units) is the icon keyboard; `MODELS.tiny`
+(two rows, a plain knob, a steeper view) is for the 32 px favicon. On the
+orange icon tile the Enter key is black, so it does not read as a hole.
 
 | Light | Hex | Use |
 |---|---|---|
-| white | `#FFFFFF` | top faces of keys and small blocks |
-| top | `#F7F7F4` | top faces of large blocks: the keyboard body, cards |
-| lit | `#E9E9E4` | lit side faces (front) |
-| shade | `#DADAD3` | shaded side faces (right) |
-| paper | `#EDEDE8` | backgrounds |
-| drop | `#DDDDD6` | soft drops on paper |
-| ink | `#2B2B2B` | the wordmark, text, legends (12:1 on paper) |
-| muted | `#66665F` | secondary text only (4.9:1 on paper) |
-| slate, slateLit, slateShade | `#4A4A46` `#3B3B38` `#30302E` | the one dark block |
-| orange, orangeLit, orangeShade | `#FF4F00` `#E04600` `#C23D00` | orange blocks: top, lit side, shaded side |
+| studio, studioEdge | `#FFFFFF` `#E9EBEF` | backgrounds: the studio light, centre to edges |
+| white, deck | `#FFFFFF` `#F3F4F7` | the deck, from the back left to the front right |
+| white, tile | `#FFFFFF` `#F5F6F8` | tile tops, the same way |
+| tileEdge | `#DCDFE4` | the rounded front and right edge of a tile |
+| wallShade | `#BCC2CB` | the body's walls at their darkest (they run from white) |
+| backEdge | `#E2E5EA` | the rounded back edge, so the outline holds on a white page |
+| seam | `#2A2E35` | thin seams between tiles; engraved lines |
+| tileWall | `#3A3F47` | the tiles' sides, seen in the seams |
+| legend | `#4A4F57` | engraved icons on white tiles |
+| ink | `#111318` | the wordmark, text, black details (18:1 on white) |
+| muted | `#6B7280` | secondary text only (4.8:1 on white) |
+| display, displayDeep | `#23262C` `#16181C` | dark glass |
+| tick | `#A3A9B2` | thin lines on dark glass |
+| orange | `#FF4F00` | accents: the Enter (Sign) key, the status light, the main action, a verified stamp; the icon tile |
+| orangeLit, orangeEdgeLit, orangeEdge, orangeWall | `#FF6418` `#FF8F57` `#C83E00` `#6B2300` | the orange tile's top, lit edge, shaded edge, sides |
+| shadow | `#1B2230` | soft shadows, in layers of 8 to 55 % opacity |
 
 | Dark | Hex | Use |
 |---|---|---|
-| space | `#121211` | backgrounds |
-| drop | `#0A0A09` | soft drops on space |
-| top, lit, shade | `#222220` `#3A3A36` `#2E2E2B` | large blocks: the side faces are lighter than the top |
-| key, keyLit, keyShade | `#2E2E2B` `#4A4A45` `#3D3D39` | keys |
-| offWhite | `#EDEDE8` | the wordmark, text, legends (16:1 on space) |
-| muted | `#8C8C86` | secondary text only (5.5:1 on space) |
-| slate, slateLit, slateShade | `#161615` `#2A2A27` `#222220` | the one dark block |
-| orange, orangeLit, orangeShade | as light | the same orange |
+| studio, studioEdge | `#23262C` `#111318` | backgrounds |
+| deck, deckFar | `#2C3036` `#23262B` | the deck |
+| tile, tileFar | `#3A3E46` `#30343A` | tile tops |
+| tileEdgeLit, tileEdge | `#50555E` `#202328` | a tile's lit and shaded edges |
+| wallLight, wallShade, rim, backEdge | `#4A4F58` `#16181C` `#6A707A` `#646A74` | the body's walls and the light along its edges |
+| seam, tileWall | `#0E0F12` `#0B0C0E` | seams |
+| offWhite | `#F5F6F8` | the wordmark, text (14:1 on the studio) |
+| muted | `#9CA3AF` | secondary text only (6:1 on the studio) |
+| display, displayDeep | `#16181C` `#0B0C0E` | dark glass |
+| shadow | `#000000` | soft shadows |
+| orange | as light | the same orange |
 
-The Android keyboard themes (TODO 3.7) take their colours from
-`palette.json` → `keyboard.light` / `keyboard.dark`: each key is a block as on
-the site (a top face, a lit face below and a shaded face at the right, two
-steps deep, and a soft drop; no outline), drawn inside the key's bounds, and a
-press moves the top face down onto its drop. Legends are 14:1 on a light key and 11.6:1 on
-a dark one. The Sign key is an orange block with a `#1A1A1A` legend (5.3:1;
-`#2B2B2B` would be 4.3:1, white 3.3:1).
+| Gold (both) | Hex | Use |
+|---|---|---|
+| spec, light, mid, dark, deep | `#FFF3CC` `#E4C77A` `#CBA74F` `#B8902F` `#6F5316` | brushed gold, from the highlight to the darkest reflection |
+| shadow | `#3B2A06` | the shaded facets of the knurling |
 
-**Pixel rules.** One pixel grid per asset, scaled by whole numbers with nearest
-neighbour (5 px a pixel in the logo). Isometric lines step two across for one
-down. No anti-aliasing, no gradients, no outlines. Every block shows three
-faces: top, lit front, shaded right. Legends are dark marks on the key tops.
-Shadows are one soft step. The one exception is the NTK mark (see The badge):
-smooth vector lines, never put on the pixel grid.
+The keyboard app and the site are drawn in the same look; `palette.json` →
+`keyboard.light` / `keyboard.dark` holds the shared values (white tiles, dark
+seams, the dark display, the orange Sign key with an `#111318` legend, 5:1,
+and the gold). What the app ships is in its `res/values{,-night}/colors-ntk.xml`.
 
-**Type.** Inter Bold for the wordmark and any text on the web and in the
-video, in ink `#2B2B2B` (offWhite on dark); the system font in the Android
-app. Pixel letters are only for key legends in the illustration, never for text;
-the NTK mark is drawn, not set in a font. In SVGs the
-wordmark is outlines, so no font needs to be installed.
+**Type.** Inter Bold for the wordmark, in ink `#111318` on light and
+off-white on dark; Inter Light, widely tracked, for small lines such as the
+domain on the poster; the system font in the Android app. The NTK mark is
+drawn, not set in a font. In SVGs all text is outlines, so no font needs to be
+installed.
 
 ## Files in out/
 
 | File | For |
 |---|---|
-| `logo/ntk-logo-{light,dark}.{png,svg}` | The logo, 1024 x 1024: `NEAR THE` / `KEYBOARD` over the keyboard. Reads at 48 px. |
+| `logo/ntk-logo-{light,dark}.{png,svg}` | The logo, 1024 x 1024: `NEAR THE` / `KEYBOARD` over the keyboard, on the studio background. |
 | `banner/ntk-x-header-1500x500-*` | X header. The bottom left 400 x 200 is empty for the avatar. |
 | `banner/ntk-social-1280x640-*` | GitHub social preview (upload the light PNG in Settings) and the README header. |
 | `banner/ntk-poster-1600x900-*` | Video poster, with the domain. |
-| `keyboard/ntk-keyboard-*` | The illustration alone, transparent: 1x grid, 4x and SVG; `small` is the icon keyboard. |
-| `icon/ntk-avatar-400-{light,dark}.png` | X profile picture: the white or the charcoal keyboard on orange (X crops a circle; the art stays inside it). |
+| `keyboard/ntk-keyboard-{light,dark}.svg`, `-4x.png` | The illustration alone, 856 x 512, transparent, with its floor shadow: the site's hero. `dark` is the graphite keyboard, for dark pages. |
+| `keyboard/ntk-keyboard-{light,dark}-1x.png` | The same, 182 x 94. |
+| `keyboard/ntk-keyboard-small-*` | The icon keyboard, 62 x 33 and 496 x 264, transparent. |
+| `icon/ntk-avatar-400-{light,dark}.png` | X profile picture: the white or the graphite keyboard on orange (X crops a circle; the keyboard stays inside it). |
 | `icon/ntk-icon-512.png` | Store and legacy 512 icon, full bleed. |
 | `icon/favicon.ico`, `favicon-32.png`, `apple-touch-icon-180.png` | Web. |
 | `android/` | Ready-to-copy resources, see below. |
@@ -115,10 +143,12 @@ foreground, a monochrome layer for themed icons), PNGs for every density, the
 legacy icons for Android 7 and older, and the badge as
 `drawable/ntk_badge_light.xml` and `ntk_badge_dark.xml`.
 
-The icon art sits on 1 dp cells (108 across): 1, 2, 3 and 4 whole pixels a
-cell at mdpi, xhdpi, xxhdpi and xxxhdpi; hdpi is sampled nearest-neighbour, so
-it stays hard-edged. The keyboard stays inside the 66 dp safe circle and reads
-at 48 dp on its orange background.
+The icon is drawn in dp on the 108 dp adaptive canvas and rendered for each
+density (108 px at mdpi to 432 px at xxxhdpi). The keyboard is 60 dp wide and
+stays inside the 66 dp safe circle; it reads at 48 dp on its orange
+background, with a soft deep-orange shadow. The legacy icons are the middle
+72 dp, filling 48 dp, as a rounded square and a circle. The monochrome layer
+is the keyboard as one white shape with the seams and the black key cut out.
 
 The badge drawables are VectorDrawables, 76.8 x 24 dp, and stay smooth at any
 size. VectorDrawable has no masks, so each paints the orange lines and then
@@ -153,11 +183,11 @@ curve about the same centre, like the bowl of a drawn R.
 - The N's elbows are round, every other corner square; open ends are cut
   square: across the line, or level with the cap line or the baseline.
   Upright, no slant, no extra stripes.
-- Orange `#FF4F00` on light and dark: 3:1 on the light strip (`#F4F4F1`),
-  5.7:1 on the dark one (`#121211`). It reads at 20 px tall in the site's
-  header and at 24 dp on the keyboard strip.
+- Orange `#FF4F00` on light and dark: about 3:1 on a near-white strip, 5.7:1
+  on a near-black one. It reads at 20 px tall in the site's header and at
+  24 dp on the keyboard strip.
 
 It is the only branding on the keyboard (top left of the strip, 24 dp tall)
-and the logo in the site's page headers. The pixel keyboard does not carry
-it: at the strip's few pixels the lines do not resolve, so the illustration's
-strip keeps only its orange light.
+and the logo in the site's page headers. The keyboard illustration does not
+carry it: on the illustration's strip it would be a few pixels tall, too small
+for its lines to resolve.

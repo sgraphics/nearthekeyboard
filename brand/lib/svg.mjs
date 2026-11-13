@@ -1,58 +1,32 @@
-// SVG helpers: pixel rasters as crisp rectangles, Inter text as outlines, and
-// rendering an SVG to PNG with resvg (no browser, no system fonts).
+// SVG helpers: Inter text as outlines, and rendering an SVG to PNG with resvg
+// (no browser, no system fonts).
 import { Resvg } from '@resvg/resvg-js';
 import { encodePNG } from './png.mjs';
 
-let fontFile = null;
-export function useFont(file) { fontFile = file; }
+let fontFiles = [];
+export function useFonts(files) { fontFiles = files; }
 const resvgOptions = (extra = {}) => ({
-  font: { fontFiles: [fontFile], loadSystemFonts: false, defaultFontFamily: 'Inter' },
+  font: { fontFiles, loadSystemFonts: false, defaultFontFamily: 'Inter' },
   shapeRendering: 2, textRendering: 1, imageRendering: 1, ...extra,
 });
 
 const num = (v) => String(Math.round(v * 100) / 100);
 
-// A raster as SVG paths, one path per colour, cells merged into rectangles.
-// (x, y) is the top left corner, s the size of one cell.
-export function rasterSVG(r, theme, x, y, s) {
-  const colourOf = (role) => (role == null ? null : theme[role]);
-  if (r.px.some((role) => role != null && theme[role] === undefined)) {
-    const missing = [...new Set(r.px.filter((role) => role != null && theme[role] === undefined))];
-    throw new Error(`theme has no colour for ${missing.join(', ')}`);
-  }
-  const used = new Uint8Array(r.w * r.h);
-  const byColour = new Map();
-  for (let j = 0; j < r.h; j++) for (let i = 0; i < r.w; i++) {
-    const c = colourOf(r.px[j * r.w + i]);
-    if (!c || c === 'none' || used[j * r.w + i]) continue;
-    let w = 1;
-    while (i + w < r.w && !used[j * r.w + i + w] && colourOf(r.px[j * r.w + i + w]) === c) w++;
-    let h = 1;
-    grow: while (j + h < r.h) {
-      for (let k = 0; k < w; k++) if (used[(j + h) * r.w + i + k] || colourOf(r.px[(j + h) * r.w + i + k]) !== c) break grow;
-      h++;
-    }
-    for (let jj = 0; jj < h; jj++) for (let k = 0; k < w; k++) used[(j + jj) * r.w + i + k] = 1;
-    if (!byColour.has(c)) byColour.set(c, []);
-    byColour.get(c).push(`M${num(x + i * s)} ${num(y + j * s)}h${num(w * s)}v${num(h * s)}h${num(-w * s)}z`);
-  }
-  return '<g shape-rendering="crispEdges">\n' +
-    [...byColour].map(([c, d]) => `<path fill="${c}" d="${d.join('')}"/>`).join('\n') + '\n</g>';
-}
-
-// Text set in Inter Bold, as one outline path. Returns the path data with the
-// baseline at y = 0 and x starting at 0, and the ink box.
+// Text set in Inter (weight 700 Bold or 300 Light), as one outline path.
+// Returns the path data with the baseline at y = 0 and x starting at 0, and
+// the ink box.
 const textCache = new Map();
-export function textOutline(str, size, tracking = 0) {
-  const key = `${str}|${size}|${tracking}`;
+export function textOutline(str, size, tracking = 0, weight = 700) {
+  const key = `${str}|${size}|${tracking}|${weight}`;
   if (textCache.has(key)) return textCache.get(key);
   const esc = str.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   const base = size * 2;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(size * str.length * 1.2 + 10)}" height="${size * 3}">` +
-    `<text x="0" y="${base}" font-family="Inter" font-weight="700" font-size="${size}" letter-spacing="${tracking * size}">${esc}</text></svg>`;
+    `<text x="0" y="${base}" font-family="Inter" font-weight="${weight}" font-size="${size}" letter-spacing="${tracking * size}">${esc}</text></svg>`;
   const out = new Resvg(svg, resvgOptions()).toString();
   const ds = [...out.matchAll(/ d="([^"]+)"/g)].map((m) => m[1]);
   let d = ds.join(' ');
+  if (!d) throw new Error(`no outline for "${str}" at weight ${weight}: is the font file loaded?`);
   if (/[^MLQCZ0-9.\s-]/.test(d)) throw new Error('unexpected path command in text outline');
   // Shift to baseline 0 and collect the box.
   let i = 0, x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -77,10 +51,9 @@ export function svgDoc(w, h, body, bg) {
     (bg ? `<rect width="${w}" height="${h}" fill="${bg}"/>\n` : '') + body + '\n</svg>\n';
 }
 
-// Render an SVG document to a PNG buffer, at its own size, `fit` px wide, or
-// { height } px tall. Pixel art is crisp (crispEdges on its group); text
-// outlines and the NTK mark keep their anti-aliasing.
-export function renderPNG(svg, fit) {
+// Render an SVG document to straight (not premultiplied) RGBA pixels, at its
+// own size, `fit` px wide, or { height } px tall.
+export function renderRGBA(svg, fit) {
   const fitTo = typeof fit === 'number' ? { mode: 'width', value: fit } : fit?.height ? { mode: 'height', value: fit.height } : null;
   const img = new Resvg(svg, resvgOptions(fitTo ? { fitTo } : {})).render();
   // resvg's pixels are premultiplied by alpha; PNG stores them straight.
@@ -89,5 +62,8 @@ export function renderPNG(svg, fit) {
     const a = rgba[i + 3];
     if (a > 0 && a < 255) for (let c = 0; c < 3; c++) rgba[i + c] = Math.min(255, Math.round((rgba[i + c] * 255) / a));
   }
-  return encodePNG({ width: img.width, height: img.height, rgba });
+  return { width: img.width, height: img.height, rgba };
 }
+
+// The same, as a PNG buffer.
+export const renderPNG = (svg, fit) => encodePNG(renderRGBA(svg, fit));

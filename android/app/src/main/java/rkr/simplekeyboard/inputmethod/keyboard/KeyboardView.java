@@ -89,9 +89,10 @@ public class KeyboardView extends View {
     private final Drawable mFunctionalKeyBackground;
     private final Drawable mSpacebarBackground;
     private final Rect mKeyBackgroundPadding = new Rect();
-    // NTK: the part of a key its legends are laid out in. A block key (tools.ntk.ui.
-    // PixelKeyDrawable) has its top face up and left of the key's centre, lower when
-    // pressed; its legends sit on that face. Drawing only: the key's bounds stay.
+    // NTK: the part of a key its legends are laid out in. On a key tile (tools.ntk.ui.
+    // TileDrawable) it is where legends were when users enrolled, a little up and left
+    // of the key's centre, on the tile's face; lower when pressed. Drawing only: the
+    // key's bounds stay.
     private final Rect mKeyFace = new Rect();
     private final Rect mKeyBounds = new Rect();
     private static final float KET_TEXT_SHADOW_RADIUS_DISABLED = -1.0f;
@@ -329,7 +330,7 @@ public class KeyboardView extends View {
         }
         mKeyBounds.set(-mKeyBackgroundPadding.left, -mKeyBackgroundPadding.top,
                 key.getWidth() + mKeyBackgroundPadding.right, key.getHeight() + mKeyBackgroundPadding.bottom);
-        tools.ntk.ui.PixelKeyDrawable.face(background, mKeyBounds, mKeyFace);
+        tools.ntk.ui.TileDrawable.legendBox(background, mKeyBounds, mKeyFace);
         mKeyFace.intersect(0, 0, key.getWidth(), key.getHeight());
         canvas.translate(mKeyFace.left, mKeyFace.top);
         onDrawKeyTopVisuals(key, canvas, paint, params);
@@ -422,7 +423,9 @@ public class KeyboardView extends View {
             paint.setTextSize(key.selectHintTextSize(params));
             paint.setColor(key.selectHintTextColor(params));
             // TODO: Should add a way to specify type face for hint letters
-            paint.setTypeface(Typeface.DEFAULT_BOLD);
+            // NTK: in the NTK theme hint letters are as thin as the legends.
+            paint.setTypeface(mTheme != null && mTheme.mThemeId == KeyboardTheme.THEME_ID_NTK
+                    ? params.mTypeface : Typeface.DEFAULT_BOLD);
             blendAlpha(paint, params.mAnimAlpha);
             final float labelCharHeight = TypefaceUtils.getReferenceCharHeight(paint);
             final float labelCharWidth = TypefaceUtils.getReferenceCharWidth(paint);

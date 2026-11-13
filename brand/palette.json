@@ -1,180 +1,102 @@
 {
   "name": "NTK — Near The Keyboard",
-  "note": "build.mjs reads this file. Change a colour here, then run node build.mjs. High-key white, as in the reference scene: white blocks in 2:1 pixel isometric with very light cool-grey side faces (lit front, shaded right) and soft blurred shadows on a white floor with a faint grid. Black for small strong details, orange for a few accents. No outlines.",
+  "note": "build.mjs reads this file. Change a colour here, then run node build.mjs. The look: a keyboard as if Polestar had made it. Matte white surfaces with rounded corners and no outlines, thin dark seams between tiles, soft layered blurred shadows, dark glass for displays, and three accents: orange, brushed gold and black. A soft studio background, no grid. Light comes from above, behind and to the left, so shadows fall towards the front right.",
   "light": {
-    "white": {
-      "hex": "#FFFFFF",
-      "use": "top faces of keys and small blocks"
-    },
-    "top": {
-      "hex": "#FFFFFF",
-      "use": "top faces of large blocks: the keyboard body, cards"
-    },
-    "lit": {
-      "hex": "#F3F4F6",
-      "use": "lit side faces (the front, lower left in isometric)"
-    },
-    "shade": {
-      "hex": "#E8EAED",
-      "use": "shaded side faces (the right, lower right in isometric)"
-    },
-    "keyLit": {
-      "hex": "#ECEEF1",
-      "use": "lit side faces of keys (a touch deeper than large blocks, so the keys read)"
-    },
-    "keyShade": {
-      "hex": "#DFE2E6",
-      "use": "shaded side faces of keys"
-    },
-    "paper": {
-      "hex": "#FFFFFF",
-      "use": "backgrounds: the floor"
-    },
-    "grid": {
-      "hex": "#EEF0F3",
-      "use": "the faint square grid on the floor, 1 px lines"
-    },
-    "shadow": {
-      "hex": "#111827",
-      "use": "soft blurred shadows, at 8 to 18 % opacity"
-    },
-    "ink": {
-      "hex": "#111418",
-      "use": "the wordmark, text, legends, black details (18:1 on white)"
-    },
-    "muted": {
-      "hex": "#6B7280",
-      "use": "secondary text only (4.8:1 on white)"
-    },
-    "slate": {
-      "hex": "#2B2F36",
-      "use": "a dark block, if a scheme asks for one: top face"
-    },
-    "slateLit": {
-      "hex": "#22262C",
-      "use": "the dark block: lit side"
-    },
-    "slateShade": {
-      "hex": "#1A1D22",
-      "use": "the dark block: shaded side"
-    },
-    "orange": {
-      "hex": "#FF4F00",
-      "use": "accents: the Enter and Esc keys, the light, the main action, a verified stamp; icon backgrounds"
-    },
-    "orangeLit": {
-      "hex": "#E04600",
-      "use": "orange block: lit side"
-    },
-    "orangeShade": {
-      "hex": "#C23D00",
-      "use": "orange block: shaded side"
-    }
+    "studio": { "hex": "#FFFFFF", "use": "backgrounds: the studio, brightest where the keyboard stands" },
+    "studioEdge": { "hex": "#E9EBEF", "use": "backgrounds: the studio towards its edges" },
+    "white": { "hex": "#FFFFFF", "use": "the deck and the tile tops (at the back left); the body's walls where the light reaches them" },
+    "deck": { "hex": "#F3F4F7", "use": "the deck at its front right (a gradient from white)" },
+    "tile": { "hex": "#F5F6F8", "use": "tile tops at the front right (a gradient from white); function keys" },
+    "tileEdge": { "hex": "#DCDFE4", "use": "the rounded front and right edge of a tile" },
+    "wallShade": { "hex": "#BCC2CB", "use": "the body's walls at their darkest: they run from white to this, by the way they face" },
+    "backEdge": { "hex": "#E2E5EA", "use": "the rounded back edge of the body, so its outline holds on a white page" },
+    "seam": { "hex": "#2A2E35", "use": "thin seams between tiles; engraved lines" },
+    "tileWall": { "hex": "#3A3F47", "use": "the sides of the tiles, seen in the seams" },
+    "legend": { "hex": "#4A4F57", "use": "thin engraved icons on white tiles" },
+    "ink": { "hex": "#111318", "use": "the wordmark, text, black details; the black key on the icons (18:1 on white)" },
+    "inkLit": { "hex": "#2E3238", "use": "a black tile's top at the back left" },
+    "muted": { "hex": "#6B7280", "use": "secondary text only (4.8:1 on white)" },
+    "display": { "hex": "#23262C", "use": "dark glass (the display) at the back left" },
+    "displayDeep": { "hex": "#16181C", "use": "dark glass at the front right" },
+    "tick": { "hex": "#A3A9B2", "use": "thin lines on dark glass" },
+    "orange": { "hex": "#FF4F00", "use": "accents: the Enter (Sign) key, the status light, the main action, a verified stamp; the icon background" },
+    "orangeLit": { "hex": "#FF6418", "use": "the orange tile's top at the back left" },
+    "orangeEdgeLit": { "hex": "#FF8F57", "use": "the orange tile's rounded back and left edge" },
+    "orangeEdge": { "hex": "#C83E00", "use": "the orange tile's rounded front and right edge; the rim of the light" },
+    "orangeWall": { "hex": "#6B2300", "use": "the orange tile's sides, in the seams" },
+    "ledCore": { "hex": "#FFE2CF", "use": "the hot centre of the status light" },
+    "shadow": { "hex": "#1B2230", "use": "soft shadows, in layers of 8 to 55 % opacity" }
   },
   "dark": {
-    "space": {
-      "hex": "#111316",
-      "use": "backgrounds: the floor"
-    },
-    "grid": {
-      "hex": "#1B1E23",
-      "use": "the faint grid on the floor"
-    },
-    "shadow": {
-      "hex": "#000000",
-      "use": "soft blurred shadows, at 40 to 60 % opacity"
-    },
-    "top": {
-      "hex": "#1F2227",
-      "use": "top faces of large blocks: the keyboard body, cards"
-    },
-    "lit": {
-      "hex": "#2A2E34",
-      "use": "lit side faces of large blocks (lighter than the top)"
-    },
-    "shade": {
-      "hex": "#25282E",
-      "use": "shaded side faces of large blocks"
-    },
-    "key": {
-      "hex": "#2A2E35",
-      "use": "top faces of keys and small blocks"
-    },
-    "keyLit": {
-      "hex": "#363B43",
-      "use": "lit side faces of keys"
-    },
-    "keyShade": {
-      "hex": "#30353C",
-      "use": "shaded side faces of keys"
-    },
-    "offWhite": {
-      "hex": "#EDEEF0",
-      "use": "the wordmark, text, legends (16:1 on space)"
-    },
-    "muted": {
-      "hex": "#9CA3AF",
-      "use": "secondary text only (7.5:1 on space)"
-    },
-    "slate": {
-      "hex": "#16181C",
-      "use": "a dark block, if a scheme asks for one: top face"
-    },
-    "slateLit": {
-      "hex": "#2A2E34",
-      "use": "the dark block: lit side"
-    },
-    "slateShade": {
-      "hex": "#22252A",
-      "use": "the dark block: shaded side"
-    },
-    "orange": {
-      "hex": "#FF4F00",
-      "use": "accents (same orange as light)"
-    },
-    "orangeLit": {
-      "hex": "#E04600",
-      "use": "orange block: lit side"
-    },
-    "orangeShade": {
-      "hex": "#C23D00",
-      "use": "orange block: shaded side"
-    }
+    "studio": { "hex": "#23262C", "use": "backgrounds: the studio, brightest where the keyboard stands" },
+    "studioEdge": { "hex": "#111318", "use": "backgrounds: the studio towards its edges" },
+    "deck": { "hex": "#2C3036", "use": "the deck at the back left" },
+    "deckFar": { "hex": "#23262B", "use": "the deck at the front right" },
+    "wallLight": { "hex": "#4A4F58", "use": "the body's walls where the light reaches them" },
+    "wallShade": { "hex": "#16181C", "use": "the body's walls at their darkest" },
+    "rim": { "hex": "#6A707A", "use": "a line of light along the body's rounded top edge" },
+    "backEdge": { "hex": "#646A74", "use": "the rounded back edge of the body, lit from behind" },
+    "seam": { "hex": "#0E0F12", "use": "thin seams between tiles; engraved lines" },
+    "tile": { "hex": "#3A3E46", "use": "tile tops at the back left" },
+    "tileFar": { "hex": "#30343A", "use": "tile tops at the front right" },
+    "tileEdgeLit": { "hex": "#50555E", "use": "the rounded back and left edge of a tile" },
+    "tileEdge": { "hex": "#202328", "use": "the rounded front and right edge of a tile" },
+    "tileWall": { "hex": "#0B0C0E", "use": "the sides of the tiles, seen in the seams" },
+    "legend": { "hex": "#16181C", "use": "engraved icons on dark tiles" },
+    "legendLit": { "hex": "#4A4F58", "use": "the lit side of an engraved line" },
+    "offWhite": { "hex": "#F5F6F8", "use": "the wordmark, text (14:1 on the studio)" },
+    "muted": { "hex": "#9CA3AF", "use": "secondary text only (6:1 on the studio)" },
+    "display": { "hex": "#16181C", "use": "dark glass at the back left" },
+    "displayDeep": { "hex": "#0B0C0E", "use": "dark glass at the front right" },
+    "tick": { "hex": "#8A9099", "use": "thin lines on dark glass" },
+    "shadow": { "hex": "#000000", "use": "soft shadows" }
+  },
+  "gold": {
+    "spec": { "hex": "#FFF3CC", "use": "brushed gold: the brightest highlight" },
+    "light": { "hex": "#E4C77A", "use": "brushed gold: lit" },
+    "mid": { "hex": "#CBA74F", "use": "brushed gold: the body colour" },
+    "dark": { "hex": "#B8902F", "use": "brushed gold: in shade" },
+    "deep": { "hex": "#6F5316", "use": "brushed gold: the darkest reflection, at the silhouette" },
+    "shadow": { "hex": "#3B2A06", "use": "brushed gold: the shaded facets of the knurling" }
+  },
+  "icon": {
+    "background": { "hex": "#FF4F00", "use": "the icon tile (the brand orange)" },
+    "shadow": { "hex": "#7A2600", "use": "the keyboard's soft shadow on the orange" }
   },
   "keyboard": {
-    "note": "The Android keyboard theme (android/app/src/main/res/values{,-night}/colors-ntk.xml). Each key is a block: a top face, a lit face along its bottom and a shaded face along its right, cut at 45 degrees, and a soft blurred shadow, all inside the key; a press moves the top face down onto its side faces. Function keys a touch greyer. The Sign key is an orange block with a near-black legend (5.0:1 on orange).",
+    "note": "Shared design values for the Android keyboard theme and the site, which are drawn in the same look: matte white tiles with rounded corners and no outlines, thin dark seams between them, soft blurred shadows, a dark display strip, orange for the Sign key, gold for one detail. What the app ships is in android/app/src/main/res/values{,-night}/colors-ntk.xml.",
     "light": {
-      "background": "#FFFFFF",
-      "key": "#FFFFFF",
-      "keyLit": "#F3F4F6",
-      "keyShade": "#E8EAED",
-      "func": "#F5F6F8",
-      "funcLit": "#EBEDF0",
-      "funcShade": "#E0E3E7",
-      "shadow": "#33111827",
-      "legend": "#111418",
+      "background": "#E9EBEF",
+      "tile": "#FFFFFF",
+      "tileFar": "#F5F6F8",
+      "tileEdge": "#DCDFE4",
+      "seam": "#2A2E35",
+      "shadow": "#291B2230",
+      "legend": "#111318",
       "muted": "#6B7280",
+      "display": "#23262C",
+      "displayDeep": "#16181C",
       "signKey": "#FF4F00",
-      "signKeyLit": "#E04600",
-      "signKeyShade": "#C23D00",
-      "signLegend": "#111418",
+      "signLegend": "#111318",
+      "gold": "#E4C77A",
+      "goldDeep": "#B8902F",
       "badge": "ntk_badge_light.xml"
     },
     "dark": {
-      "background": "#111316",
-      "key": "#272B31",
-      "keyLit": "#32373E",
-      "keyShade": "#2C3036",
-      "func": "#1F2227",
-      "funcLit": "#2A2E34",
-      "funcShade": "#25282E",
-      "shadow": "#B3000000",
-      "legend": "#EDEEF0",
+      "background": "#111318",
+      "tile": "#3A3E46",
+      "tileFar": "#30343A",
+      "tileEdge": "#202328",
+      "seam": "#0E0F12",
+      "shadow": "#99000000",
+      "legend": "#F5F6F8",
       "muted": "#9CA3AF",
+      "display": "#16181C",
+      "displayDeep": "#0B0C0E",
       "signKey": "#FF4F00",
-      "signKeyLit": "#E04600",
-      "signKeyShade": "#C23D00",
-      "signLegend": "#111418",
+      "signLegend": "#111318",
+      "gold": "#E4C77A",
+      "goldDeep": "#B8902F",
       "badge": "ntk_badge_dark.xml"
     }
   }

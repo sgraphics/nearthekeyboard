@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="ntk_strip_height">44dp</dimen>
-    <!-- One step of a key block (PixelKeyDrawable, Pixel.block): side faces two steps deep, the drop one. -->
-    <dimen name="ntk_key_step">2dp</dimen>
+    <!-- Key tiles (tools.ntk.ui.TileDrawable): corner radius, lip (front edge), shadow blur,
+         and the room the face leaves inside the key's bounds, on the right and at the bottom,
+         for the lip and the shadow. Drawing only: keys keep their bounds. -->
+    <dimen name="ntk_key_radius">6dp</dimen>
+    <dimen name="ntk_key_lip">1.5dp</dimen>
+    <dimen name="ntk_key_blur">3dp</dimen>
+    <dimen name="ntk_key_room_right">2dp</dimen>
+    <dimen name="ntk_key_room_bottom">5dp</dimen>
     <string name="keyboard_theme_ntk" translatable="false">NTK (light and dark, follows the system)</string>
 
     <!-- The stamp buttons in other apps (accessibility service) and the text selection menu entry. -->

@@ -26,6 +26,8 @@ import rkr.simplekeyboard.inputmethod.latin.utils.ResourceUtils;
 
 public final class KeyVisualAttributes {
     public final Typeface mTypeface;
+    /** NTK: the keyTypeface value "light" (res/values/attrs.xml). */
+    public static final int TYPEFACE_LIGHT = 16;
 
     public final float mLetterRatio;
     public final int mLetterSize;
@@ -96,8 +98,10 @@ public final class KeyVisualAttributes {
 
     private KeyVisualAttributes(final TypedArray keyAttr) {
         if (keyAttr.hasValue(R.styleable.Keyboard_Key_keyTypeface)) {
-            mTypeface = Typeface.defaultFromStyle(
-                    keyAttr.getInt(R.styleable.Keyboard_Key_keyTypeface, Typeface.NORMAL));
+            final int style = keyAttr.getInt(R.styleable.Keyboard_Key_keyTypeface, Typeface.NORMAL);
+            // NTK: "light" (attrs.xml) is the system sans-serif in its light weight.
+            mTypeface = style == TYPEFACE_LIGHT ? Typeface.create("sans-serif-light", Typeface.NORMAL)
+                    : Typeface.defaultFromStyle(style);
         } else {
             mTypeface = null;
         }

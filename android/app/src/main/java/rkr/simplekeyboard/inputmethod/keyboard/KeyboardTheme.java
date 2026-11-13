@@ -38,7 +38,7 @@ public final class KeyboardTheme {
     public static final int THEME_ID_DARK = 4;
     public static final int THEME_ID_SYSTEM = 5;
     public static final int THEME_ID_SYSTEM_BORDER = 6;
-    // NTK: the pixel-edged light/dark theme, following the system's dark mode. The default.
+    // NTK: white tiles on dark seams in light and dark, following the system's dark mode. The default.
     public static final int THEME_ID_NTK = 7;
     public static final int DEFAULT_THEME_ID = THEME_ID_NTK;
 

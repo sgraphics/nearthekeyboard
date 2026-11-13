@@ -14,7 +14,8 @@ import rkr.simplekeyboard.inputmethod.R;
  * drawable from brand/build.mjs (res/drawable/ntk_badge_light.xml and
  * ntk_badge_dark.xml), drawn smoothly at the view's height; the width follows
  * the mark's proportions. VectorDrawable has no masks, so the gaps between the
- * lines are painted in ntk_background: draw the mark only on that colour.
+ * lines are painted in ntk_display, the dark display the mark sits on (the
+ * keyboard's strip, the app's header, style NtkDisplay): draw it only on that colour.
  */
 public final class BadgeView extends View {
     private final Drawable mMark;
@@ -24,7 +25,7 @@ public final class BadgeView extends View {
         mMark = load(context);
     }
 
-    /** The mark for the current theme: the drawable whose gaps match this theme's ntk_background. */
+    /** The mark for the current theme: the drawable whose gaps match this theme's ntk_display. */
     static Drawable load(Context c) {
         final int night = c.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         return c.getDrawable(night == Configuration.UI_MODE_NIGHT_YES ? R.drawable.ntk_badge_dark : R.drawable.ntk_badge_light);

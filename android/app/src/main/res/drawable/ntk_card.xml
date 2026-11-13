@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <drawable xmlns:app="http://schemas.android.com/apk/res-auto"
-    class="tools.ntk.ui.PixelKeyDrawable"
-    app:ntkBlock="up"
-    app:ntkFace="@color/ntk_panel"
-    app:ntkLit="@color/ntk_key_lit"
-    app:ntkShade="@color/ntk_key_shade"
-    app:ntkDrop="@color/ntk_key_drop"
-    app:ntkStep="@dimen/ntk_key_step"
-    app:ntkPaddingLeft="16dp" app:ntkPaddingTop="14dp" app:ntkPaddingRight="18dp" app:ntkPaddingBottom="24dp" />
+    class="tools.ntk.ui.TileDrawable"
+    app:ntkState="up"
+    app:ntkFace="@color/ntk_tile"
+    app:ntkFaceBottom="@color/ntk_tile_bottom"
+    app:ntkLip="@color/ntk_tile_lip"
+    app:ntkHighlight="@color/ntk_tile_highlight"
+    app:ntkShadow="@color/ntk_tile_shadow"
+    app:ntkRadius="10dp"
+    app:ntkLipHeight="1.5dp"
+    app:ntkBlur="4dp"
+    app:ntkInsetLeft="3dp" app:ntkInsetTop="1dp" app:ntkInsetRight="4dp" app:ntkInsetBottom="8dp"
+    app:ntkPaddingLeft="18dp" app:ntkPaddingTop="15dp" app:ntkPaddingRight="20dp" app:ntkPaddingBottom="23dp" />
