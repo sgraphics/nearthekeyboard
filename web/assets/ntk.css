@@ -1,30 +1,48 @@
-/* NTK web: palette and pixel parts shared by the verify page and the demo feed.
-   A calm layout with 8-bit details at the edges: stepped corners, hard one-step
-   shadows, no gradients. Mostly white and paper, black text, orange for the one
-   active thing on a screen. Text in the system's own sans-serif.
-   Colours from brand/palette.json. */
+/* NTK web: the shared look of every page (verify, feed, login, privacy).
+   Light, blocky, large-pixel 3D: UI elements are blocks extruded in soft
+   isometric light. A block's own box is its top face; its front face (lit) and
+   right face (shaded) are drawn below and to its right as stairs of big pixels,
+   with a soft drop one pixel further. No outlines: edges come from the change of
+   colour between faces. Orange marks what is active. Text in the system font.
+   Colours shared with brand/ (brand/palette.json). */
 
 :root {
-  --white: #FFFFFF;
-  --paper: #F4F4F1;
-  --black: #0A0A0A;
-  --orange: #FF4F00;
-  --grey-1: #D7D7D2;
-  --grey-2: #B4B4AE;
+  --px: 4px;                  /* one big pixel */
 
-  --bg: var(--paper);
-  --surface: var(--white);
-  --ink: var(--black);
-  --muted: #6E6E69;           /* grey3: secondary text only */
-  --edge: var(--grey-2);      /* stepped edges */
-  --line: var(--grey-1);      /* dividers */
-  --shade: var(--grey-1);     /* hard shadows */
-  --tint-1: var(--grey-1);    /* pixel avatars */
-  --tint-2: var(--paper);
-  --tint-3: var(--grey-2);
+  --bg: #FBFBF9;              /* page */
+  --c-top: #FFFFFF;           /* a block's top face */
+  --c-top-2: #F7F7F4;         /* a quieter top face */
+  --c-lit: #E6E6E0;           /* front face */
+  --c-shade: #D5D5CD;         /* right face */
+  --c-lit-soft: #EEEEE9;      /* the faces of large blocks (panels): calmer */
+  --c-shade-soft: #E2E2DB;
+  --c-drop: #EFEFEB;          /* the soft drop */
+  --ink: #2B2B2B;             /* text: 14:1 on white */
+  --muted: #66665F;           /* secondary text: 5.4:1 on #F7F7F4 */
+  --line: #E2E2DC;            /* dotted rules */
+
+  --orange: #FF4F00;
+  --orange-lit: #E04600;
+  --orange-shade: #C23D00;
+  --on-orange: #161616;       /* 5.5:1 on orange */
+  --slate: #56554F;           /* NO MATCH: white text 7.5:1 */
+  --slate-lit: #47463F;
+  --slate-shade: #3B3A35;
+  --red: #C2412D;             /* INVALID: white text 5.1:1 */
+  --red-lit: #A8382A;
+  --red-shade: #8E2F23;
+  --pale: #EEEEE9;            /* UNKNOWN */
+
+  /* Older names, still used by page styles. */
+  --surface: var(--c-top);
   --accent: var(--orange);
-  --on-accent: var(--black);  /* black on orange: 6.0:1 */
-  --p: 2px;                   /* one pixel step */
+  --on-accent: var(--on-orange);
+  --edge: var(--c-shade);
+  --shade: var(--c-drop);
+  --p: 2px;
+  --tint-1: #E9E9E4;          /* pixel avatars */
+  --tint-2: #F7F7F4;
+  --tint-3: #DADAD3;
 
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
@@ -33,16 +51,24 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #121211;              /* space */
-    --surface: #1C1C1A;         /* body: large objects */
-    --ink: #EDEDE8;             /* off-white */
-    --muted: #8C8C86;
-    --edge: #3E3E3A;            /* the lighter stepped edge */
-    --line: #5A5A54;            /* rim: dividers */
-    --shade: #0A0A0A;
-    --tint-1: #2A2A27;
-    --tint-2: #3E3E3A;
-    --tint-3: #5A5A54;
+    --bg: #161615;
+    --c-top: #282826;
+    --c-top-2: #222220;
+    --c-lit: #3E3E3A;         /* in the dark the side faces are the lighter ones */
+    --c-shade: #34342F;
+    --c-lit-soft: #353532;
+    --c-shade-soft: #2F2F2C;
+    --c-drop: #0D0D0C;
+    --ink: #EDEDE8;
+    --muted: #A6A69F;         /* 6:1 on #282826 */
+    --line: #34342F;
+    --slate: #5A5954;
+    --slate-lit: #6A6964;
+    --slate-shade: #63625C;
+    --pale: #3B3B37;
+    --tint-1: #3B3B37;
+    --tint-2: #32322F;
+    --tint-3: #4A4A45;
   }
 }
 
@@ -56,30 +82,31 @@ body {
   color: var(--ink);
   font-family: var(--font);
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-tap-highlight-color: transparent;
 }
 
-a { color: inherit; text-decoration-thickness: 2px; text-underline-offset: 3px; }
-a:hover { text-decoration-color: var(--accent); }
+a { color: inherit; text-decoration-thickness: 2px; text-underline-offset: 3px; text-decoration-color: var(--orange); }
+a:hover { color: var(--orange-shade); }
+@media (prefers-color-scheme: dark) { a:hover { color: var(--orange); } }
 a:focus-visible, button:focus-visible, textarea:focus-visible {
-  outline: var(--p) solid var(--accent);
-  outline-offset: 3px;
+  outline: var(--px) solid var(--orange);
+  outline-offset: var(--px);
 }
 
-h1, h2, h3 { line-height: 1.2; margin: 0 0 .5rem; }
-h1 { font-size: 1.5rem; }
-h2 { font-size: 1.15rem; }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 .6rem; }
+h1 { font-size: 1.6rem; font-weight: 800; }
+h2 { font-size: 1.15rem; font-weight: 800; }
 h3 { font-size: 1rem; }
-p { margin: 0 0 .75rem; }
+p { margin: 0 0 .85rem; }
 
 code, .mono {
   font-family: var(--mono);
   font-size: .88em;
 }
 code {
-  background: var(--bg);
-  padding: .05em .3em;
+  padding: .1em .35em;
+  background: var(--c-top-2);
   overflow-wrap: anywhere;
 }
 
@@ -87,33 +114,60 @@ code {
   width: 100%;
   max-width: 42rem;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1.25rem;
 }
 
-/* ---- pixel parts ------------------------------------------------------- */
+/* ---- blocks ------------------------------------------------------------ */
 
-/* A white object with a stepped grey edge and a hard one-step shadow. The four
-   edge copies leave the corner pixel empty; the shadow is the same shape, one
-   step down and right. Leave var(--p) of room around it and 2 steps right and below. */
-.pbox {
-  background: var(--surface);
-  box-shadow:
-    0 calc(var(--p) * -1) 0 0 var(--edge),
-    0 var(--p) 0 0 var(--edge),
-    calc(var(--p) * -1) 0 0 0 var(--edge),
-    var(--p) 0 0 0 var(--edge),
-    calc(var(--p) * 2) var(--p) 0 0 var(--shade),
-    var(--p) calc(var(--p) * 2) 0 0 var(--shade);
+/* Every block: the top face in --top, the front face in --lit, the right face in
+   --shade. The front face is drawn by shadows with a negative spread so that it
+   stops at the block's right edge; the right face is the stair of full copies.
+   Depth 2 by default; depth 1 for small things and for a pressed block. */
+.block, .pbox, .btn, .chip, .mark, textarea {
+  --top: var(--c-top);
+  --lit: var(--c-lit);
+  --side: var(--c-shade);
+  --depth-1:
+    calc(var(--px) * .5) calc(var(--px) * 1.5) 0 calc(var(--px) * -.5) var(--lit),
+    var(--px) var(--px) 0 0 var(--side),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 0 var(--c-drop);
+  --depth-2:
+    calc(var(--px) * .5) calc(var(--px) * 1.5) 0 calc(var(--px) * -.5) var(--lit),
+    var(--px) calc(var(--px) * 3) 0 calc(var(--px) * -1) var(--lit),
+    var(--px) var(--px) 0 0 var(--side),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 0 var(--side),
+    calc(var(--px) * 3) calc(var(--px) * 3) 0 0 var(--c-drop);
+  background: var(--top);
+  border: 0;
+  border-radius: 0;
+  box-shadow: var(--depth-2);
 }
+
+/* Large blocks (panels, results) use larger pixels and calmer faces; leave room for the faces. */
+.block, .pbox {
+  --px: 6px;
+  --lit: var(--c-lit-soft);
+  --side: var(--c-shade-soft);
+  margin: 0 calc(var(--px) * 3) calc(var(--px) * 3) 0;
+}
+
+/* Colours of a block. */
+.tone-orange { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
+.tone-slate { --top: var(--slate); --lit: var(--slate-lit); --side: var(--slate-shade); color: #FFFFFF; }
+.tone-red { --top: var(--red); --lit: var(--red-lit); --side: var(--red-shade); color: #FFFFFF; }
+.tone-pale { --top: var(--pale); }
+.tone-quiet { --top: var(--c-top-2); }
 
 /* Pixel sprites (lib/pixel.js): colours by name. */
-svg.px { display: inline-block; vertical-align: middle; flex: none; }
-.px-ink { fill: var(--ink); }
-.px-accent { fill: var(--accent); }
+svg.px { display: inline-block; vertical-align: middle; flex: none; shape-rendering: crispEdges; }
+.px-ink { fill: currentColor; }
+.px-accent { fill: var(--orange); }
 .px-muted { fill: var(--muted); }
-.px-edge { fill: var(--edge); }
+.px-edge { fill: var(--c-shade); }
 .px-line { fill: var(--line); }
-.px-surface { fill: var(--surface); }
+.px-surface { fill: var(--c-top); }
+
+/* ---- buttons: blocks you press ----------------------------------------- */
 
 .btn {
   appearance: none;
@@ -122,59 +176,52 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; }
   align-items: center;
   justify-content: center;
   gap: .5rem;
-  min-height: 44px;
-  margin: var(--p) calc(var(--p) * 2) calc(var(--p) * 2) var(--p);
-  padding: .6rem 1.25rem;
-  border: 0;
-  border-radius: 0;
+  min-height: 48px;
+  margin: 0 calc(var(--px) * 3) calc(var(--px) * 3) 0;
+  padding: .65rem 1.4rem;
   font: inherit;
   font-weight: 700;
   line-height: 1.2;
   color: var(--ink);
-  background: var(--surface);
   cursor: pointer;
   text-decoration: none;
-  box-shadow:
-    0 calc(var(--p) * -1) 0 0 var(--ink),
-    0 var(--p) 0 0 var(--ink),
-    calc(var(--p) * -1) 0 0 0 var(--ink),
-    var(--p) 0 0 0 var(--ink),
-    calc(var(--p) * 2) var(--p) 0 0 var(--shade),
-    var(--p) calc(var(--p) * 2) 0 0 var(--shade);
+  transition: transform 60ms steps(1), box-shadow 60ms steps(1);
 }
-.btn:hover { background: var(--bg); }
-.btn:active:not(:disabled) {
-  transform: translate(var(--p), var(--p));
-  box-shadow:
-    0 calc(var(--p) * -1) 0 0 var(--ink),
-    0 var(--p) 0 0 var(--ink),
-    calc(var(--p) * -1) 0 0 0 var(--ink),
-    var(--p) 0 0 0 var(--ink);
-}
+.btn:hover { --top: var(--c-top-2); color: var(--ink); }
+/* Pressed: the block moves down one big pixel along its faces, which shrink. */
+.btn:active:not(:disabled) { transform: translate(var(--px), var(--px)); box-shadow: var(--depth-1); }
 .btn:disabled { color: var(--muted); cursor: default; }
-.btn-primary { color: var(--surface); background: var(--ink); }
-.btn-primary:hover { background: var(--ink); color: var(--surface); text-decoration: underline; text-decoration-color: var(--accent); }
-.btn-primary:disabled { color: var(--surface); background: var(--ink); opacity: .4; }
-.btn-small { min-height: 32px; padding: .25rem .6rem; font-size: .8rem; }
+.btn-primary { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
+.btn-primary:hover { --top: #FF6420; color: var(--on-orange); }
+.btn-primary:disabled { --top: var(--c-top-2); --lit: var(--c-lit); --side: var(--c-shade); color: var(--muted); }
+/* On a white panel a plain button gets a quieter top face, so that it reads as a block of its own. */
+.pbox .btn:not(.btn-primary), .block .btn:not(.btn-primary) { --top: var(--c-top-2); }
+.pbox .btn:not(.btn-primary):hover, .block .btn:not(.btn-primary):hover { --top: var(--c-top); }
+.btn-small {
+  min-height: 36px;
+  margin: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  padding: .35rem .8rem;
+  font-size: .85rem;
+  box-shadow: var(--depth-1);
+}
+.btn-small:active:not(:disabled) { box-shadow: calc(var(--px) * 1) calc(var(--px) * 1) 0 0 var(--c-drop); }
+
+/* ---- small blocks: chips and marks ------------------------------------- */
 
 .chip {
   display: inline-block;
-  padding: .35em .55em .3em;
-  font: 700 .68rem/1 var(--mono);
+  margin: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  padding: .45em .65em .4em;
+  font: 700 .7rem/1 var(--mono);
   letter-spacing: .08em;
   white-space: nowrap;
   color: var(--ink);
-  background: var(--surface);
-  box-shadow:
-    0 calc(var(--p) * -1) 0 0 var(--ink),
-    0 var(--p) 0 0 var(--ink),
-    calc(var(--p) * -1) 0 0 0 var(--ink),
-    var(--p) 0 0 0 var(--ink);
+  box-shadow: var(--depth-1);
 }
-.chip-testnet { color: var(--surface); background: var(--ink); }
+.chip-testnet { --top: var(--orange); --lit: var(--orange-lit); --side: var(--orange-shade); color: var(--on-orange); }
 
 /* A dotted pixel rule. */
-.rule { border: 0; border-top: var(--p) dotted var(--edge); margin: 1rem 0; }
+.rule { border: 0; border-top: var(--px) dotted var(--line); margin: 1.25rem 0; }
 
 /* ---- page frame -------------------------------------------------------- */
 
@@ -183,8 +230,8 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; }
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
 }
 .brand {
   display: inline-flex;
@@ -193,8 +240,9 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; }
   text-decoration: none;
   min-height: 44px;
 }
+.brand:hover { color: inherit; }
 .brand picture { display: block; line-height: 0; }
-.badge { display: block; height: 20px; width: auto; }
+.badge { display: block; height: 22px; width: auto; }
 .brand-name {
   font-weight: 800;
   font-size: .72rem;
@@ -203,25 +251,43 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; }
 }
 @media (max-width: 26.5rem) { .brand-name { display: none; } }
 .site-foot {
-  padding-top: 1.5rem;
-  padding-bottom: 2.5rem;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
   color: var(--muted);
-  font-size: .85rem;
+  font-size: .88rem;
 }
 .site-foot a { color: var(--ink); }
 
+/* A quiet block for notes and errors. */
 .notice {
-  margin: .75rem 0 0;
-  padding: .6rem .8rem;
-  background: var(--bg);
-  border-left: calc(var(--p) * 2) solid var(--ink);
+  --px: 4px;
+  --top: var(--c-top-2);
+  --lit: var(--c-lit);
+  --side: var(--c-shade);
+  margin: .9rem calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  padding: .7rem .9rem;
+  background: var(--top);
+  box-shadow:
+    calc(var(--px) * .5) calc(var(--px) * 1.5) 0 calc(var(--px) * -.5) var(--lit),
+    var(--px) var(--px) 0 0 var(--side),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 0 var(--c-drop);
+}
+.notice::before {
+  content: "";
+  display: inline-block;
+  width: var(--px);
+  height: var(--px);
+  margin: 0 .55rem .2em 0;
+  vertical-align: middle;
+  background: var(--orange);
+  box-shadow: 0 calc(var(--px) * -1) 0 0 var(--orange);
 }
 
-.fine { color: var(--muted); font-size: .85rem; }
+.fine { color: var(--muted); font-size: .88rem; }
 
 .label {
   display: block;
-  margin-bottom: .4rem;
+  margin-bottom: .55rem;
   font-size: .75rem;
   font-weight: 700;
   letter-spacing: .08em;
@@ -229,33 +295,21 @@ svg.px { display: inline-block; vertical-align: middle; flex: none; }
   color: var(--muted);
 }
 
+/* An input is a block too, pressed a little into the panel it sits on. */
 textarea {
   display: block;
-  width: calc(100% - var(--p) * 2);
-  margin: var(--p);
-  padding: .75rem .85rem;
-  border: 0;
-  border-radius: 0;
+  width: calc(100% - var(--px) * 3);
+  margin: 0 calc(var(--px) * 3) calc(var(--px) * 3) 0;
+  padding: .8rem .9rem;
   font: inherit;
   font-size: 1rem;
   line-height: 1.45;
   color: var(--ink);
-  background: var(--surface);
+  --top: var(--c-top-2);
   resize: vertical;
-  box-shadow:
-    0 calc(var(--p) * -1) 0 0 var(--edge),
-    0 var(--p) 0 0 var(--edge),
-    calc(var(--p) * -1) 0 0 0 var(--edge),
-    var(--p) 0 0 0 var(--edge);
 }
-textarea:focus { outline: none; }
-textarea:focus-visible, textarea:focus {
-  box-shadow:
-    0 calc(var(--p) * -1) 0 0 var(--ink),
-    0 var(--p) 0 0 var(--ink),
-    calc(var(--p) * -1) 0 0 0 var(--ink),
-    var(--p) 0 0 0 var(--ink);
-}
+textarea:focus { outline: none; --side: var(--orange-shade); --lit: var(--orange-lit); }
+textarea:focus-visible { outline: none; }
 textarea::placeholder { color: var(--muted); opacity: 1; }
 
 /* A blinking block cursor: the moving thing is orange. */
@@ -265,13 +319,44 @@ textarea::placeholder { color: var(--muted); opacity: 1; }
   height: 1.1em;
   margin-right: .6em;
   vertical-align: -.2em;
-  background: var(--accent);
+  background: var(--orange);
+  box-shadow: 2px 2px 0 0 var(--orange-shade);
   animation: ntk-blink 1s steps(1) infinite;
 }
 @keyframes ntk-blink { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
   .blink { animation: none; }
+  .btn { transition: none; }
   html { scroll-behavior: auto; }
+}
+
+/* ---- text pages (privacy) ---------------------------------------------- */
+
+.doc { padding-bottom: 1rem; }
+.doc h1 { font-size: 2rem; margin-top: .5rem; }
+.doc .lede { color: var(--muted); font-size: 1.05rem; margin-bottom: 1.75rem; }
+.doc-short { padding: 1.25rem 1.3rem .6rem; margin-bottom: 2.4rem; }
+.doc-short ul { margin: 0; padding: 0; list-style: none; }
+.doc-short li { position: relative; margin: 0 0 .75rem; padding-left: 1.4rem; }
+.doc-short li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .5em;
+  width: 8px;
+  height: 8px;
+  background: var(--orange);
+  box-shadow: 2px 2px 0 0 var(--orange-shade);
+}
+.doc-part { margin: 0 0 1.9rem; }
+.doc-part h2 { display: flex; align-items: center; gap: .6rem; }
+.doc-part h2::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--c-shade);
+  box-shadow: 2px 2px 0 0 var(--c-lit);
 }
 
 [hidden] { display: none !important; }

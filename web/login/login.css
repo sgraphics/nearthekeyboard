@@ -1,0 +1,99 @@
+/* Wallet login (/login/). The blocks and colours are in /assets/ntk.css. The
+   wallet connector's own dialogs bring their own styles (injected by bundle.js). */
+
+.panel { padding: 1.35rem 1.2rem 1.1rem; }
+.login h1 { margin-bottom: .8rem; }
+
+.what { font-size: 1.05rem; font-weight: 600; }
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: .8rem 1rem;
+  margin: 1.1rem 0 1.2rem;
+  padding: .9rem 0;
+  border-top: var(--px) dotted var(--line);
+  border-bottom: var(--px) dotted var(--line);
+}
+.facts:empty { display: none; }
+.fact dt,
+.step-title {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fact dd { margin: .15rem 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.fact-wide { grid-column: 1 / -1; }
+.step-title { margin: 0 0 .8rem; }
+
+.busy { display: flex; align-items: center; margin: 1rem 0 .5rem; font-weight: 600; }
+
+/* ---- the wallet list: one block per wallet ------------------------------ */
+
+.wallets {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: .9rem;
+}
+.btn.wallet {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  width: calc(100% - var(--px) * 3);
+  min-height: 72px;
+  padding: .8rem 1rem;
+  font-weight: 400;
+  text-align: left;
+}
+.wallet-icon { display: block; width: 40px; height: 40px; flex: none; object-fit: contain; }
+.wallet-text { display: grid; gap: .1rem; min-width: 0; }
+.wallet-name { font-weight: 700; }
+.wallet-note { color: var(--muted); font-size: .85rem; }
+
+/* ---- connected, done, error -------------------------------------------- */
+
+.account-line { margin: 1rem 0 .1rem; color: var(--muted); }
+.account { margin: 0 0 .9rem; font-size: 1.3rem; font-weight: 700; overflow-wrap: anywhere; }
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+  margin: .6rem 0 .9rem;
+}
+
+.done-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem .7rem;
+  margin: 1rem 0 .5rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+/* Orange marks the one thing that happened: a small block. */
+.dot {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: var(--orange);
+  box-shadow: 2px 6px 0 -2px var(--orange-lit), 4px 4px 0 0 var(--orange-shade);
+}
+
+.problems { margin: .6rem 0 .25rem; padding-left: 1.2rem; }
+.problems li { margin-bottom: .35rem; }
+.error-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.about { margin-top: 2.25rem; }
+.about p { color: var(--muted); }
+
+@media (min-width: 40rem) {
+  .panel { padding: 1.6rem 1.6rem 1.3rem; }
+  h1 { font-size: 1.75rem; }
+}

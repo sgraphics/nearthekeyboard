@@ -1,46 +1,42 @@
 /* NTK web embed: the button a tag becomes. Loaded by ntk-embed.js from the same
-   folder. A white key with stepped orange edges and a hard one-step shadow; the
+   folder, on any page, so it uses no variables of the NTK site. An orange block
+   in big pixels: the top face is the button, the lit front face and the shaded
+   right face are stairs drawn by shadows, with a soft drop and no outline. The
    text inside is the tag itself, so the page's text does not change. */
 .ntk-embed-btn {
   -webkit-appearance: none;
   appearance: none;
   display: inline-block;
-  margin: 0 .35em 0 .2em;
-  padding: .05em .4em .08em;
+  margin: 0 calc(.35em + 8px) 4px .2em;
+  padding: .1em .45em .12em;
   border: 0;
   border-radius: 0;
   font: inherit;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: normal;
   text-transform: none;
   text-decoration: none;
   white-space: nowrap;
   vertical-align: baseline;
-  color: #0A0A0A;
-  background: #FFFFFF;
+  color: #161616;
+  background: #FF4F00;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   box-shadow:
-    0 -2px 0 0 #FF4F00,
-    0 2px 0 0 #FF4F00,
-    -2px 0 0 0 #FF4F00,
-    2px 0 0 0 #FF4F00,
-    4px 2px 0 0 #0A0A0A,
-    2px 4px 0 0 #0A0A0A;
+    2px 6px 0 -2px #E04600,
+    4px 4px 0 0 #C23D00,
+    8px 8px 0 0 rgba(43, 43, 43, .1);
 }
-.ntk-embed-btn:hover { background: #F4F4F1; }
+.ntk-embed-btn:hover { background: #FF6420; }
 .ntk-embed-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow:
-    0 -2px 0 0 #FF4F00,
-    0 2px 0 0 #FF4F00,
-    -2px 0 0 0 #FF4F00,
-    2px 0 0 0 #FF4F00;
+  transform: translate(4px, 4px);
+  box-shadow: 4px 4px 0 0 rgba(43, 43, 43, .1);
 }
 .ntk-embed-btn:focus-visible {
-  outline: 2px solid #0A0A0A;
-  outline-offset: 4px;
+  outline: 3px solid #C23D00;
+  outline-offset: 5px;
 }
 @media (prefers-color-scheme: dark) {
-  .ntk-embed-btn { box-shadow: 0 -2px 0 0 #FF4F00, 0 2px 0 0 #FF4F00, -2px 0 0 0 #FF4F00, 2px 0 0 0 #FF4F00, 4px 2px 0 0 #000000, 2px 4px 0 0 #000000; }
+  .ntk-embed-btn { box-shadow: 2px 6px 0 -2px #E04600, 4px 4px 0 0 #C23D00, 8px 8px 0 0 rgba(0, 0, 0, .45); }
+  .ntk-embed-btn:active { box-shadow: 4px 4px 0 0 rgba(0, 0, 0, .45); }
 }

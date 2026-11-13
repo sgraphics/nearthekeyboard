@@ -1,0 +1,14 @@
+{
+  "name": "ntk-login",
+  "private": true,
+  "description": "ntk.tools/login: the NTK app's wallet login. Builds bundle.js from src/ with esbuild (node build.mjs).",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "@hot-labs/near-connect": "0.12.0",
+    "esbuild": "0.28.2"
+  }
+}

@@ -1,17 +1,21 @@
-/* Demo feed: a familiar social layout in NTK's palette, phone first. Base parts
-   are in /assets/ntk.css. Separators are dotted pixel rules. */
+/* Demo feed: a familiar social layout in NTK's light block style, phone first.
+   The blocks and colours are in /assets/ntk.css. Separators are dotted pixel rules. */
 
-.page-feed { background: var(--surface); }
+.page-feed { background: var(--c-top); }
 @media (min-width: 40rem) { .page-feed { background: var(--bg); } }
 
 .column {
   max-width: 37.5rem;
   min-height: 100vh;
   margin: 0 auto;
-  background: var(--surface);
+  background: var(--c-top);
 }
 @media (min-width: 40rem) {
-  .column { border-left: var(--p) dotted var(--line); border-right: var(--p) dotted var(--line); }
+  .column {
+    margin: 1.5rem auto 2rem;
+    min-height: 0;
+    box-shadow: 6px 6px 0 0 var(--c-shade), 12px 12px 0 0 var(--c-drop);
+  }
 }
 
 .sr-only {
@@ -31,35 +35,39 @@
   display: flex;
   align-items: center;
   gap: .75rem;
-  min-height: 3.25rem;
-  padding: .25rem 1rem .25rem .5rem;
-  background: var(--surface);
-  border-bottom: var(--p) dotted var(--line);
+  min-height: 3.5rem;
+  padding: .4rem 1rem .4rem .5rem;
+  background: var(--c-top);
+  border-bottom: var(--px) dotted var(--line);
 }
 .topbar h1 { flex: 1; margin: 0; font-size: 1.2rem; font-weight: 800; }
+.topbar .chip { margin-bottom: calc(var(--px) * 2); }
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
+  color: var(--ink);
 }
-.icon-btn:hover { background: var(--bg); }
+.icon-btn:hover { background: var(--c-top-2); color: var(--orange-shade); }
 
 /* ---- posts ------------------------------------------------------------- */
 
-.post { padding: .75rem 1rem; border-bottom: var(--p) dotted var(--line); }
+.post { padding: .9rem 1rem; border-bottom: var(--px) dotted var(--line); }
 .name { font-weight: 700; }
 .handle, .time, .sep, .post-time, .post-stats, .replying, .composer-note { color: var(--muted); }
 
-svg.avatar { display: block; }
+/* Pixel avatars: a light block with a dark face. */
+svg.avatar { display: block; box-shadow: 3px 3px 0 0 var(--c-shade); }
 .avatar .px-ink { fill: var(--ink); }
 .avatar.tone-0 .px-avbg { fill: var(--tint-1); }
 .avatar.tone-1 .px-avbg { fill: var(--tint-2); }
 .avatar.tone-2 .px-avbg { fill: var(--tint-3); }
+.mine svg.avatar .px-avbg { fill: var(--orange); }
 
-.main-post { padding-top: 1rem; }
-.post-head { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; }
+.main-post { padding-top: 1.1rem; }
+.post-head { display: flex; align-items: center; gap: .8rem; margin-bottom: .8rem; }
 .who { display: grid; line-height: 1.25; min-width: 0; }
 .post-text {
   margin: 0 0 1rem;
@@ -68,7 +76,7 @@ svg.avatar { display: block; }
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.post-time { margin: 0; padding-bottom: .9rem; font-size: .92rem; border-bottom: var(--p) dotted var(--line); }
+.post-time { margin: 0; padding-bottom: .9rem; font-size: .92rem; border-bottom: var(--px) dotted var(--line); }
 .post-time strong, .post-stats strong { color: var(--ink); }
 .post-stats {
   display: flex;
@@ -76,14 +84,14 @@ svg.avatar { display: block; }
   margin: 0;
   padding: .8rem 0;
   font-size: .92rem;
-  border-bottom: var(--p) dotted var(--line);
+  border-bottom: var(--px) dotted var(--line);
 }
 .main-post .acts { justify-content: space-around; max-width: none; padding-top: .7rem; }
 
 .reply {
   display: grid;
   grid-template-columns: 42px 1fr;
-  gap: .75rem;
+  gap: .8rem;
 }
 .post-body { min-width: 0; }
 .post-meta {
@@ -94,9 +102,9 @@ svg.avatar { display: block; }
   text-overflow: ellipsis;
 }
 .reply-text {
-  margin: 0 0 .55rem;
+  margin: 0 0 .6rem;
   font-size: 1rem;
-  line-height: 1.4;
+  line-height: 1.45;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -114,39 +122,32 @@ svg.avatar { display: block; }
 .act { display: inline-flex; align-items: center; gap: .4rem; min-width: 3rem; }
 .act .px-ink { fill: var(--muted); }
 
-/* ---- composer ---------------------------------------------------------- */
+/* ---- composer: the reply box is a block -------------------------------- */
 
 .composer {
   display: grid;
   grid-template-columns: 42px 1fr;
-  gap: .75rem;
-  padding: .75rem 1rem;
-  border-bottom: var(--p) dotted var(--line);
+  gap: .8rem;
+  padding: 1rem 1rem .6rem;
+  border-bottom: var(--px) dotted var(--line);
 }
-.replying { margin: 0 0 .25rem; font-size: .9rem; }
+.replying { margin: 0 0 .45rem; font-size: .9rem; }
 .composer textarea {
-  width: 100%;
-  margin: 0;
-  padding: .35rem 0;
-  font-size: 1.1rem;
-  background: transparent;
-  box-shadow: none;
+  font-size: 1.05rem;
   resize: none;
-  min-height: 3rem;
+  min-height: 3.4rem;
   overflow: hidden;
 }
-.composer textarea:focus { box-shadow: none; }
 .composer-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: .75rem;
-  margin-top: .4rem;
+  margin-top: .3rem;
 }
 .composer-note { font-size: .8rem; }
-.composer .btn { margin-right: calc(var(--p) * 2); }
 
 /* ---- footer ------------------------------------------------------------ */
 
-.feed-foot { padding: 1.25rem 1rem 2.5rem; font-size: .9rem; }
+.feed-foot { padding: 1.4rem 1rem 2.5rem; font-size: .9rem; }
 .feed-foot p { margin-bottom: .9rem; }

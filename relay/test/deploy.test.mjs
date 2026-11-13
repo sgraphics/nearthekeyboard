@@ -56,21 +56,71 @@ test('nginx: the routes the site needs', () => {
   assert.match(CONF, /location \/api\/ \{\s*proxy_pass http:\/\/ntk_relay;/);
   assert.match(CONF, /proxy_set_header X-Real-IP \$remote_addr;/, 'the relay limits per client IP');
   assert.match(CONF, /location = \/feed \{\s*return 301 \/feed\/;/);
+  assert.match(CONF, /location = \/login \{\s*return 301 \/login\/;/, 'the app opens /login#pk=…; the fragment survives the redirect');
+  assert.match(CONF, /location = \/privacy \{\s*return 301 \/privacy\/;/, 'the app links /privacy');
   assert.match(CONF, /absolute_redirect off;/, 'no :4443 in redirects behind the SNI proxy');
   assert.match(CONF, /location \^~ \/test\/ \{\s*return 404;/);
   assert.match(CONF, /client_max_body_size 1m;/);
 });
 
-test('nginx: the same security headers as the relay serves in development, all at server level', () => {
+/** The lines of one location block of the ntk.tools server, e.g. "location /login/ {". */
+function locationBlock(conf, opening) {
+  const lines = conf.split('\n');
+  const start = lines.findIndex((l) => l.trim() === opening);
+  assert.ok(start > 0, `no "${opening}" in ntk.conf`);
+  const end = lines.findIndex((l, i) => i > start && l.trim() === '}');
+  return lines.slice(start + 1, end).map((l) => l.trim());
+}
+const headersIn = (lines) => Object.fromEntries(lines.map((l) => /^add_header ([\w-]+) "([^"]*)" always;/.exec(l)).filter(Boolean).map((m) => [m[1], m[2]]));
+/** CSP directive name -> its sources. */
+const cspOf = (csp) => Object.fromEntries(csp.split(';').map((d) => d.trim().split(/\s+/)).filter((d) => d[0]).map(([k, ...v]) => [k, v]));
+
+test('nginx: the same security headers as the relay serves in development, at server level', () => {
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
     const m = CONF.match(new RegExp(`add_header ${name} "([^"]*)" always;`));
     assert.ok(m, `nginx sets ${name}`);
     assert.equal(m[1], value, `${name} is the same in nginx and the relay`);
   }
   assert.match(SECURITY_HEADERS['Content-Security-Policy'], /connect-src 'self' https:\/\/testnet-api\.outlayer\.ai/);
-  // An add_header inside a location would drop every server-level one there.
-  for (const { line, depth } of depths(CONF)) if (line.startsWith('add_header')) assert.equal(depth, 1, line);
+  // An add_header inside a location drops every server-level one there: only /login/ does it, and repeats them all.
+  const inLogin = new Set(locationBlock(CONF, 'location /login/ {').filter((l) => l.startsWith('add_header')));
+  for (const { line, depth } of depths(CONF)) {
+    if (line.startsWith('add_header')) assert.ok(depth === 1 || (depth === 2 && inLogin.has(line)), line);
+  }
 });
+
+test('nginx: /login/ repeats every header, with a CSP of its own and a fresh nonce per response', () => {
+  const block = locationBlock(CONF, 'location /login/ {');
+  const own = headersIn(block);
+  const server = headersIn(depths(CONF).filter((l) => l.depth === 1).map((l) => l.line));
+  assert.deepEqual(Object.keys(own).sort(), Object.keys(server).sort(), 'the same header names');
+  for (const [name, value] of Object.entries(server)) {
+    if (name !== 'Content-Security-Policy') assert.equal(own[name], value, `/login/ repeats ${name}`);
+  }
+  assert.ok(block.some((l) => /^add_header Strict-Transport-Security .*# tls$/.test(l)), 'HSTS repeated, as a "# tls" line');
+  assert.ok(!code(locationBlockText(HTTP_ONLY)).includes('Strict-Transport-Security'), 'and gone from the HTTP-only variant');
+  assert.ok(block.includes("sub_filter 'NTK_CSP_NONCE' '$request_id';"), 'the nonce goes into the page');
+  assert.ok(block.includes('try_files $uri $uri/ =404;') && block.includes('expires epoch;'));
+
+  const csp = cspOf(own['Content-Security-Policy']);
+  const site = cspOf(SECURITY_HEADERS['Content-Security-Policy']);
+  assert.deepEqual(csp['script-src'], ["'self'", "'nonce-$request_id'"], 'scripts: this site and the nonce; no unsafe-inline, no eval');
+  assert.ok(csp['style-src'].includes("'unsafe-inline'"), "the connector's dialogs set inline styles");
+  for (const name of ['default-src', 'object-src', 'base-uri', 'form-action', 'frame-ancestors']) {
+    assert.deepEqual(csp[name], site[name], `${name} as on the rest of the site`);
+  }
+  for (const host of ['https://rpc.testnet.fastnear.com', 'https://raw.githubusercontent.com', 'https://wallet.intear.tech']) {
+    assert.ok(csp['connect-src'].includes(host), `connect-src ${host}`);
+  }
+  assert.ok(!csp['connect-src'].includes('https://testnet-api.outlayer.ai'), 'the login page reads no stamps');
+  assert.deepEqual(csp['frame-src'], ['https://wallet.intear.tech', 'meteorwallet:', 'intear:']);
+  for (const v of Object.values(csp).flat()) assert.ok(!/^\*$|^https:$|unsafe-eval/.test(v), `no wildcard or eval: ${v}`);
+});
+
+/** The /login/ block of a variant, as text. */
+function locationBlockText(conf) {
+  return locationBlock(conf, 'location /login/ {').join('\n');
+}
 
 test('ntk-relay.service: the ntk user, the env file, the hardening lines', () => {
   for (const line of ['User=ntk', 'Group=ntk', 'WorkingDirectory=/opt/ntk/relay', 'EnvironmentFile=/opt/ntk/.env',

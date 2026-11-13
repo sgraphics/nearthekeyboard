@@ -1,0 +1,99 @@
+// The wallets this page offers, pinned: the entries for Meteor Wallet and Intear
+// Wallet copied from NEAR Connector's public manifest (version 1.1.0, read on
+// 2026-11-13 from https://raw.githubusercontent.com/hot-dao/near-selector/refs/heads/main/repository/manifest.json).
+// Pinning keeps the list to wallets that work on NEAR testnet today and whose
+// executor code was read for AddKey support, and keeps the CSP of /login/ to their
+// hosts (deploy/nginx/ntk.conf). Each wallet's executor script is still fetched from
+// its own address at run time and runs in a sandboxed iframe.
+//
+// Left out on purpose: HOT Wallet (its executor throws "HOT Wallet not supported on
+// testnet"), MyNearWallet (being retired: it "no longer approves requests from
+// apps"), NEAR Mobile (manifest: testnet false), and wallets that need WalletConnect,
+// a desktop extension or a hardware device.
+
+export const WALLET_IDS = Object.freeze(["meteor-wallet","intear-wallet"]);
+
+export const WALLET_MANIFEST = {
+  "version": "1.1.0",
+  "wallets": [
+    {
+      "id": "meteor-wallet",
+      "name": "Meteor Wallet",
+      "icon": "https://raw.githubusercontent.com/Meteor-Wallet/meteor_wallet_sdk/main/assets/meteor-logo-svg.svg",
+      "description": "The most simple and secure wallet to manage your crypto, access DeFi, and explore Web3",
+      "website": "https://meteorwallet.app/",
+      "version": "1.1.1",
+      "executor": "https://raw.githubusercontent.com/Meteor-Wallet/meteor_wallet_sdk/data-storage/storage/meteor-near-connect-latest.js",
+      "type": "sandbox",
+      "features": {
+        "signMessage": true,
+        "signInWithoutAddKey": true,
+        "signInAndSignMessage": true,
+        "signAndSendTransaction": true,
+        "signAndSendTransactions": true,
+        "signInWithFunctionCallKey": true,
+        "signDelegateActions": true,
+        "mainnet": true,
+        "testnet": true
+      },
+      "platform": {
+        "web": "https://wallet.meteorwallet.app",
+        "chrome": "https://chromewebstore.google.com/detail/meteor-wallet/pcndjhkinnkaohffealmlmhaepkpmgkb",
+        "android": "https://play.google.com/store/apps/details?id=app.meteorwallet.v2",
+        "ios": "https://apps.apple.com/us/app/meteor-wallet/id6739558223"
+      },
+      "permissions": {
+        "storage": true,
+        "allowsOpen": [
+          "https://chromewebstore.google.com",
+          "https://wallet.meteorwallet.app",
+          "https://meteorwallet.app",
+          "meteorwallet://",
+          "meteorwalletdev://"
+        ],
+        "external": [
+          "meteorCom",
+          "meteorComV2"
+        ]
+      }
+    },
+    {
+      "id": "intear-wallet",
+      "name": "Intear Wallet",
+      "icon": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='49.152' height='49.152' viewBox='0 0 36.864 36.864' fill='%230079fb'><path d='M18.487 32.306c-4.599.067-8.487-3.315-9.181-7.846-.278-1.81.068-3.077.628-4.791 1.403-4.291 3.971-8.695 6.427-12.51l.949-1.478c.309-.484.487-1.03 1.115-1.125.512.052.64.423.897.807 2.484 3.706 8.36 13.272 8.334 17.704-.029 5.044-4.068 9.27-9.169 9.238zm-.063-25.712c-2.557 3.771-4.933 7.827-6.631 12.055-.838 2.086-1.485 3.738-1.052 5.983.693 3.599 3.997 6.409 7.684 6.303 4.346.06 7.767-3.49 7.827-7.766.042-2.97-3.226-9.081-4.764-11.757-.373-.65-2.709-4.575-3.064-4.818zM13.18 24.15c-.768.067-.771-.701-.769-1.27.004-1.585.41-2.564.69-3.114.179-.512.807-1.39 1.38-1.807.334-.208.836-.51 1.137-.21.362.547.163.6-.06.906a6.14 6.14 0 0 0-1.754 4.195c-.003.577.098 1.181-.625 1.299zm7.543 5.012c-.598-.034-.626-.334-.735-.811.143-.444.303-.695.753-.698 1.166-.664 2.362-1.655 2.564-3.328.194-.569.104-1.219.864-1.332.852 0 .743 1.326.622 1.885-.923 2.883-2.483 3.648-4.068 4.284z'/></svg>",
+      "description": "A fast and secure wallet for everyday interactions with dapps",
+      "website": "https://intea.rs/",
+      "version": "1.0.0",
+      "executor": "https://wallet.intear.tech/near-selector.js",
+      "type": "sandbox",
+      "features": {
+        "signMessage": true,
+        "signTransaction": false,
+        "signAndSendTransaction": true,
+        "signAndSendTransactions": true,
+        "signInWithoutAddKey": true,
+        "verifyOwner": false,
+        "testnet": true,
+        "signDelegateActions": true,
+        "signInAndSignMessage": true,
+        "signInWithFunctionCallKey": true
+      },
+      "platform": {
+        "web": "https://wallet.intear.tech"
+      },
+      "permissions": {
+        "storage": true,
+        "location": true,
+        "allowsOpen": [
+          "https://wallet.intear.tech",
+          "https://staging.wallet.intear.tech",
+          "http://intearwallet.local",
+          "https://intearwallet.local",
+          "http://intearwallet.localhost:3000",
+          "intear://",
+          "https://logout-bridge-service.intear.tech"
+        ]
+      }
+    }
+  ]
+};

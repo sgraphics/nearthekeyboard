@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy · Near The Keyboard</title>
+  <meta name="description" content="What the NTK keyboard measures, what it sends and when, who can see what, and how to delete your typing fingerprint.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FBFBF9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#161615" media="(prefers-color-scheme: dark)">
+  <meta name="referrer" content="no-referrer">
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="/assets/ntk.css">
+</head>
+<body class="page-doc">
+  <header class="site-bar wrap">
+    <a class="brand" href="/" aria-label="Near The Keyboard: check a stamp">
+      <picture>
+        <source srcset="/assets/ntk-badge-dark.svg" media="(prefers-color-scheme: dark)">
+        <img class="badge" src="/assets/ntk-badge-light.svg" alt="NTK" width="146" height="20">
+      </picture>
+      <span class="brand-name">Near The Keyboard</span>
+    </a>
+    <span class="chip chip-testnet" title="NEAR testnet only">TESTNET</span>
+  </header>
+
+  <main class="wrap doc">
+    <h1>Privacy</h1>
+    <p class="lede">NTK is a phone keyboard that measures how you type, so that you can prove you typed a text by
+      hand. Here is what it measures, what it sends and when, and who can see what. Updated 13 November 2026.</p>
+
+    <section class="block doc-short" aria-labelledby="short-title">
+      <h2 id="short-title">In short</h2>
+      <ul>
+        <li>The keyboard sends nothing while you type. It sends one sealed typing session when you tap
+          <strong>Enroll</strong> or <strong>Sign</strong>, and nothing else.</li>
+        <li>Your typing fingerprint stays sealed in an enclave on NEAR OutLayer. No one can read it, not even you.</li>
+        <li>A stamp is public. It names your NEAR account and holds a hash of the text, never the text.</li>
+        <li><strong>Delete my fingerprint</strong> in the app deletes it.</li>
+      </ul>
+    </section>
+
+    <section class="doc-part" aria-labelledby="measures-title">
+      <h2 id="measures-title">What the keyboard measures</h2>
+      <p>For each key tap: which key it was, when your finger touched down and when it lifted, and where on the key it
+        landed (the offset from the key's centre). From these the enclave learns how long you hold each key, how fast
+        you move from one key to the next, and where your finger tends to land.</p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="sends-title">
+      <h2 id="sends-title">What leaves the phone, and when</h2>
+      <p>One typing session, when you tap <strong>Enroll</strong> or <strong>Sign</strong>. The keyboard seals it on
+        the phone to a key that exists only inside the NTK enclave, and sends it through our relay to the enclave on
+        NEAR OutLayer. Nothing else is sent. No text leaves the phone except inside that sealed session.</p>
+      <p>When the typing matches, the enclave signs a stamp. The stamped text itself is never published, only its
+        hash.</p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="fingerprint-title">
+      <h2 id="fingerprint-title">Your typing fingerprint</h2>
+      <p>The enclave folds your sessions into a fingerprint: running averages and spreads per key and per pair of
+        keys. It keeps the fingerprint sealed in its storage on NEAR OutLayer and does not keep the sessions. No one
+        can read the fingerprint: not us, not OutLayer, not you. The app only ever gets counts and scores back.</p>
+      <p>Typing rhythm is biometric data. That is why enrollment asks for your consent before it starts.</p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="delete-title">
+      <h2 id="delete-title">Deleting it</h2>
+      <p><strong>Delete my fingerprint</strong> in the app calls the enclave's <code>forget</code> operation, which
+        deletes your fingerprint. Stamps you already made stay public; they hold no typing. The key the app uses can be
+        removed in your wallet at any time.</p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="relay-title">
+      <h2 id="relay-title">What the relay sees</h2>
+      <p>The relay pays for calls to the enclave, so the app needs no payment key. It sees account names, the
+        operation (enroll, stamp, status, forget), times and sizes, never the contents of a session: those are sealed.
+        OutLayer's API sees the same.</p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="stamp-title">
+      <h2 id="stamp-title">What a published stamp contains</h2>
+      <p>Your NEAR account, the hash of the stamped text, how many characters and key taps it covers, the match
+        scores, the time and the id of the OutLayer call that issued it. Anyone can read a stamp by its id. Because it
+        names your account, posting a stamped text links that account to the post.</p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="buttons-title">
+      <h2 id="buttons-title">Stamp buttons in other apps</h2>
+      <p>If you switch it on, an accessibility service reads the text on your screen, on the phone only, to find NTK
+        tags and put a button on them. Nothing leaves the phone until you tap a button. The tap opens the verify page
+        with the text in the address fragment (the part after <code>#</code>), which browsers do not send to
+        servers.</p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="web-title">
+      <h2 id="web-title">This website</h2>
+      <p>The verify page sends only the stamp id, to OutLayer's public storage, to fetch the stamp. The text you check
+        stays in your browser.</p>
+      <p>The login page asks your own wallet (Meteor or Intear) to add the app's key to your account. Like every NEAR
+        access key, that key is public on chain. The page asks a public NEAR RPC whether the key is there and sends
+        nothing else; it keeps your wallet connection in this browser so that you can log in again.</p>
+      <p>ntk.tools runs on the project's server behind Cloudflare. Both log requests (address, time, page), as most
+        websites do. The site sets no cookies of its own and has no analytics or ads.</p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="contact-title">
+      <h2 id="contact-title">Testnet, and contact</h2>
+      <p>NTK is a hackathon project and runs on NEAR testnet only. Questions and requests:
+        <a href="https://github.com/sgraphics/nearthekeyboard">github.com/sgraphics/nearthekeyboard</a>.</p>
+    </section>
+  </main>
+
+  <footer class="site-foot wrap">
+    <p><a href="/">Check a stamp</a> <span aria-hidden="true">·</span> <a href="/feed/?embed=1">Demo feed</a>
+      <span aria-hidden="true">·</span> NEAR testnet</p>
+  </footer>
+</body>
+</html>

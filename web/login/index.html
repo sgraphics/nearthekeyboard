@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in to NTK with NEAR · Near The Keyboard</title>
+  <meta name="description" content="The NTK app opens this page to have your NEAR wallet add a key that can only sign NTK requests.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FBFBF9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#161615" media="(prefers-color-scheme: dark)">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="/assets/ntk.css">
+  <link rel="stylesheet" href="/login/login.css">
+  <!-- A classic script, not a module: it reads its own nonce (nginx puts a fresh one here) for the wallets' iframes. -->
+  <script src="/login/bundle.js" nonce="NTK_CSP_NONCE" defer></script>
+</head>
+<body class="page-login" data-state="loading">
+  <header class="site-bar wrap">
+    <a class="brand" href="/" aria-label="Near The Keyboard: check a stamp">
+      <picture>
+        <source srcset="/assets/ntk-badge-dark.svg" media="(prefers-color-scheme: dark)">
+        <img class="badge" src="/assets/ntk-badge-light.svg" alt="NTK" width="146" height="20">
+      </picture>
+      <span class="brand-name">Near The Keyboard</span>
+    </a>
+    <span class="chip chip-testnet" title="NEAR testnet only">TESTNET</span>
+  </header>
+
+  <main class="wrap">
+    <section class="panel pbox login" aria-labelledby="login-title">
+      <h1 id="login-title">Log in to NTK with NEAR</h1>
+
+      <div data-show="loading busy choose connected error done">
+        <p class="what">Your wallet adds a key that can only sign NTK requests. It cannot move your funds.
+          You can remove it any time in your wallet.</p>
+        <dl id="key-facts" class="facts"></dl>
+      </div>
+
+      <div class="step" data-show="invalid" hidden>
+        <p class="what">This page is opened by the NTK app. Open NTK on your phone and tap
+          <strong>Log in with NEAR</strong> again.</p>
+        <ul id="invalid-list" class="problems"></ul>
+      </div>
+
+      <p class="busy" data-show="loading busy" role="status" aria-live="polite"><span class="blink" aria-hidden="true"></span><span id="busy-text">Loading…</span></p>
+
+      <div class="step" data-show="choose" hidden>
+        <h2 class="step-title">Choose your wallet</h2>
+        <ul id="wallets" class="wallets"></ul>
+        <p id="no-wallets" class="notice" hidden>No wallet could be loaded. Check the connection and reload the page.</p>
+        <p class="fine">Both work with NEAR testnet accounts. If your testnet account is in MyNearWallet, which no
+          longer connects to apps, move it to Meteor Wallet first.</p>
+      </div>
+
+      <div class="step" data-show="connected" hidden>
+        <p class="account-line">Connected to <span id="wallet-name"></span> as</p>
+        <p class="account mono" id="account"></p>
+        <div class="row">
+          <button id="add-key" type="button" class="btn btn-primary">Add the key</button>
+          <button id="switch" type="button" class="btn btn-small">Use another account</button>
+        </div>
+        <p class="fine">Your wallet shows one transaction from your account to itself: add a key for
+          nearthekeyboard.testnet.</p>
+      </div>
+
+      <div class="step" data-show="done" hidden>
+        <p class="done-title"><span class="dot" aria-hidden="true"></span>Key added for <span id="done-account" class="mono"></span></p>
+        <p id="done-detail" class="fine"></p>
+        <p>Going back to NTK. If it does not open, tap the button.</p>
+        <div class="row"><a id="open-app" class="btn btn-primary" href="/login/">Open NTK</a></div>
+      </div>
+
+      <div class="step" data-show="error" hidden>
+        <p id="error-text" class="notice error-text" role="alert"></p>
+        <div class="row">
+          <button id="retry" type="button" class="btn btn-primary">Try again</button>
+          <button id="switch-error" type="button" class="btn btn-small" hidden>Use another account</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="about" aria-labelledby="about-title">
+      <h2 id="about-title">Before you continue</h2>
+      <p>Only continue if you opened this page from the NTK app on your phone. The app made the key; it never leaves
+        the phone. NTK uses it to sign requests to its enclave on NEAR OutLayer, which checks on chain that the key
+        belongs to your account.</p>
+      <p>This page runs in your browser. The key and the app's address are in the part of the address after
+        <code>#</code>, which is not sent to this site's server; your wallet and the NEAR network see the key when it
+        is added.</p>
+    </section>
+  </main>
+
+  <footer class="site-foot wrap">
+    <p><a href="/privacy/">Privacy</a> <span aria-hidden="true">·</span> <a href="/">Check a stamp</a>
+      <span aria-hidden="true">·</span> NEAR testnet</p>
+  </footer>
+  <noscript><p class="wrap notice">This page talks to your NEAR wallet and needs JavaScript.</p></noscript>
+</body>
+</html>
