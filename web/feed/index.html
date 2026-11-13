@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Post · NTK demo feed</title>
+  <meta name="description" content="A demo social feed for NTK stamps. Invented accounts; your replies stay in this browser.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
+  <meta name="referrer" content="no-referrer">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Near The Keyboard">
+  <meta property="og:title" content="NTK demo feed">
+  <meta property="og:description" content="A demo feed with a reply stamped by the NTK keyboard. Tap the tag and check it.">
+  <meta property="og:image" content="https://ntk.tools/assets/ntk-social-1280x640.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="Near The Keyboard: a white pixel-art keyboard with an orange Enter key">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://ntk.tools/assets/ntk-social-1280x640.png">
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="/assets/ntk.css">
+  <link rel="stylesheet" href="/feed/feed.css">
+  <script type="module" src="/feed/main.js"></script>
+</head>
+<body class="page-feed">
+  <div class="column">
+    <header class="topbar">
+      <a class="icon-btn" href="/" aria-label="Back"><span data-sprite="back" data-scale="2"></span></a>
+      <h1>Post</h1>
+      <span class="chip" title="A demo feed with invented accounts">DEMO</span>
+    </header>
+
+    <main>
+      <div id="main-post"></div>
+
+      <form id="composer" class="composer" autocomplete="off">
+        <div class="post-avatar" id="composer-avatar"></div>
+        <div class="composer-body">
+          <p class="replying" id="replying-to"></p>
+          <label class="sr-only" for="reply-box">Your reply</label>
+          <textarea id="reply-box" name="reply" rows="2" placeholder="Post your reply"></textarea>
+          <div class="composer-row">
+            <span class="composer-note">Stays in this browser</span>
+            <button id="reply-btn" class="btn btn-primary" type="submit" disabled>Reply</button>
+          </div>
+        </div>
+      </form>
+
+      <section id="replies" class="replies" aria-label="Replies"></section>
+    </main>
+
+    <footer class="feed-foot">
+      <p><button id="clear-btn" class="btn btn-small" type="button" disabled>Clear my replies</button></p>
+      <p id="embed-line"></p>
+      <p class="fine">A demo feed: invented accounts, and nothing is posted anywhere. Your replies stay in this
+        browser. NTK stamps are on NEAR testnet. <a href="/">Check a stamp</a></p>
+    </footer>
+  </div>
+  <noscript><p class="column notice">The demo feed needs JavaScript.</p></noscript>
+</body>
+</html>

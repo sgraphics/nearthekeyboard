@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Check an NTK stamp · Near The Keyboard</title>
+  <meta name="description" content="Check an NTK stamp: was this text typed key by key on the NTK keyboard by the NEAR account it names? The check runs in your browser.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#F4F4F1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
+  <meta name="referrer" content="no-referrer">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Near The Keyboard">
+  <meta property="og:title" content="Check an NTK stamp">
+  <meta property="og:description" content="Was this text typed key by key, on the NTK keyboard, by the NEAR account it names? Check the stamp in your browser.">
+  <meta property="og:image" content="https://ntk.tools/assets/ntk-social-1280x640.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="Near The Keyboard: a white pixel-art keyboard with an orange Enter key">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://ntk.tools/assets/ntk-social-1280x640.png">
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="/assets/ntk.css">
+  <link rel="stylesheet" href="/verify/verify.css">
+  <script type="module" src="/verify/main.js"></script>
+</head>
+<body class="page-verify" data-state="start">
+  <header class="site-bar wrap">
+    <a class="brand" href="/" aria-label="Near The Keyboard: check a stamp">
+      <picture>
+        <source srcset="/assets/ntk-badge-dark.svg" media="(prefers-color-scheme: dark)">
+        <img class="badge" src="/assets/ntk-badge-light.svg" alt="NTK" width="146" height="20">
+      </picture>
+      <span class="brand-name">Near The Keyboard</span>
+    </a>
+    <span class="chip chip-testnet" title="Stamps on NEAR testnet only">TESTNET</span>
+  </header>
+
+  <main class="wrap">
+    <picture class="hero">
+      <source srcset="/assets/ntk-logo-dark.svg" media="(prefers-color-scheme: dark)">
+      <img src="/assets/ntk-logo-light.svg" alt="Near The Keyboard: a white pixel-art keyboard with an orange Enter key" width="1024" height="1024">
+    </picture>
+
+    <section id="results" class="results" aria-live="polite"></section>
+
+    <section class="panel pbox" aria-labelledby="check-title">
+      <h1 id="check-title">Check an NTK stamp</h1>
+      <p class="lede">Paste a message with its tag, such as <code>[NTK e65ee28db5]</code>.
+        The check runs in this browser: the text stays on this page, and only the stamp id goes over the network.</p>
+      <form id="check-form" autocomplete="off">
+        <label class="label" for="message">Message with its tag</label>
+        <textarea id="message" name="message" rows="5" spellcheck="false" placeholder="Paste the message here, tag included"></textarea>
+        <p id="notice" class="notice" role="status" hidden></p>
+        <div class="row">
+          <button type="submit" class="btn btn-primary">Check</button>
+          <a id="example-link" class="link" href="/e65ee28db5">Try an example</a>
+        </div>
+      </form>
+    </section>
+
+    <section class="about" aria-labelledby="about-title">
+      <h2 id="about-title">What a stamp says</h2>
+      <p class="about-meaning">A stamp says this text was typed key by key on the NTK keyboard by someone whose
+        typing matches this NEAR account's fingerprint, not that it was written without help.</p>
+      <p>The NTK keyboard measures how a person types and sends the measurements, sealed, into an enclave on
+        NEAR OutLayer. The enclave keeps a typing fingerprint per NEAR account and signs a stamp when new typing
+        matches it. This page checks the stamp's signature against the enclave's pinned key, and the text before
+        the tag against the stamp.</p>
+    </section>
+  </main>
+
+  <footer class="site-foot wrap">
+    <p><a href="/feed/?embed=1">Demo feed</a> <span aria-hidden="true">·</span> Stamps are read from OutLayer's
+      public storage <span aria-hidden="true">·</span> NEAR testnet</p>
+  </footer>
+  <noscript><p class="wrap notice">This page checks stamps in your browser and needs JavaScript.</p></noscript>
+</body>
+</html>

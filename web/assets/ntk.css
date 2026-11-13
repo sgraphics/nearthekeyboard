@@ -1,0 +1,277 @@
+/* NTK web: palette and pixel parts shared by the verify page and the demo feed.
+   A calm layout with 8-bit details at the edges: stepped corners, hard one-step
+   shadows, no gradients. Mostly white and paper, black text, orange for the one
+   active thing on a screen. Text in the system's own sans-serif.
+   Colours from brand/palette.json. */
+
+:root {
+  --white: #FFFFFF;
+  --paper: #F4F4F1;
+  --black: #0A0A0A;
+  --orange: #FF4F00;
+  --grey-1: #D7D7D2;
+  --grey-2: #B4B4AE;
+
+  --bg: var(--paper);
+  --surface: var(--white);
+  --ink: var(--black);
+  --muted: #6E6E69;           /* grey3: secondary text only */
+  --edge: var(--grey-2);      /* stepped edges */
+  --line: var(--grey-1);      /* dividers */
+  --shade: var(--grey-1);     /* hard shadows */
+  --tint-1: var(--grey-1);    /* pixel avatars */
+  --tint-2: var(--paper);
+  --tint-3: var(--grey-2);
+  --accent: var(--orange);
+  --on-accent: var(--black);  /* black on orange: 6.0:1 */
+  --p: 2px;                   /* one pixel step */
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121211;              /* space */
+    --surface: #1C1C1A;         /* body: large objects */
+    --ink: #EDEDE8;             /* off-white */
+    --muted: #8C8C86;
+    --edge: #3E3E3A;            /* the lighter stepped edge */
+    --line: #5A5A54;            /* rim: dividers */
+    --shade: #0A0A0A;
+    --tint-1: #2A2A27;
+    --tint-2: #3E3E3A;
+    --tint-3: #5A5A54;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a { color: inherit; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--accent); }
+a:focus-visible, button:focus-visible, textarea:focus-visible {
+  outline: var(--p) solid var(--accent);
+  outline-offset: 3px;
+}
+
+h1, h2, h3 { line-height: 1.2; margin: 0 0 .5rem; }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.15rem; }
+h3 { font-size: 1rem; }
+p { margin: 0 0 .75rem; }
+
+code, .mono {
+  font-family: var(--mono);
+  font-size: .88em;
+}
+code {
+  background: var(--bg);
+  padding: .05em .3em;
+  overflow-wrap: anywhere;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ---- pixel parts ------------------------------------------------------- */
+
+/* A white object with a stepped grey edge and a hard one-step shadow. The four
+   edge copies leave the corner pixel empty; the shadow is the same shape, one
+   step down and right. Leave var(--p) of room around it and 2 steps right and below. */
+.pbox {
+  background: var(--surface);
+  box-shadow:
+    0 calc(var(--p) * -1) 0 0 var(--edge),
+    0 var(--p) 0 0 var(--edge),
+    calc(var(--p) * -1) 0 0 0 var(--edge),
+    var(--p) 0 0 0 var(--edge),
+    calc(var(--p) * 2) var(--p) 0 0 var(--shade),
+    var(--p) calc(var(--p) * 2) 0 0 var(--shade);
+}
+
+/* Pixel sprites (lib/pixel.js): colours by name. */
+svg.px { display: inline-block; vertical-align: middle; flex: none; }
+.px-ink { fill: var(--ink); }
+.px-accent { fill: var(--accent); }
+.px-muted { fill: var(--muted); }
+.px-edge { fill: var(--edge); }
+.px-line { fill: var(--line); }
+.px-surface { fill: var(--surface); }
+
+.btn {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 44px;
+  margin: var(--p) calc(var(--p) * 2) calc(var(--p) * 2) var(--p);
+  padding: .6rem 1.25rem;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+  background: var(--surface);
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow:
+    0 calc(var(--p) * -1) 0 0 var(--ink),
+    0 var(--p) 0 0 var(--ink),
+    calc(var(--p) * -1) 0 0 0 var(--ink),
+    var(--p) 0 0 0 var(--ink),
+    calc(var(--p) * 2) var(--p) 0 0 var(--shade),
+    var(--p) calc(var(--p) * 2) 0 0 var(--shade);
+}
+.btn:hover { background: var(--bg); }
+.btn:active:not(:disabled) {
+  transform: translate(var(--p), var(--p));
+  box-shadow:
+    0 calc(var(--p) * -1) 0 0 var(--ink),
+    0 var(--p) 0 0 var(--ink),
+    calc(var(--p) * -1) 0 0 0 var(--ink),
+    var(--p) 0 0 0 var(--ink);
+}
+.btn:disabled { color: var(--muted); cursor: default; }
+.btn-primary { color: var(--surface); background: var(--ink); }
+.btn-primary:hover { background: var(--ink); color: var(--surface); text-decoration: underline; text-decoration-color: var(--accent); }
+.btn-primary:disabled { color: var(--surface); background: var(--ink); opacity: .4; }
+.btn-small { min-height: 32px; padding: .25rem .6rem; font-size: .8rem; }
+
+.chip {
+  display: inline-block;
+  padding: .35em .55em .3em;
+  font: 700 .68rem/1 var(--mono);
+  letter-spacing: .08em;
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow:
+    0 calc(var(--p) * -1) 0 0 var(--ink),
+    0 var(--p) 0 0 var(--ink),
+    calc(var(--p) * -1) 0 0 0 var(--ink),
+    var(--p) 0 0 0 var(--ink);
+}
+.chip-testnet { color: var(--surface); background: var(--ink); }
+
+/* A dotted pixel rule. */
+.rule { border: 0; border-top: var(--p) dotted var(--edge); margin: 1rem 0; }
+
+/* ---- page frame -------------------------------------------------------- */
+
+.site-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  text-decoration: none;
+  min-height: 44px;
+}
+.brand picture { display: block; line-height: 0; }
+.badge { display: block; height: 20px; width: auto; }
+.brand-name {
+  font-weight: 800;
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+@media (max-width: 26.5rem) { .brand-name { display: none; } }
+.site-foot {
+  padding-top: 1.5rem;
+  padding-bottom: 2.5rem;
+  color: var(--muted);
+  font-size: .85rem;
+}
+.site-foot a { color: var(--ink); }
+
+.notice {
+  margin: .75rem 0 0;
+  padding: .6rem .8rem;
+  background: var(--bg);
+  border-left: calc(var(--p) * 2) solid var(--ink);
+}
+
+.fine { color: var(--muted); font-size: .85rem; }
+
+.label {
+  display: block;
+  margin-bottom: .4rem;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+textarea {
+  display: block;
+  width: calc(100% - var(--p) * 2);
+  margin: var(--p);
+  padding: .75rem .85rem;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--surface);
+  resize: vertical;
+  box-shadow:
+    0 calc(var(--p) * -1) 0 0 var(--edge),
+    0 var(--p) 0 0 var(--edge),
+    calc(var(--p) * -1) 0 0 0 var(--edge),
+    var(--p) 0 0 0 var(--edge);
+}
+textarea:focus { outline: none; }
+textarea:focus-visible, textarea:focus {
+  box-shadow:
+    0 calc(var(--p) * -1) 0 0 var(--ink),
+    0 var(--p) 0 0 var(--ink),
+    calc(var(--p) * -1) 0 0 0 var(--ink),
+    var(--p) 0 0 0 var(--ink);
+}
+textarea::placeholder { color: var(--muted); opacity: 1; }
+
+/* A blinking block cursor: the moving thing is orange. */
+.blink {
+  display: inline-block;
+  width: .6em;
+  height: 1.1em;
+  margin-right: .6em;
+  vertical-align: -.2em;
+  background: var(--accent);
+  animation: ntk-blink 1s steps(1) infinite;
+}
+@keyframes ntk-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .blink { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+[hidden] { display: none !important; }

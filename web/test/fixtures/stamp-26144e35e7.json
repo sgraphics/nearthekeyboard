@@ -1,0 +1,6 @@
+{
+  "id": "26144e35e7",
+  "pk": "ed25519:HjjfT73KM5PpL9TEeqFbfWdVgsc5wysKt7mLCr4jsRLG",
+  "record": "{\"v\":2,\"kind\":\"ntk-stamp\",\"account\":\"ntk-alice.testnet\",\"text_sha256\":\"af5559987b68c79a433759c52dd22a79dc573c848d5d73c25635363b048a35fc\",\"text_chars\":49,\"taps\":51,\"typed_pct\":100,\"score_pct\":95,\"threshold_pct\":65,\"profile_sessions\":4,\"issued_at_ms\":1794578550884,\"project\":\"nearthekeyboard.testnet/ntk\",\"network\":\"testnet\",\"call_id\":\"39445da2-31f4-4245-8884-e03d24c0a9fb\",\"enclave\":\"0.2.0\"}",
+  "sig": "8DgMbfBHm8AbJHL0qESJO829rACi3uaBpHJZxyeHhN2Tp1FS02W8/j4XmdPEC48iTU4juPWUAPO5SpHY2YiyCQ=="
+}

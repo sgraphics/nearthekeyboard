@@ -1,0 +1,46 @@
+/* NTK web embed: the button a tag becomes. Loaded by ntk-embed.js from the same
+   folder. A white key with stepped orange edges and a hard one-step shadow; the
+   text inside is the tag itself, so the page's text does not change. */
+.ntk-embed-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-block;
+  margin: 0 .35em 0 .2em;
+  padding: .05em .4em .08em;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: baseline;
+  color: #0A0A0A;
+  background: #FFFFFF;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow:
+    0 -2px 0 0 #FF4F00,
+    0 2px 0 0 #FF4F00,
+    -2px 0 0 0 #FF4F00,
+    2px 0 0 0 #FF4F00,
+    4px 2px 0 0 #0A0A0A,
+    2px 4px 0 0 #0A0A0A;
+}
+.ntk-embed-btn:hover { background: #F4F4F1; }
+.ntk-embed-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow:
+    0 -2px 0 0 #FF4F00,
+    0 2px 0 0 #FF4F00,
+    -2px 0 0 0 #FF4F00,
+    2px 0 0 0 #FF4F00;
+}
+.ntk-embed-btn:focus-visible {
+  outline: 2px solid #0A0A0A;
+  outline-offset: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  .ntk-embed-btn { box-shadow: 0 -2px 0 0 #FF4F00, 0 2px 0 0 #FF4F00, -2px 0 0 0 #FF4F00, 2px 0 0 0 #FF4F00, 4px 2px 0 0 #000000, 2px 4px 0 0 #000000; }
+}

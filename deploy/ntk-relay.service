@@ -1,0 +1,25 @@
+[Unit]
+Description=NTK relay: holds the OutLayer payment key, forwards calls to the NTK enclave, on 127.0.0.1:3970
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ntk
+Group=ntk
+WorkingDirectory=/opt/ntk/relay
+# NTK_API, NTK_PROJECT, NTK_PAYMENT_KEY (and optionally KEEP_WARM_SEC, RATE_*). Mode 600, outside git.
+EnvironmentFile=/opt/ntk/.env
+Environment=NODE_ENV=production
+Environment=PORT=3970
+Environment=HOST=127.0.0.1
+ExecStart=/usr/bin/node server.mjs
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
