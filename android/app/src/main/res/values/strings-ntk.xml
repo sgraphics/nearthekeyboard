@@ -2,4 +2,9 @@
 <resources>
     <dimen name="ntk_strip_height">44dp</dimen>
     <string name="keyboard_theme_ntk" translatable="false">NTK (light and dark, follows the system)</string>
+
+    <!-- The stamp buttons in other apps (accessibility service) and the text selection menu entry. -->
+    <string name="ntk_a11y_label" translatable="false">NTK stamp buttons</string>
+    <string name="ntk_a11y_description" translatable="false">Puts a small NTK button on every NTK stamp tag you see, such as [NTK e65ee28db5], in any app. To find tags, this service reads the text on your screen, on this phone only. It stores nothing and sends nothing. Only when you tap a button, the browser opens the verify page on ntk.tools with the stamp\'s id and the text in front of the tag; the text goes in the part of the address that browsers never send to a server.</string>
+    <string name="ntk_verify_selection" translatable="false">Verify NTK stamp</string>
 </resources>

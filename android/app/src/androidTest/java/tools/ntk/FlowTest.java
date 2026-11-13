@@ -30,6 +30,10 @@ import tools.ntk.ui.EnrollActivity;
  * and the tag appears after the text. Typist B then types the same reply on
  * A's account: NO_MATCH, and nothing is inserted. Each enclave call may take
  * minutes.
+ *
+ * With -e account current the test uses the account the app is logged in to
+ * (for example one that came through the wallet login) instead of a new
+ * faucet account.
  */
 @RunWith(AndroidJUnit4.class)
 public class FlowTest extends RobotBase {
@@ -39,27 +43,33 @@ public class FlowTest extends RobotBase {
     public void enrollThenStampThenImpostor() throws Exception {
         final JSONObject sessions = Robot.sessions(inst);
 
-        // A fresh testnet account from the faucet.
-        robot.onMain(() -> {
-            AccountStore.get(ctx).clear();
-            return null;
-        });
-        final CountDownLatch made = new CountDownLatch(1);
-        final NtkController.Result[] acct = new NtkController.Result[1];
-        robot.onMain(() -> {
-            NtkController.get(ctx).createTestnetAccount(r -> {
-                acct[0] = r;
-                made.countDown();
+        if ("current".equals(androidx.test.platform.app.InstrumentationRegistry.getArguments().getString("account"))) {
+            assertNotNull("-e account current: log in first", AccountStore.get(ctx).current());
+            log("using the logged-in account " + AccountStore.get(ctx).current().accountId + " (" + AccountStore.get(ctx).current().kind + ")");
+        } else {
+            // A fresh testnet account from the faucet.
+            robot.onMain(() -> {
+                AccountStore.get(ctx).clear();
+                return null;
             });
-            return null;
-        });
-        assertTrue("faucet timed out", made.await(3, TimeUnit.MINUTES));
-        assertEquals(acct[0].message, NtkController.Result.Kind.OK, acct[0].kind);
+            final CountDownLatch made = new CountDownLatch(1);
+            final NtkController.Result[] acct = new NtkController.Result[1];
+            robot.onMain(() -> {
+                NtkController.get(ctx).createTestnetAccount(r -> {
+                    acct[0] = r;
+                    made.countDown();
+                });
+                return null;
+            });
+            assertTrue("faucet timed out", made.await(3, TimeUnit.MINUTES));
+            assertEquals(acct[0].message, NtkController.Result.Kind.OK, acct[0].kind);
+        }
         final String account = AccountStore.get(ctx).current().accountId;
         log("account " + account);
 
         // Enrollment: consent given, three prompts typed by A.
         ctx.getSharedPreferences("ntk_ui", Context.MODE_PRIVATE).edit().putBoolean("consent_v1", true).commit();
+        bringAppToFront();
         inst.startActivitySync(new Intent(ctx, EnrollActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         JSONObject last = null;
         for (int i = 1; i <= 3; i++) {

@@ -24,10 +24,13 @@ public final class Ntk {
 
     public static final String RPC_URL = "https://rpc.testnet.fastnear.com";
     public static final String FAUCET_URL = "https://helper.nearprotocol.com/account";
-    public static final String WALLET_LOGIN_URL = "https://testnet.mynearwallet.com/login/";
+    /** Where the logout dialog sends a wallet user to remove the key from the account. */
     public static final String WALLET_KEYS_URL = "https://testnet.mynearwallet.com/full-access-keys";
+    /**
+     * The login page (Links.loginUrl, on the NTK site) returns here:
+     * ntk://auth?account_id=<account>&public_key=<key>.
+     */
     public static final String AUTH_SUCCESS_URL = "ntk://auth";
-    public static final String AUTH_FAILURE_URL = "ntk://auth-failed";
 
     // The enclave's current minimums (info.params); the keyboard checks them before sending.
     public static final int MIN_STAMP_TAPS = 40;

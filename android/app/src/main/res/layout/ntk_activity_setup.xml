@@ -98,6 +98,27 @@
             android:importantForAutofill="no"
             android:inputType="textMultiLine|textCapSentences" />
 
+        <!-- 5. Stamp buttons in other apps -->
+        <TextView style="@style/NtkHeading" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="5. Stamp buttons in other apps" />
+        <TextView android:id="@+id/ntk_a11y_status" style="@style/NtkBody"
+            android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView style="@style/NtkSmall" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="NTK can put a small NTK button on every stamp tag you see, like [NTK e65ee28db5], in any app. Tap it and your browser opens the page that checks the stamp.\n\nFor that, Android has to let NTK read what is on your screen: it is an accessibility service. NTK reads the screen on this phone only, to find tags. It stores nothing and sends nothing. Only when you tap a button, the browser gets the id of the stamp and the text in front of the tag, and that text stays in the browser.\n\nIn the settings, open NTK stamp buttons and switch it on." />
+        <Button android:id="@+id/ntk_btn_a11y" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Open accessibility settings" />
+        <TextView style="@style/NtkSmall" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Android 13 and later: if the switch is greyed out or says the setting is restricted, NTK was installed from outside an app store. Open App info, tap the three dots at the top right, choose Allow restricted settings, and try again." />
+        <Button android:id="@+id/ntk_btn_app_info" style="@style/NtkButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Open App info" />
+        <TextView style="@style/NtkSmall" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Without the service: select a text with a tag in any app and choose Verify NTK stamp in the menu." />
+
         <!-- What is sent -->
         <TextView style="@style/NtkHeading" android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="What NTK sends, and when" />
@@ -130,6 +151,21 @@
             <Button android:id="@+id/ntk_btn_use_direct" style="@style/NtkButton"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="Call OutLayer directly (payment key from local.properties)" />
+            <TextView android:id="@+id/ntk_debug_site" style="@style/NtkSmall"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+            <EditText
+                android:id="@+id/ntk_debug_site_url"
+                style="@style/NtkField"
+                android:minHeight="48dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:inputType="textUri"
+                android:hint="Site for verify and login links, for example http://10.0.2.2:8080/" />
+            <Button android:id="@+id/ntk_btn_use_site" style="@style/NtkButton"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Use this site (empty: https://ntk.tools/)" />
         </LinearLayout>
 
         <Button android:id="@+id/ntk_btn_settings" style="@style/NtkButton"

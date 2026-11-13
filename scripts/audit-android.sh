@@ -90,5 +90,14 @@ else
   pass "no log line prints typed text"
 fi
 
+# The click layer (an accessibility service that reads screen text) must not
+# send anything: no network code in its package. It only opens the browser.
+A11Y="app/src/main/java/tools/ntk/a11y/"
+if [ -d "$A11Y" ] && grep -rqE 'java\.net\.|HttpURLConnection|tools\.ntk\.net|okhttp|WebSocket' "$A11Y"; then
+  bad "the click layer ($A11Y) contains network code"
+else
+  pass "the click layer has no network code"
+fi
+
 if [ "$fail" = 0 ]; then echo "audit passed"; else echo "audit FAILED"; fi
 exit "$fail"

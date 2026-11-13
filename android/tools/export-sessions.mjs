@@ -37,6 +37,10 @@ ENROLL_TEXTS.forEach((t, i) => add(`a_enroll_${i + 1}`, alice, t, 100 + i, i ===
 add('a_stamp', alice, REPLY, 501);
 add('b_stamp', bob, REPLY, 502);
 add('a_capture', alice, 'the quick brown fox jumps over the lazy dog, then types a little more.', 7);
+// Proof videos (video/tools/proof-keyboard.sh): the same typist answers the enrollment
+// screen's own prompts, so the typed text fits what is asked on screen.
+add('v_enroll_1', alice, 'Yesterday I had lentil soup with fresh bread for lunch, it was warm and filling and I liked it a lot.', 601, 'compose');
+add('v_enroll_3', alice, 'A small room with a desk by the window, a lamp, two plants and a pile of books next to the bed.', 603, 'compose');
 
 const out = new URL('../app/src/androidTest/assets/robot-sessions.json', import.meta.url);
 fs.mkdirSync(new URL('.', out), { recursive: true });

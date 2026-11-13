@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- NTK stamp buttons (tools.ntk.a11y.StampButtonService): reads the text on screen when it
+     changes or stops scrolling, to find NTK tags, and draws a button over each one. -->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeViewScrolled|typeWindowsChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagRetrieveInteractiveWindows|flagIncludeNotImportantViews"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/ntk_a11y_description"
+    android:notificationTimeout="100"
+    android:settingsActivity="tools.ntk.ui.SetupActivity" />

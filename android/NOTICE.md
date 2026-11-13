@@ -30,18 +30,33 @@ calls, bundled binaries.
   (`ui/StripView`), and Sign: local checks, sealing, NEP-413 signature, the
   asynchronous enclave call, the stamp check against the pinned key, the tag
   (`SignFlow`, `NtkController`, `NtkCrypto`, `StampCheck`, `TextRule`).
-- NEAR login (testnet faucet account, or a MyNearWallet function-call key) with
-  the private key encrypted by an Android Keystore key (`AccountStore`), and the
-  setup and enrollment screens (`ui/SetupActivity`, `ui/EnrollActivity`).
+- NEAR login (testnet faucet account, or a NEAR wallet through the NTK login
+  page, which has the wallet add the phone's key as a function-call key for
+  `nearthekeyboard.testnet`) with the private key encrypted by an Android
+  Keystore key (`AccountStore`), and the setup and enrollment screens
+  (`ui/SetupActivity`, `ui/EnrollActivity`). The login page's address and the
+  verify page's address are built in `Links`.
+- Stamp buttons in other apps: an accessibility service, off until the user
+  switches it on (`a11y/StampButtonService`, the button `a11y/StampButtonView`,
+  the text logic `a11y/TagText`, `res/xml/ntk_stamp_buttons.xml`). It reads
+  screen text on the phone only, to find tags, and opens the verify page in
+  the browser when a button is tapped. It has no network code.
+- "Verify NTK stamp" in the text selection menu of any app
+  (`ui/VerifySelectionActivity`, `ACTION_PROCESS_TEXT`).
 - The NTK keyboard theme: one design in light and dark, pixel steps at key
   corners and edges drawn in code (`ui/PixelKeyDrawable`), colours from
-  `brand/palette.json`, the brand badge and launcher icon from `brand/out/android/`.
+  `brand/palette.json`, the brand badge and launcher icon from `brand/out/android/`
+  (redrawn 2026-11-13: the badge is 8 grid rows of 12 px, the light and dark
+  versions are `drawable-nodpi/ntk_badge.png` and `drawable-night-nodpi/ntk_badge.png`;
+  `ui/BadgeView` scales it by whole grid cells, taking the row count from the bitmap).
 - Debug builds only (`app/src/debug/`): sent sessions are saved in app-private
   storage (`files/typing-data/`), and a key-geometry hook serves the robot
   typist test. Release builds compile `app/src/release/`, which does neither.
-- Tests: JVM unit tests against `docs/test-vectors/` (`app/src/test/`), and the
-  robot typist (`app/src/androidTest/`) with sessions exported from
-  `client/synth.mjs` by `tools/export-sessions.mjs`.
+- Tests: JVM unit tests against `docs/test-vectors/` and `web/lib/ntk-verify.js`
+  (`app/src/test/`), and the robot typist (`app/src/androidTest/`: capture,
+  flow, field and stamp tests, and `ScriptTest` for rehearsals and proof
+  videos) with sessions exported from `client/synth.mjs` by
+  `tools/export-sessions.mjs`.
 - `gradle/wrapper/gradle-wrapper.jar`: Gradle's own 9.6.0 wrapper (upstream has
   `gradlew` but no jar); its SHA-256 is pinned in `scripts/audit-android.sh`.
 
@@ -52,7 +67,7 @@ calls, bundled binaries.
 | `.gitignore` | Track the Gradle wrapper; ignore only `app/release/` output, not the `app/src/release/` source set. |
 | `gradle.properties` | `android.useAndroidX=true`, for the instrumented tests' AndroidX Test runner (test APK only). |
 | `app/build.gradle` | App id, version name, BuildConfig fields (relay URL; testnet payment key from `local.properties` in debug builds only), BouncyCastle, test dependencies, test resources. |
-| `app/src/main/AndroidManifest.xml` | `INTERNET`; backups off (the account key must not leave the phone); NTK's setup and enrollment activities (setup is the launcher and receives `ntk://auth`); the brand launcher icon. |
+| `app/src/main/AndroidManifest.xml` | `INTERNET`; backups off (the account key must not leave the phone); NTK's setup and enrollment activities (setup is the launcher and receives `ntk://auth`); the stamp-button accessibility service; the "Verify NTK stamp" selection-menu activity; the brand launcher icon. |
 | `keyboard/PointerTracker.java` | Calls `NtkCapture` on touch down, touch up (also "phantom" ups when a second finger lands), long press and key repeat. |
 | `latin/inputlogic/InputLogic.java` | Reports what each key produced (one character, `\n` for a line break, or `<bksp>`, `<shift>`, `<sym>`, `<enter>`, …) and how the cursor moved; text from the paste key is reported as inserted. |
 | `latin/LatinIME.java` | Tells `NtkCapture` when a field starts and ends and when the selection moves. |
@@ -64,6 +79,7 @@ calls, bundled binaries.
 | `res/values/strings-appname.xml`, `res/values/strings.xml` | The name "NTK"; the privacy link points to NTK. |
 | `res/values/colors.xml` | `ic_launcher_background` moved to the brand's file. |
 | `PRIVACY.md` | Replaced: NTK sends data (see the file). |
+| `README.md` | Replaced: how to build, use and test the NTK app; Simple Keyboard's credits kept at the end. |
 
 Translations still mention "Simple Keyboard" in one setup message.
 

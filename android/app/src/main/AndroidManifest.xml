@@ -83,6 +83,37 @@
             android:theme="@style/NtkAppTheme"
             android:windowSoftInputMode="adjustResize|stateVisible" />
 
+        <!-- NTK: stamp buttons in other apps (TODO.md section 6). Off until the user switches it
+             on in the accessibility settings. It reads screen text on the phone only, to find
+             tags, and opens the verify page in the browser when a button is tapped. -->
+        <service
+            android:name="tools.ntk.a11y.StampButtonService"
+            android:label="@string/ntk_a11y_label"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/ntk_stamp_buttons" />
+        </service>
+
+        <!-- NTK: "Verify NTK stamp" in the text selection menu of any app. -->
+        <activity
+            android:name="tools.ntk.ui.VerifySelectionActivity"
+            android:label="@string/ntk_verify_selection"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <receiver
             android:name=".latin.SystemBroadcastReceiver"
             android:exported="false">

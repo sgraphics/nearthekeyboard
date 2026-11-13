@@ -51,13 +51,22 @@ public final class BadgeView extends View {
         draw(c, new Rect(0, 0, getWidth(), getHeight()), mBadge, mPaint, mInk, mOrange);
     }
 
+    /** Pixels per grid cell in the brand's badge bitmaps (brand/build.mjs draws them 12 px a cell). */
+    static final int SOURCE_CELL = 12;
+
+    /** Rows of the badge's pixel grid: 8 for the badge of 2026-11-13 (96 px tall), 7 for the placeholder. */
+    static int rows(Bitmap badge) {
+        return badge == null ? 7 : Math.max(1, Math.round(badge.getHeight() / (float) SOURCE_CELL));
+    }
+
     /** Draws the badge (or the placeholder) into {@code r}. */
     static void draw(Canvas c, Rect r, Bitmap badge, Paint paint, int ink, int orange) {
         if (badge != null) {
-            // The badge is pixel art on a 7-row grid (84 px tall). Scale by whole grid cells,
+            // The badge is pixel art on a grid of whole cells. Scale by whole grid cells,
             // without filtering, so every cell stays a sharp square.
-            final int cell = Math.max(1, r.height() / 7);
-            final int h = 7 * cell;
+            final int rows = rows(badge);
+            final int cell = Math.max(1, r.height() / rows);
+            final int h = rows * cell;
             final int w = Math.round(h * (float) badge.getWidth() / badge.getHeight());
             final int top = r.top + (r.height() - h) / 2;
             c.drawBitmap(badge, null, new Rect(r.left, top, r.left + w, top + h), null);

@@ -117,10 +117,19 @@ public final class Robot {
 
     /** Waits until the keyboard is on screen, recording an empty session of the given kind. */
     public JSONObject awaitKeyboard(TypingSession.Kind kind, long timeoutMs) throws Exception {
+        return awaitKeyboard(kind, timeoutMs, true);
+    }
+
+    /**
+     * As above; with {@code nudge} the robot taps the focused field of an NTK
+     * screen when the keyboard does not come up by itself. Scripts that let
+     * the computer drive the screens pass false.
+     */
+    public JSONObject awaitKeyboard(TypingSession.Kind kind, long timeoutMs, boolean nudge) throws Exception {
         final long end = SystemClock.uptimeMillis() + timeoutMs;
         long nextNudge = SystemClock.uptimeMillis() + 3000;
         while (SystemClock.uptimeMillis() < end) {
-            if (SystemClock.uptimeMillis() > nextNudge && !snapshot().optBoolean("shown")) {
+            if (nudge && SystemClock.uptimeMillis() > nextNudge && !snapshot().optBoolean("shown")) {
                 Log.i(TAG, "keyboard not up: tapping the field");
                 tapFocusedField();
                 nextNudge = SystemClock.uptimeMillis() + 5000;

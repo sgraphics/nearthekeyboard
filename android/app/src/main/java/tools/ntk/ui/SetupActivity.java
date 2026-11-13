@@ -24,18 +24,21 @@ import rkr.simplekeyboard.inputmethod.BuildConfig;
 import rkr.simplekeyboard.inputmethod.R;
 import rkr.simplekeyboard.inputmethod.latin.settings.SettingsActivity;
 import tools.ntk.AccountStore;
+import tools.ntk.Links;
 import tools.ntk.Ntk;
 import tools.ntk.NtkController;
+import tools.ntk.a11y.StampButtonService;
 
 /**
  * The NTK app (TODO.md 3.4): turn the keyboard on, log in with NEAR (wallet, or
- * a testnet account made by the faucet), enroll, and a field to try Sign in.
- * Also receives the wallet's redirect, ntk://auth?account_id=…
+ * a testnet account made by the faucet), enroll, a field to try Sign in, and
+ * the switch for the stamp buttons in other apps (section 6). Also receives the
+ * login page's redirect, ntk://auth?account_id=…&public_key=…
  */
 public final class SetupActivity extends Activity implements NtkController.Listener {
-    private TextView mKbStatus, mAccountStatus, mEnrollStatus, mBusy, mDebugTransport;
+    private TextView mKbStatus, mAccountStatus, mEnrollStatus, mBusy, mDebugTransport, mA11yStatus, mDebugSite;
     private Button mWallet, mFaucet, mLogout, mEnroll, mStatus, mForget;
-    private EditText mDebugRelay;
+    private EditText mDebugRelay, mDebugSiteUrl;
     private String mLastMessage;
 
     @Override
@@ -53,6 +56,7 @@ public final class SetupActivity extends Activity implements NtkController.Liste
         mEnroll = findViewById(R.id.ntk_btn_enroll);
         mStatus = findViewById(R.id.ntk_btn_status);
         mForget = findViewById(R.id.ntk_btn_forget);
+        mA11yStatus = findViewById(R.id.ntk_a11y_status);
 
         findViewById(R.id.ntk_btn_enable).setOnClickListener(v ->
                 startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)));
@@ -72,6 +76,11 @@ public final class SetupActivity extends Activity implements NtkController.Liste
                 .show());
         findViewById(R.id.ntk_btn_settings).setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
+        findViewById(R.id.ntk_btn_a11y).setOnClickListener(v ->
+                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
+        findViewById(R.id.ntk_btn_app_info).setOnClickListener(v ->
+                startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", getPackageName(), null))));
 
         if (BuildConfig.DEBUG) {
             findViewById(R.id.ntk_debug).setVisibility(View.VISIBLE);
@@ -83,6 +92,12 @@ public final class SetupActivity extends Activity implements NtkController.Liste
             });
             findViewById(R.id.ntk_btn_use_direct).setOnClickListener(v -> {
                 NtkController.get(this).setDebugTransport(false, null);
+                refresh();
+            });
+            mDebugSite = findViewById(R.id.ntk_debug_site);
+            mDebugSiteUrl = findViewById(R.id.ntk_debug_site_url);
+            findViewById(R.id.ntk_btn_use_site).setOnClickListener(v -> {
+                Links.setSiteBase(this, mDebugSiteUrl.getText().toString());
                 refresh();
             });
         }
@@ -127,11 +142,14 @@ public final class SetupActivity extends Activity implements NtkController.Liste
         if (data != null && "ntk".equals(data.getScheme())) {
             if ("auth".equals(data.getHost())) {
                 final String account = data.getQueryParameter("account_id");
+                final String key = data.getQueryParameter("public_key");
+                final String error = data.getQueryParameter("error");
                 if (account == null || account.isEmpty()) {
-                    message("The wallet did not say which account approved the key.");
+                    message(error != null && !error.isEmpty() ? "The wallet login did not finish: " + error
+                            : "The wallet did not say which account approved the key.");
                 } else {
                     message("Checking on chain that the wallet added the key to " + account + "…");
-                    NtkController.get(this).finishWalletLogin(account, r -> {
+                    NtkController.get(this).finishWalletLogin(account, key, r -> {
                         message(r.message);
                         refresh();
                     });
@@ -144,6 +162,8 @@ public final class SetupActivity extends Activity implements NtkController.Liste
         // Debug builds: scripts may choose where calls go, e.g.
         // adb shell am start -n tools.ntk.keyboard/tools.ntk.ui.SetupActivity --es ntk.relay http://localhost:3970/api
         if (BuildConfig.DEBUG) {
+            final String site = intent.getStringExtra("ntk.site");
+            if (site != null) Links.setSiteBase(this, site);
             final String relay = intent.getStringExtra("ntk.relay");
             if (relay != null) NtkController.get(this).setDebugTransport(true, relay);
             if (intent.getBooleanExtra("ntk.direct", false)) NtkController.get(this).setDebugTransport(false, null);
@@ -235,6 +255,15 @@ public final class SetupActivity extends Activity implements NtkController.Liste
         }
         for (Button b : new Button[] { mEnroll, mStatus, mForget }) b.setVisibility(a == null ? View.GONE : View.VISIBLE);
 
+        // 5. Stamp buttons
+        final boolean on = StampButtonService.isEnabled(this);
+        mA11yStatus.setText(!on ? "Off. Stamp tags in other apps stay plain text."
+                : StampButtonService.isRunning() ? "On. Stamp tags in other apps get an NTK button."
+                : "Switched on; Android has not started it yet.");
+
+        if (mDebugSite != null) {
+            mDebugSite.setText("Verify and login links go to: " + Links.siteBase(this));
+        }
         if (mDebugTransport != null) {
             mDebugTransport.setText("Calls go to: " + NtkController.get(this).client().describe()
                     + (BuildConfig.NTK_PAYMENT_KEY.isEmpty() ? "\nNo payment key in local.properties." : "\nA payment key is in this debug build."));
@@ -250,17 +279,20 @@ public final class SetupActivity extends Activity implements NtkController.Liste
         });
     }
 
+    /**
+     * Wallet login: a new key is made and saved on this phone, and its public
+     * half goes to the NTK login page, which asks the user's wallet to add it
+     * as a function-call key for nearthekeyboard.testnet and then returns to
+     * ntk://auth?account_id=…&public_key=… (handleIntent).
+     */
     private void walletLogin() {
         try {
             final String pk = NtkController.get(this).startWalletLogin();
-            final Uri url = Uri.parse(Ntk.WALLET_LOGIN_URL).buildUpon()
-                    .appendQueryParameter("contract_id", Ntk.PROJECT_OWNER)
-                    .appendQueryParameter("public_key", pk)
-                    .appendQueryParameter("success_url", Ntk.AUTH_SUCCESS_URL)
-                    .appendQueryParameter("failure_url", Ntk.AUTH_FAILURE_URL)
-                    .build();
+            final Uri url = Uri.parse(Links.loginUrl(Links.siteBase(this), pk));
             message("Approve the key in your wallet, then come back.");
-            startActivity(new Intent(Intent.ACTION_VIEW, url));
+            final Intent i = new Intent(Intent.ACTION_VIEW, url);
+            i.addCategory(Intent.CATEGORY_BROWSABLE);
+            startActivity(i);
         } catch (Exception e) {
             message("Could not start the wallet login: " + e.getMessage());
         }

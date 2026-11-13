@@ -385,18 +385,23 @@ public final class NtkController {
         });
     }
 
-    /** Wallet login, step 1: a new key whose public half goes to the wallet. */
+    /** Wallet login, step 1: a new key, saved on this phone, whose public half goes to the login page. */
     public String startWalletLogin() throws Exception {
         final AccountStore.Account pending = AccountStore.get(mContext).createPending(null, AccountStore.KIND_WALLET);
         return pending.publicKey;
     }
 
     /**
-     * Wallet login, step 2 (back from the wallet): confirm on chain that our key
-     * is on the account as a function-call key for nearthekeyboard.testnet, the
-     * one kind of delegated key the enclave accepts.
+     * Wallet login, step 2 (back from the login page with the account and the
+     * key it approved): confirm on chain that this phone's key is on the
+     * account as a function-call key for nearthekeyboard.testnet, the one kind
+     * of delegated key the enclave accepts, and log in.
      */
-    public void finishWalletLogin(final String accountId, final Callback<Result> cb) {
+    public void finishWalletLogin(final String accountId, final String approvedKey, final Callback<Result> cb) {
+        if (isBusy()) {
+            cb.done(Result.error("Another request is still running", "BUSY"));
+            return;
+        }
         begin("account");
         mExec.execute(() -> {
             Result r;
@@ -406,18 +411,29 @@ public final class NtkController {
                 if (pending == null || !AccountStore.KIND_WALLET.equals(pending.kind)) {
                     throw new IllegalStateException("no wallet login was started on this phone");
                 }
+                if (approvedKey != null && !approvedKey.isEmpty() && !approvedKey.equals(pending.publicKey)) {
+                    throw new IllegalStateException("the wallet approved another key than this phone's");
+                }
+                if (!accountId.matches("[a-z0-9._-]{2,64}")) {
+                    throw new IllegalStateException("not a NEAR account name: " + accountId);
+                }
                 Object perm = null;
                 for (int i = 0; i < 10 && perm == null; i++) {
                     perm = NearRpc.accessKeyPermission(accountId, pending.publicKey);
                     if (perm == null) Thread.sleep(1500);
                 }
                 if (perm == null) throw new IllegalStateException("the key is not on " + accountId);
-                boolean ok = "FullAccess".equals(perm);
-                if (perm instanceof JSONObject) {
-                    final JSONObject fc = ((JSONObject) perm).optJSONObject("FunctionCall");
-                    ok = fc != null && Ntk.PROJECT_OWNER.equals(fc.optString("receiver_id"));
+                // The login page asks for a function-call key for the project; nothing else is accepted
+                // (the setup screen then says the phone holds a key that can only talk to NTK).
+                final JSONObject fc = perm instanceof JSONObject ? ((JSONObject) perm).optJSONObject("FunctionCall") : null;
+                if (fc == null) {
+                    throw new IllegalStateException("the key on " + accountId + " is not a function-call key ("
+                            + (perm instanceof String ? perm : "unknown permission") + ")");
                 }
-                if (!ok) throw new IllegalStateException("the key on " + accountId + " is not issued to " + Ntk.PROJECT_OWNER);
+                if (!Ntk.PROJECT_OWNER.equals(fc.optString("receiver_id"))) {
+                    throw new IllegalStateException("the key on " + accountId + " is issued to " + fc.optString("receiver_id")
+                            + ", not " + Ntk.PROJECT_OWNER);
+                }
                 store.activate(accountId);
                 store.forgetEnrollment();
                 r = new Result(Result.Kind.OK, "Logged in as " + accountId, null, null);

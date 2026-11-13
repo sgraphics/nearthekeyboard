@@ -143,7 +143,8 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
         final int keyW = Math.round(88 * mDp);
         final int keyH = h - 2 * pad;
         mSignRect.set(w - pad - keyW, pad, w - pad, pad + keyH);
-        final int badgeH = 7 * Math.max(1, Math.round(13 * mDp / 7f));
+        final int rows = BadgeView.rows(mBadge);
+        final int badgeH = rows * Math.max(1, Math.round(13 * mDp / rows));
         final int badgeW = mBadge != null ? Math.round(badgeH * (float) mBadge.getWidth() / mBadge.getHeight())
                 : Math.round(58 * mDp);
         final int left = Math.round(10 * mDp);

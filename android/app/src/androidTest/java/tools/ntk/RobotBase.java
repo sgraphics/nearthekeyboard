@@ -65,8 +65,19 @@ public abstract class RobotBase {
         Log.i(Robot.TAG, s);
     }
 
+    /**
+     * Brings the NTK app to the front from the shell first. An app that is in
+     * the background (another app on top, as after a wallet login in the
+     * browser) may not put its own screens in front on Android 15 and later.
+     */
+    protected void bringAppToFront() throws Exception {
+        robot.shell("am start -W -n tools.ntk.keyboard/tools.ntk.ui.SetupActivity");
+        inst.waitForIdleSync();
+    }
+
     /** Opens the NTK app and focuses its "Try it" field, which starts a stamp session. */
     protected EditText openTryField() throws Exception {
+        bringAppToFront();
         final Intent i = new Intent(ctx, SetupActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         final Activity a = inst.startActivitySync(i);
