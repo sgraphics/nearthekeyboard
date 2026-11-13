@@ -32,7 +32,8 @@ Updated 2026-11-13. What is still open is in [TODO.md](TODO.md).
 | Protocol client, end-to-end suite | `client/` | 36 of 36 checks against the live enclave (2026-11-13), synthetic typists |
 | Verify page, demo feed, web embed | `web/` | Live at <https://ntk.tools>; 57 tests |
 | Relay (holds the payment key) | `relay/` | Live at `https://ntk.tools/api`; 22 tests |
-| Android keyboard | `android/` | In progress |
+| Android keyboard | `android/` | Works on the Android emulator: a fresh testnet account enrolled and got MATCH (`[NTK 4420c168c8]`) through the live relay; 16 unit tests, robot typist tests |
+| Log in with a NEAR wallet | `web/login/`, `android/` | In progress (MyNearWallet no longer accepts new app connections; the testnet faucet account works) |
 | Stamp buttons in other Android apps | `android/` | In progress |
 | NEAR AI Cloud: composed or copied | — | Not started; needs an API key |
 
@@ -167,7 +168,30 @@ Calls are asynchronous: the client submits and polls, because one call can
 take from under a second to a few minutes on testnet. A run makes about 30
 calls at $0.001 of test USDC each and took 3 minutes on 2026-11-13.
 
-### 8. Run the site and relay locally
+### 8. Build the keyboard and run the robot typist
+
+Needs JDK 17, the Android SDK and an emulator or phone with USB debugging (on
+Windows, run the scripts in Git Bash).
+
+```bash
+cd android && ./gradlew assembleDebug testDebugUnitTest   # 16 unit tests
+cd .. && bash scripts/device/prepare.sh                  # install, select the NTK keyboard
+bash scripts/device/robot.sh                             # capture test, no network
+bash scripts/device/robot.sh flow                        # enroll, stamp, impostor (minutes)
+```
+
+See: the capture test reports that the keyboard recorded every injected tap
+(same keys, times within 5 ms, offsets within 0.02). The flow test creates a
+fresh testnet account, enrolls three typing sessions on the enrollment screen,
+types "I agree with this, and I typed every word myself." with the NTK keyboard
+and taps Sign: the field ends with ` [NTK <id>]`, and `node client/verify.mjs`
+says MATCH for it. A second synthetic typist on the same account gets NO MATCH
+and nothing is inserted. The typing is injected by the test with synthetic
+timing; real human typing has not been tested yet (TODO.md 2.6).
+
+![The NTK keyboard, light](android/docs/screenshots/keyboard-light.png) ![The NTK keyboard, dark](android/docs/screenshots/keyboard-dark.png)
+
+### 9. Run the site and relay locally
 
 ```bash
 NTK_ENV_FILE=~/.ntk/testnet.env STATIC_DIR=web node relay/server.mjs
@@ -353,11 +377,13 @@ deploy/    deploy.sh, nginx site and systemd unit for the server
 docs/      protocol.md and the shared test vectors
 brand/     build.mjs draws the logo, banners, icons and badge into brand/out/
 video/     tools/record.sh (long screen recordings), tools/fwd.mjs (VHS fast-forward)
-scripts/   check-secrets.mjs: fails if a key or token is about to be committed
+android/   the NTK keyboard: Simple Keyboard (Apache-2.0) with NTK's code in
+           app/src/main/java/tools/ntk/; NOTICE.md lists every upstream file changed
+scripts/   check-secrets.mjs (fails if a key or token is about to be committed),
+           audit-android.sh (the keyboard's trust check), device/ (emulator and
+           phone helpers, the robot typist runner)
 TODO.md    Everything still to build, with priorities
 ```
-
-Being built: `android/`, `scripts/device/`.
 
 ## Hackathon notes
 
@@ -366,6 +392,10 @@ Being built: `android/`, `scripts/device/`.
 - The same author also enters a second, independent project (rule Q-015):
   Realsies, <https://github.com/sgraphics/realsies>. The two projects share no
   code.
+- The keyboard is built on Simple Keyboard by rkkr (Apache-2.0), commit
+  `a053c4ca3b61182fc407096ff207d579e5471944`, itself a fork of Android's
+  LatinIME; `android/NOTICE.md` lists what NTK changed. It adds one library,
+  BouncyCastle (MIT-style licence).
 - Third-party code: OutLayer SDK (`outlayer` 0.2.1, MIT/Apache-2.0), RustCrypto
   and dalek crates, `serde`, `hex`, `base64`, `bs58`, `@noble/*` (MIT; the
   verify page vendors `@noble/ed25519` 3.2.0), `near-api-js` (MIT/Apache-2.0),
@@ -378,4 +408,5 @@ Being built: `android/`, `scripts/device/`.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+NTK's own code: MIT, see [LICENSE](LICENSE). `android/` is built on Simple
+Keyboard and keeps its Apache-2.0 license (`android/LICENSE`).
