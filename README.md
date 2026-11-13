@@ -28,7 +28,7 @@ Updated 2026-11-13. What is still open is in [TODO.md](TODO.md).
 
 | Part | Path | State |
 |---|---|---|
-| Enclave v0.2.0 (Rust, wasm32-wasip2) | `enclave/` | Live on OutLayer testnet as `nearthekeyboard.testnet/ntk`; reproducible build (Docker), active version `0d198051…`; 16 unit tests |
+| Enclave v0.2.0 (Rust, wasm32-wasip2) | `enclave/` | Live on OutLayer testnet as `nearthekeyboard.testnet/ntk`; reproducible build (Docker), active version `6fd05f44…`; 16 unit tests |
 | Protocol client, end-to-end suite | `client/` | 36 of 36 checks against the live enclave (2026-11-13), synthetic typists |
 | Verify page, demo feed, web embed, privacy page | `web/` | Live at <https://ntk.tools> |
 | Relay (holds the payment key) | `relay/` | Live at `https://ntk.tools/api`; web and relay: 107 tests |
@@ -109,7 +109,7 @@ Needs Docker.
 bash enclave/build-reproducible.sh
 ```
 
-See: `0d198051c5dc2b0084f9b1f43e479e6b43358e51a1209497a9d00ed519e74ac1  ntk-enclave.wasm`,
+See: `6fd05f445c2170b0b32dcfe0c663c97d06ad122cb52f8309ebb22f4fc125e4ac  ntk-enclave.wasm`,
 the hash of the version that is active on chain. The build runs in the
 official Rust 1.91.1 image pinned by digest, with the dependencies pinned by
 `Cargo.lock` and every path fixed inside the container, so it gives the same
@@ -120,8 +120,8 @@ list is public:
 curl -s https://rpc.testnet.fastnear.com -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"query","params":{"request_type":"call_function","finality":"final","account_id":"outlayer.testnet","method_name":"list_versions","args_base64":"eyJwcm9qZWN0X2lkIjoibmVhcnRoZWtleWJvYXJkLnRlc3RuZXQvbnRrIn0="}}'
 ```
 
-See: `result.result` is a byte array holding JSON with five versions; the one
-with `"is_active":true` has `wasm_hash` `0d198051…`. Every OutLayer call's
+See: `result.result` is a byte array holding JSON with six versions; the one
+with `"is_active":true` has `wasm_hash` `6fd05f44…`. Every OutLayer call's
 attestation names the hash of the code that ran, so a stamp's `call_id` ties it
 to this build.
 
@@ -316,8 +316,8 @@ Shown by the end-to-end suite on testnet:
 - A signed request cannot be replayed.
 - Only runs the project owner pays for touch fingerprints, so there is one
   store and no parallel one.
-- A stamp is issued only when the session matches the fingerprint (65% or
-  more), has at least 40 key taps, and at least 80% of the text was typed
+- A stamp is issued only when the session matches the fingerprint (80% or
+  more; 65% until 2026-11-13, raised after the first real typing test), has at least 40 key taps, and at least 80% of the text was typed
   rather than pasted or inserted. Failed attempts get a coarse score only and
   are capped at 20 per day.
 - The stamped text hash is computed by the enclave from the keystrokes, not
@@ -350,9 +350,10 @@ Limits, not solved:
 - **Metadata.** The account name, the operation and the time of each request
   are not sealed. The relay and OutLayer's API see who stamps and when, though
   not the typing.
-- **Accuracy.** Tested only on synthetic typists. On three synthetic typists
-  the 65% threshold let a deliberately similar typist through 14 times in 42,
-  so it is likely too loose; it needs real typing data (TODO.md, 2.6).
+- **Accuracy.** Mostly tested on synthetic typists. On three synthetic typists
+  a 65% threshold let a deliberately similar typist through 14 times in 42; the
+  owner's own typing scored 96% in a first real test, so the threshold is now
+  80%. It still needs more real typing data (TODO.md, 2.6).
 - **Stamp ids.** Ten hex characters. OutLayer's public storage has no atomic
   insert, so two stamps made at the same moment with the same id could
   collide; the enclave re-signs when it sees an id taken.

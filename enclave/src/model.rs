@@ -21,7 +21,7 @@ pub const MIN_ENROLL_TAPS: usize = 30;
 /// Key taps a stamped session must carry: a short reply says little about who typed it.
 pub const MIN_STAMP_TAPS: usize = 40;
 /// Similarity at or above which a session matches the fingerprint.
-pub const MATCH_THRESHOLD: f64 = 0.65;
+pub const MATCH_THRESHOLD: f64 = 0.80;
 /// Share of the final text that must come from key taps, not paste or suggestions.
 pub const MIN_TYPED_RATIO: f64 = 0.80;
 
