@@ -387,3 +387,13 @@ svg.icon { display: inline-block; flex: none; vertical-align: middle; }
 .doc-part h2 { font-size: 1.5rem; font-weight: 200; }
 
 [hidden] { display: none !important; }
+
+/* The launch video on /trailer/. */
+.trailer-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 1.5rem 0 2rem;
+  border-radius: 14px;
+  background: #000;
+}
