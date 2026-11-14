@@ -297,6 +297,38 @@ keyboard all check themselves against. In short:
  "project":"nearthekeyboard.testnet/ntk","network":"testnet","call_id":"39445da2-…","enclave":"0.2.0"}
 ```
 
+## Evidence behind a stamp
+
+Each piece can be checked on its own.
+
+1. **The text.** The enclave rebuilds the text from the keystrokes and hashes
+   it itself; the stamp signs that hash. Change one character and the check
+   fails.
+2. **The typist.** The enclave compares the session's timing and touch
+   positions with the account's sealed fingerprint. The score and the threshold
+   (80%) are in the signed record.
+3. **The account.** Every request is signed with a key of that NEAR account,
+   and the enclave checks on chain that the key belongs to it.
+4. **The signer.** Only the project's stamp key signs stamps. OutLayer's
+   keystore gives it only to this project's runs, and verifiers pin its public
+   key.
+5. **The code that ran: the attestation.**
+
+   Every stamp names the OutLayer call that issued it (`call_id`). That call
+   has an Intel TDX attestation: a quote signed inside the processor that names
+   the hash of the code that ran and commits to the exact request and response.
+   Anyone can fetch it at
+   `https://testnet-api.outlayer.ai/attestations/by-call/<call_id>` and check it
+   with `outlayer-verify call <call_id> --network testnet`. That command checks
+   Intel's signature chain, that the worker's measurements are on the approved
+   list, and that the quote belongs to that input and output. The code hash it
+   names can be rebuilt byte for byte from this repository (Try it, step 6), and
+   the chain lists every version the project ever activated. So a stamp shows
+   not only who typed, but which code decided.
+6. **The device and the touches (planned).** Not built yet; see Next
+   milestones. Today the enclave cannot tell a finger on a screen from taps that
+   software produced.
+
 ## What NEAR does here
 
 - **NEAR accounts are the identity.** A stamp says which NEAR account typed the
@@ -359,9 +391,10 @@ Limits, not solved:
   `nearthekeyboard.testnet` could publish a version that reads fingerprints or
   signs anything. Every version is public on chain. Freezing the owner account
   or handing the project to a DAO closes this.
-- **Input authenticity.** The enclave cannot tell finger taps from invented
-  timing sent by a modified keyboard. Android key attestation of the app is the
-  planned answer. Reading touches below the app level needs OS or OEM support.
+- **Input authenticity.** Today the enclave cannot tell a finger on a screen
+  from timing that software produced: a modified keyboard, an automation tool
+  or an emulator (the project's own test robot types on an emulator).
+  Hardware-backed touches are the first item under Next milestones.
 - **Retyping.** Someone who copies AI text by hand from another screen types
   with their own rhythm and gets a stamp. A stamp says "typed by hand by this
   account", not "written without help".
@@ -389,6 +422,40 @@ Limits, not solved:
 - **Trust base.** Intel TDX, OutLayer's worker and keystore, the list of
   approved worker builds that OutLayer's admin maintains, and the NEAR RPC
   answer to `view_access_key`.
+
+## Next milestones
+
+- **Hardware-backed touches.** The aim: no stamp from taps that software
+  produced, whether an overlay, an automation tool or an Android emulator
+  tapping. Two parts:
+  - **Android key attestation, checked in the enclave.** A key in the phone's
+    secure hardware signs each session. Its certificate chain, which ends at
+    Google's attestation root, states a genuine device with a locked bootloader
+    and verified boot, and the exact signing certificate and version of the
+    NTK app. An emulator or a modified app cannot produce that chain.
+  - **Touches from the physical screen only.** The keyboard counts only touch
+    events that come from the phone's hardware touchscreen input device, and
+    refuses injected events and virtual input devices. On an attested phone
+    with a locked bootloader, other apps cannot fake those.
+
+  Together they add the device to the evidence list: "typed on the physical
+  screen of a genuine phone". None of this is built yet. Today the project's
+  own test robot types on an emulator, and its stamps are valid.
+- **iOS.** A keyboard extension draws its own keys, so it sees the same touch
+  timing and positions. Apple's CryptoKit covers the sealing and signatures,
+  App Attest gives the app check, and the network needs Full Access. iOS cannot
+  draw buttons over other apps, so readers would check stamps through the share
+  menu ("Verify NTK stamp") or a Safari extension. Roughly 1 to 2 weeks for one
+  iOS developer, plus App Store review.
+- **Mainnet.** The OutLayer project owned by a DAO, or frozen, so no one can
+  publish a version that reads fingerprints.
+- **NEAR AI Cloud.** Judge, inside a private model, whether a text was
+  composed or copied.
+- **Real typing data.** Tune the matcher with consenting volunteers; keep one
+  fingerprint per layout.
+- **Store releases.** Google Play after the required closed test, and TestFlight.
+- **Privacy of short texts.** A secret part in the tag, so that the public
+  record alone cannot confirm a guessed short text.
 
 ## User flow
 
