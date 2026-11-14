@@ -1,0 +1,76 @@
+Terms of use: https://ntk.tools/terms/
+Privacy notice: https://ntk.tools/privacy/
+
+TERMS OF USE
+The short version: NTK is a hackathon prototype on NEAR testnet, provided as it is. Use it at your own risk. Updated 14 November 2026. Terms version 1.
+
+In short
+- NTK measures how you type: how long you hold each key, the time between keys and where your finger lands. It does not keep what you type.
+- When you enroll or sign, these statistics go sealed to the NTK enclave on NEAR OutLayer, which keeps your typing fingerprint encrypted. Nobody at NTK can read it.
+- We do not run OutLayer, NEAR or the other services NTK relies on, and we cannot guarantee or control them. If one of them fails or is compromised, your typing statistics could be exposed. Typing rhythm is biometric data.
+- Stamps are public and permanent. The text itself is never published.
+- NTK comes without any warranty. Use it at your own risk.
+
+What NTK is
+NTK (Near The Keyboard) is an open-source keyboard for Android and a website, built at a hackathon. It runs on NEAR testnet only, so no real money is involved. It may change, stop working or be shut down at any time, and testnet data may be lost.
+
+What you agree to
+By using the keyboard you agree that it measures your typing as described on the privacy page and sends those measurements, sealed, to the NTK enclave when you tap Enroll or Sign. The enclave keeps your typing fingerprint encrypted and uses it only to check new typing.
+
+Services we do not control
+NTK relies on NEAR OutLayer (which runs the enclave in Intel TDX and holds its keys), Intel TDX, NEAR testnet, your NEAR wallet, Cloudflare and the server that hosts ntk.tools and the relay. We do not run these services and cannot guarantee their security, privacy or availability. A fault or a breach in one of them could expose your typing statistics or stop NTK from working.
+
+Stamps
+A stamp is a public record: your NEAR account, a hash of the text, its length, the scores and the time. It cannot be deleted. A stamp is evidence that a text was typed key by key on the NTK keyboard by someone whose typing matches the account's fingerprint. It does not prove who you are, and it does not prove the text was written without help.
+
+Your choices
+- Delete your typing fingerprint at any time in the app (Delete my fingerprint).
+- Stop all measuring by switching to another keyboard or uninstalling NTK.
+- Do not rely on NTK where a wrong result could harm you or others.
+
+No warranty, no liability
+NTK is provided as it is, without warranty of any kind. To the extent the law allows, its authors are not liable for any loss or damage that comes from using it. The source code is open under its licences (MIT for NTK's own code, Apache-2.0 for the keyboard it is built on).
+
+Changes, and contact
+If these terms change, the app asks you to agree again. Questions: github.com/sgraphics/nearthekeyboard.
+
+
+PRIVACY NOTICE
+NTK is a phone keyboard that measures how you type, so that you can prove you typed a text by hand. Here is what it measures, what it sends and when, and who can see what. Updated 13 November 2026.
+
+In short
+- The keyboard sends nothing while you type. It sends one sealed typing session when you tap Enroll or Sign, and nothing else.
+- Your typing fingerprint stays sealed in an enclave on NEAR OutLayer. No one can read it, not even you.
+- A stamp is public. It names your NEAR account and holds a hash of the text, never the text.
+- Delete my fingerprint in the app deletes it.
+
+What the keyboard measures
+For each key tap: which key it was, when your finger touched down and when it lifted, and where on the key it landed (the offset from the key's centre). From these the enclave learns how long you hold each key, how fast you move from one key to the next, and where your finger tends to land.
+
+What leaves the phone, and when
+One typing session, when you tap Enroll or Sign. The keyboard seals it on the phone to a key that exists only inside the NTK enclave, and sends it through our relay to the enclave on NEAR OutLayer. Nothing else is sent. No text leaves the phone except inside that sealed session.
+When the typing matches, the enclave signs a stamp. The stamped text itself is never published, only its hash.
+
+Your typing fingerprint
+The enclave folds your sessions into a fingerprint: running averages and spreads per key and per pair of keys. It keeps the fingerprint sealed in its storage on NEAR OutLayer and does not keep the sessions. No one can read the fingerprint: not us, not OutLayer, not you. The app only ever gets counts and scores back.
+Typing rhythm is biometric data. That is why enrollment asks for your consent before it starts.
+
+Deleting it
+Delete my fingerprint in the app calls the enclave's forget operation, which deletes your fingerprint. Stamps you already made stay public; they hold no typing. The key the app uses can be removed in your wallet at any time.
+
+What the relay sees
+The relay pays for calls to the enclave, so the app needs no payment key. It sees account names, the operation (enroll, stamp, status, forget), times and sizes, never the contents of a session: those are sealed. OutLayer's API sees the same.
+
+What a published stamp contains
+Your NEAR account, the hash of the stamped text, how many characters and key taps it covers, the match scores, the time and the id of the OutLayer call that issued it. Anyone can read a stamp by its id. Because it names your account, posting a stamped text links that account to the post.
+
+Stamp buttons in other apps
+If you switch it on, an accessibility service reads the text on your screen, on the phone only, to find NTK tags and put a button on them. Nothing leaves the phone until you tap a button. The tap opens the verify page with the text in the address fragment (the part after #), which browsers do not send to servers.
+
+This website
+The verify page sends only the stamp id, to OutLayer's public storage, to fetch the stamp. The text you check stays in your browser.
+The login page asks your own wallet (Meteor or Intear) to add the app's key to your account. Like every NEAR access key, that key is public on chain. The page asks a public NEAR RPC whether the key is there and sends nothing else; it keeps your wallet connection in this browser so that you can log in again.
+ntk.tools runs on the project's server behind Cloudflare. Both log requests (address, time, page), as most websites do. The site sets no cookies of its own and has no analytics or ads.
+
+Testnet, and contact
+NTK is a hackathon project and runs on NEAR testnet only. Questions and requests: github.com/sgraphics/nearthekeyboard.

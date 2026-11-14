@@ -155,8 +155,7 @@ if [ "$PART" = all ]; then
     sleep 1 # the account from the wallet route is shown on the setup screen
   fi
   tap text "Enroll: type three short texts"; mark enroll
-  sleep 3.5 # the consent screen
-  tap text "I agree. Start enrolling"; mark agree
+  sleep 2 # consent is given once, on the first-run screen (app 0.3), before this point
   robot_step 1 v_enroll_1 OK
   robot_step 2 a_enroll_2 OK
   robot_step 3 v_enroll_3 OK

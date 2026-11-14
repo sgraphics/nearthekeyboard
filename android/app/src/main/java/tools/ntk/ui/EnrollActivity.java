@@ -3,7 +3,6 @@ package tools.ntk.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -18,10 +17,12 @@ import rkr.simplekeyboard.inputmethod.R;
 import tools.ntk.AccountStore;
 import tools.ntk.NtkController;
 import tools.ntk.SignFlow;
+import tools.ntk.Terms;
 
 /**
- * Enrollment (TODO.md 3.5): a consent screen, then three prompts typed with
- * NTK. Each field carries privateImeOptions "tools.ntk.enroll=compose" or
+ * Enrollment (TODO.md 3.5): three prompts typed with NTK, under the terms the
+ * user accepted on the first-run screen (one line recalls them: biometric data,
+ * how to delete it), so nobody is asked twice. Each field carries privateImeOptions "tools.ntk.enroll=compose" or
  * "=copy", so the keyboard's key in the strip says Enroll and sends the
  * session to the enclave's `enroll` with that mode. The result screen is
  * driven by the enclave's `ready`; no fingerprint data comes back.
@@ -37,7 +38,7 @@ public final class EnrollActivity extends Activity implements SignFlow.Listener 
         "One more: describe the room you are in right now.",
     };
 
-    private View mConsent, mPrompts, mDone;
+    private View mPrompts, mDone;
     private TextView mStep, mPrompt, mCopy, mResult, mDoneDetail;
     private EditText[] mFields;
     private int mIndex;
@@ -45,9 +46,13 @@ public final class EnrollActivity extends Activity implements SignFlow.Listener 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!Terms.accepted(this)) {
+            startActivity(new Intent(this, TermsActivity.class));
+            finish();
+            return;
+        }
         setContentView(R.layout.ntk_activity_enroll);
         SetupActivity.applyInsets(findViewById(R.id.ntk_root));
-        mConsent = findViewById(R.id.ntk_consent);
         mPrompts = findViewById(R.id.ntk_prompts);
         mDone = findViewById(R.id.ntk_done);
         mStep = findViewById(R.id.ntk_step);
@@ -58,11 +63,6 @@ public final class EnrollActivity extends Activity implements SignFlow.Listener 
         mFields = new EditText[] { findViewById(R.id.ntk_field_1), findViewById(R.id.ntk_field_2), findViewById(R.id.ntk_field_3) };
         mCopy.setText(COPY_SENTENCE);
 
-        findViewById(R.id.ntk_btn_agree).setOnClickListener(v -> {
-            prefs().edit().putBoolean("consent_v1", true).apply();
-            showPrompt(0);
-        });
-        findViewById(R.id.ntk_btn_cancel).setOnClickListener(v -> finish());
         findViewById(R.id.ntk_btn_done).setOnClickListener(v -> finish());
 
         if (AccountStore.get(this).current() == null) {
@@ -70,13 +70,7 @@ public final class EnrollActivity extends Activity implements SignFlow.Listener 
             finish();
             return;
         }
-        if (prefs().getBoolean("consent_v1", false) && getIntent().getBooleanExtra("skip_consent", true)) {
-            showPrompt(0);
-        }
-    }
-
-    private SharedPreferences prefs() {
-        return getSharedPreferences("ntk_ui", Context.MODE_PRIVATE);
+        showPrompt(0);
     }
 
     @Override
@@ -94,7 +88,6 @@ public final class EnrollActivity extends Activity implements SignFlow.Listener 
     /** Shows prompt i (0..2) and focuses its field, which starts a new enrollment session. */
     public void showPrompt(int i) {
         mIndex = i;
-        mConsent.setVisibility(View.GONE);
         mDone.setVisibility(View.GONE);
         mPrompts.setVisibility(View.VISIBLE);
         mStep.setText(String.format(Locale.ROOT, "Prompt %d of 3%s", i + 1, i == 1 ? " (copy)" : ""));

@@ -27,6 +27,7 @@ import tools.ntk.AccountStore;
 import tools.ntk.Links;
 import tools.ntk.Ntk;
 import tools.ntk.NtkController;
+import tools.ntk.Terms;
 import tools.ntk.a11y.StampButtonService;
 
 /**
@@ -44,6 +45,15 @@ public final class SetupActivity extends Activity implements NtkController.Liste
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Debug builds: scripts may accept the terms, as a test user would by ticking the box
+        // (adb shell am start -n tools.ntk.keyboard/tools.ntk.ui.SetupActivity --ez ntk.acceptTerms true).
+        if (BuildConfig.DEBUG && getIntent().getBooleanExtra("ntk.acceptTerms", false)) Terms.accept(this);
+        if (!Terms.accepted(this)) {
+            // The first-run screen comes before anything else; it opens this screen when accepted.
+            startActivity(new Intent(this, TermsActivity.class));
+            finish();
+            return;
+        }
         setContentView(R.layout.ntk_activity_setup);
         applyInsets(findViewById(R.id.ntk_root));
         mKbStatus = findViewById(R.id.ntk_kb_status);

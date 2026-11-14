@@ -34,6 +34,8 @@ public abstract class RobotBase {
         inst = InstrumentationRegistry.getInstrumentation();
         ctx = inst.getTargetContext();
         robot = new Robot(inst);
+        // The first-run screen asks for the terms before anything else; a test user has agreed.
+        Terms.accept(ctx);
         robot.shell("input keyevent KEYCODE_WAKEUP");
         robot.shell("wm dismiss-keyguard");
         robot.shell("svc power stayon true");

@@ -16,6 +16,11 @@ calls, bundled binaries.
 
 - The app id `tools.ntk.keyboard` and the name "NTK". Upstream's Java packages
   are kept; NTK's code is in the package `tools.ntk` (`app/src/main/java/tools/ntk/`).
+- A first-run screen (`ui/TermsActivity`, `Terms`): what NTK measures and its
+  risks, the Terms of use and the Privacy notice of ntk.tools as plain text
+  (`res/raw/ntk_terms.txt`), a box to tick and Continue. It comes before
+  anything else in the app, and again when `Terms.VERSION` goes up; until then
+  the keyboard sends nothing (Sign and Enroll open it).
 - Calls go through the NTK relay (`https://ntk.tools/api`), which holds the
   OutLayer payment key. Debug builds can instead call OutLayer directly with a
   testnet payment key from `local.properties` (chosen on the setup screen); release

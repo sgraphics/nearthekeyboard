@@ -44,14 +44,15 @@ evidence that the matching works on real people.
 ## Install the keyboard (Android)
 
 Download page: <https://ntk.tools/app/>. The signed APK is
-<https://ntk.tools/download/ntk-keyboard-0.2.apk> (1.0 MB, Android 7 or newer,
+<https://ntk.tools/download/ntk-keyboard-0.3.apk> (1.0 MB, Android 7 or newer,
 tested on Android 16), SHA-256
-`2cde61ca827abe9b68f6eebd71e6512ff8b2e5c689927a76b98ff207a291e9c8`, signing
+`743bf6611e9918e33e3e0b5b9a122974479080018b4bfd18006e3d3ebfb33413`, signing
 certificate `CN=Near The Keyboard`, SHA-256
 `09:88:34:DE:9A:59:94:C0:CC:AF:0F:60:E7:4D:35:DF:16:77:D5:3F:62:5A:A1:5D:EB:6A:BD:7C:B2:87:50:65`.
 
 1. Open the APK and allow your browser to install apps when Android asks.
-2. In NTK, turn the keyboard on in system settings and switch to it.
+2. In NTK, agree to the terms on the first screen, then turn the keyboard on
+   in system settings and switch to it.
 3. Log in with a NEAR testnet wallet (Meteor or Intear approve one transaction
    that adds a key that can only sign NTK requests), or let NTK create a
    testnet account.

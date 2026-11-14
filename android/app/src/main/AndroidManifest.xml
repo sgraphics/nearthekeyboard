@@ -76,6 +76,13 @@
         </activity>
 
         <!-- NTK: consent and the three enrollment prompts, typed with NTK. -->
+        <!-- NTK: the first-run screen, the Terms of use and the Privacy notice (tools.ntk.Terms). -->
+        <activity
+            android:name="tools.ntk.ui.TermsActivity"
+            android:label="@string/english_ime_name"
+            android:exported="false"
+            android:theme="@style/NtkAppTheme" />
+
         <activity
             android:name="tools.ntk.ui.EnrollActivity"
             android:label="@string/english_ime_name"

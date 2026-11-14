@@ -202,6 +202,10 @@ public final class NtkController {
      * is reported as MATCH.
      */
     public void send(final String op, final TypingSession session, final Callback<Result> cb) {
+        if (!Terms.accepted(mContext)) {
+            cb.done(Result.error("Accept the terms first", "TERMS")); // nothing is sent before
+            return;
+        }
         final AccountStore.Account account = AccountStore.get(mContext).current();
         if (account == null) {
             cb.done(Result.error("Log in first", "NO_ACCOUNT"));

@@ -149,7 +149,7 @@
     <!-- The main action on a screen: a flat orange tile, white text in a medium weight. -->
     <style name="NtkButton.Primary">
         <item name="android:background">@drawable/ntk_button_primary_background</item>
-        <item name="android:textColor">@color/ntk_on_accent</item>
+        <item name="android:textColor">@color/ntk_on_accent_text</item>
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
     <style name="NtkField">

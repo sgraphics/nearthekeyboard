@@ -43,39 +43,16 @@
         android:paddingTop="8dp"
         android:paddingBottom="24dp">
 
-        <!-- Consent -->
-        <LinearLayout
-            android:id="@+id/ntk_consent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView style="@style/NtkTitle" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="14dp" android:text="Before you enroll" />
-            <TextView style="@style/NtkBody" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="NTK learns how you type: for each key tap, how long you hold the key, how long your finger travels to the next key, and where on the key your finger lands. Not what you type: the enclave keeps only these measurements, as running averages." />
-            <TextView style="@style/NtkBody" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="This is biometric data. It is sealed on this phone to a key that exists only inside the NTK enclave on NEAR OutLayer (Intel TDX), and stored there sealed. Nobody can read it: not us, not OutLayer, not you." />
-            <TextView style="@style/NtkBody" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="You can delete it at any time: NTK app, Delete my fingerprint. Testnet only." />
-            <Button android:id="@+id/ntk_btn_agree" style="@style/NtkButton.Primary"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="I agree. Start enrolling" />
-            <Button android:id="@+id/ntk_btn_cancel" style="@style/NtkButton"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="Not now" />
-        </LinearLayout>
-
-        <!-- Prompts -->
+        <!-- Prompts. The consent is the first-run screen's: one line recalls it. -->
         <LinearLayout
             android:id="@+id/ntk_prompts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone">
+            <TextView style="@style/NtkSmall" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Under the terms you accepted: your typing rhythm is biometric data, sealed in the enclave. Delete it any time in the NTK app: Delete my fingerprint." />
             <TextView android:id="@+id/ntk_step" style="@style/NtkSmall"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="14dp" />

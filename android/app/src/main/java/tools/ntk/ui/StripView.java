@@ -25,6 +25,7 @@ import tools.ntk.Ntk;
 import tools.ntk.NtkCapture;
 import tools.ntk.NtkController;
 import tools.ntk.SignFlow;
+import tools.ntk.Terms;
 import tools.ntk.TypingSession;
 
 /**
@@ -264,6 +265,9 @@ public final class StripView extends View implements NtkCapture.Listener, NtkCon
                     + (st.isEmpty() ? "" : " (" + st + ")") + String.format(Locale.ROOT, " %d:%02d", sec / 60, sec % 60);
         } else if (mFlash != null && now < mFlashUntil) {
             text = mFlash;
+        } else if (!Terms.accepted(ctx)) {
+            text = "Accept the terms first: tap " + (account == null ? "Set up" : "Sign");
+            color = cMuted;
         } else if (account == null) {
             text = "Not set up: tap Set up";
             color = cMuted;

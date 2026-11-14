@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The first-run screen (ui/TermsActivity): before anything else, and again when the
+     terms version goes up. The full texts scroll in the box; Continue needs the tick. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ntk_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/ntk_background">
+
+    <!-- The header, as on the other screens: the small NTK mark at the left; at the right,
+         the screen's name above NEAR THE KEYBOARD. The mark's gaps are ntk_display. -->
+    <LinearLayout
+        style="@style/NtkHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <tools.ntk.ui.BadgeView
+            android:layout_width="wrap_content"
+            android:layout_height="15dp" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:orientation="vertical">
+            <TextView style="@style/NtkHeaderScreen" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="terms" />
+            <TextView style="@style/NtkHeaderName" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Near the keyboard" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp">
+
+        <TextView
+            style="@style/NtkTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="Before you start" />
+
+        <TextView
+            style="@style/NtkBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="15sp"
+            android:text="NTK measures how you type: how long you hold each key, the time between keys and where your finger lands. It does not keep what you type. When you enroll or sign, these statistics go sealed to an enclave on NEAR OutLayer, which keeps them encrypted. Nobody at NTK can read them. We do not run OutLayer and cannot guarantee or control it. Typing rhythm is biometric data. This is a testnet prototype: use it at your own risk." />
+
+        <!-- The full Terms of use and Privacy notice (res/raw/ntk_terms.txt), offline. -->
+        <ScrollView
+            android:id="@+id/ntk_terms_box"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:minHeight="120dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/ntk_field"
+            android:fadeScrollbars="false"
+            android:scrollbarStyle="insideInset">
+            <TextView
+                android:id="@+id/ntk_terms_text"
+                style="@style/NtkSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autoLink="web"
+                android:textIsSelectable="true" />
+        </ScrollView>
+
+        <CheckBox
+            android:id="@+id/ntk_terms_agree"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:minHeight="48dp"
+            android:buttonTint="@color/ntk_check_tint"
+            android:paddingStart="8dp"
+            android:textColor="@color/ntk_legend"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-light"
+            android:text="I agree to the Terms of use and the Privacy notice" />
+
+        <Button
+            android:id="@+id/ntk_terms_continue"
+            style="@style/NtkButton.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:enabled="false"
+            android:text="Continue" />
+    </LinearLayout>
+</LinearLayout>

@@ -27,6 +27,11 @@ Release builds only use the relay at `https://ntk.tools/api` and hold no key.
 
 ## Using it
 
+0. **First run.** The app opens on a short summary of what NTK measures and
+   its risks, with the full Terms of use and Privacy notice (bundled, offline)
+   and a box to tick before Continue. Until then the keyboard types but sends
+   nothing: Sign and Enroll open that screen. It asks again when the terms
+   version goes up.
 1. **Keyboard.** Turn NTK on in the system settings and switch to it. The strip
    above the keys shows the badge, a status light, your account and the
    **Sign** key, which fills as you near the 40 key taps a stamp needs.
@@ -38,7 +43,7 @@ Release builds only use the relay at `https://ntk.tools/api` and hold no key.
    that exactly this key is there with that receiver before it logs in. Or
    **Create a testnet account for me**: the public testnet faucet makes an
    account whose full-access key stays on the phone (testnet only).
-3. **Enroll.** A consent screen, then three short prompts typed with NTK. The
+3. **Enroll.** Three short prompts typed with NTK, under the accepted terms. The
    sessions are sealed on the phone to the enclave's key; the fingerprint is
    kept in the enclave.
 4. **Sign** in any app: the session of the current field is sealed, signed

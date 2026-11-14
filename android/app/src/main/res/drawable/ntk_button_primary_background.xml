@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The main action on a screen: a flat orange tile. -->
+<!-- The main action on a screen: a flat orange tile; a grey one while it is not available. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:drawable="@drawable/ntk_button" />
     <item android:state_pressed="true" android:drawable="@drawable/ntk_button_primary_pressed" />
     <item android:drawable="@drawable/ntk_button_primary" />
 </selector>

@@ -47,6 +47,12 @@ public final class SignFlow {
         final AccountStore.Account account = store.current();
         final NtkController ctl = NtkController.get(ctx);
         final NtkCapture cap = NtkCapture.get();
+        if (!Terms.accepted(ctx)) {
+            // Until the terms are accepted the keyboard sends nothing: Sign and Enroll open them.
+            refuse(strip, "Accept the terms first", StripView.MSG_INFO);
+            Terms.open(ctx);
+            return;
+        }
         if (account == null) {
             StripView.openSetup(ctx);
             return;
