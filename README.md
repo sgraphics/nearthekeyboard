@@ -33,7 +33,7 @@ Updated 2026-11-14. What is still open is in [TODO.md](TODO.md).
 | Protocol client, end-to-end suite | `client/` | 36 of 36 checks against the live enclave (2026-11-13), synthetic typists |
 | Verify page, demo feed, web embed, privacy page | `web/` | Live at <https://ntk.tools> |
 | Relay (holds the payment key) | `relay/` | Live at `https://ntk.tools/api` (testnet) and `https://ntk.tools/api/mainnet`; web and relay: 144 tests |
-| Android keyboard | `android/` | Signed release APK at <https://ntk.tools/app/>. Works on the Android emulator: a fresh testnet account enrolled and got MATCH (`[NTK 4420c168c8]`) through the live relay; 28 unit tests, robot typist tests |
+| Android keyboard | `android/` | Signed release APK 0.4 at <https://ntk.tools/app/>: testnet by default, mainnet in its settings, and a DONATE ribbon under the keys (5, 25 or 50 NEAR, sent from the user's own wallet through <https://ntk.tools/donate/>). Works on the Android emulator: a fresh testnet account enrolled and got MATCH (`[NTK 4420c168c8]`) through the live relay; 38 unit tests, robot typist tests |
 | Log in with a NEAR wallet | `web/login/`, `android/` | Login page live at <https://ntk.tools/login/> (NEAR Connect: Meteor, Intear). The app side works with a function-call key added from a script; not yet tried with a real wallet. The testnet faucet account also works |
 | Stamp buttons in other Android apps | `android/` | Works in Chrome on the emulator: a button over each tag opens the verify page; also "Verify NTK stamp" in the text selection menu. Not tried in the X app |
 | NEAR AI Cloud: composed or copied | — | Not started; needs an API key |

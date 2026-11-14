@@ -82,6 +82,21 @@ public final class DonatePanel extends FrameLayout {
         addView(close, new LayoutParams(dp(52), dp(52), Gravity.TOP | Gravity.END));
     }
 
+    /**
+     * As tall as the keyboard (the strip, the keys, the ribbon and the system's area under them),
+     * never taller: the input view spans the window, with the keyboard at its bottom.
+     */
+    @Override
+    protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
+        final View parent = (View) getParent();
+        final View frame = parent == null ? null : parent.findViewById(R.id.ntk_keyboard_frame);
+        int heightSpec = heightMeasureSpec;
+        if (frame != null && frame.getMeasuredHeight() > 0) {
+            heightSpec = MeasureSpec.makeMeasureSpec(frame.getMeasuredHeight(), MeasureSpec.EXACTLY);
+        }
+        super.onMeasure(widthMeasureSpec, heightSpec);
+    }
+
     /** Shows the panel of the input view that {@code from} is in. */
     public static void showFor(final View from) {
         final View panel = from.getRootView().findViewById(R.id.ntk_donate_panel);

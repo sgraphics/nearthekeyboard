@@ -47,6 +47,7 @@
          (tools.ntk.ui.DonatePanel). Hidden until then. -->
     <tools.ntk.ui.DonatePanel
         android:id="@+id/ntk_donate_panel"
+        android:layout_gravity="bottom"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content" />
 </rkr.simplekeyboard.inputmethod.latin.InputView>
