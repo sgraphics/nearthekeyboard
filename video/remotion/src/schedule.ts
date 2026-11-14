@@ -6,9 +6,16 @@ export const FPS = 30;
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
 
-/** The scenes, in the order they play. */
-export const SCENE_ORDER = ['hero', 'problem', 'login', 'enroll', 'seal', 'moment', 'stamp', 'verify', 'end'] as const;
-export type SceneId = (typeof SCENE_ORDER)[number];
+/** Every scene the timeline describes. */
+export const SCENES = ['hero', 'problem', 'login', 'enroll', 'seal', 'moment', 'stamp', 'verify', 'end'] as const;
+export type SceneId = (typeof SCENES)[number];
+
+/**
+ * The scenes that play, in order. 'problem' (Maya's chat with the question, after the hero)
+ * was cut on 2026-11-14 so that the hero leads straight into the login; its settings stay
+ * in timeline.tsx, and putting it back here plays it again.
+ */
+export const SCENE_ORDER: readonly SceneId[] = ['hero', 'login', 'enroll', 'seal', 'moment', 'stamp', 'verify', 'end'];
 
 export type ScenePlan = {id: SceneId; index: number; from: number; frames: number};
 

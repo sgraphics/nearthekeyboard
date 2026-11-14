@@ -186,7 +186,7 @@ export const LaunchComposition: React.FC = () => (
 					letters: 'every word was mine',
 					words: [
 						{from: 1.0, to: 4.3, text: 'Type your message'},
-						{from: 4.3, to: 8.5, text: 'Prove you typed it'},
+						{from: 4.3, to: 8.5, text: 'Prove **you** typed it'},
 					],
 				},
 				problem: {

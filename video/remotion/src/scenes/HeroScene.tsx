@@ -17,6 +17,10 @@ const SCALE = 2;
 const CARD = {w: SCREEN.w * SCALE, h: H * SCALE, y: 268};
 const CARD_X = (1920 - CARD.w) / 2;
 
+/** A hero word with **marked** parts in bold, e.g. 'Prove **you** typed it'. */
+const boldParts = (text: string) =>
+	text.split(/\*\*(.+?)\*\*/).map((part, i) => (i % 2 ? <b key={i} style={{fontWeight: 700}}>{part}</b> : part));
+
 export const HeroScene: React.FC<{look: Look; story: Story; s: Hero}> = ({look, story, s}) => {
 	const t = useSeconds();
 	const b = s.beats;
@@ -103,7 +107,7 @@ export const HeroScene: React.FC<{look: Look; story: Story; s: Hero}> = ({look, 
 						opacity: word(w),
 					}}
 				>
-					{w.text}
+					{boldParts(w.text)}
 				</div>
 			))}
 		</>
