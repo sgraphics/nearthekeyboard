@@ -49,6 +49,12 @@ What the config means:
     keyframe to the next.
   - `note`: the small line under the loupe, such as who did the typing.
   - `placeholder`: marks a clip that still has to be replaced.
+  - `start`: when the clip starts playing. Before that it holds its first frame, as the
+    check scene does while it explains the stamp button.
+- The check scene (`verify`) also has a `callout`: the layer over the loupe that
+  explains the NTK stamp button. It sets when the layer shows (`at`, `until`), the
+  `title` and `lines`, where the button is on the screen (`target`, fractions), and
+  the small app frames (`apps`, each a `chat`, `feed` or `mail`).
 - `defaultProps` in `src/timeline.tsx` must stay a plain literal (no
   variables or functions). Studio can then save into it, and `scripts/srt.mjs`
   can read it without running the video code.
@@ -61,7 +67,7 @@ What the config means:
 | `src/schedule.ts` | Timing math: scene starts, captions, clip parts, the `.srt`. Shared by the video and `scripts/srt.mjs` |
 | `src/Launch.tsx` | The layers, bottom to top: background, phone body, scenes, the mark and "testnet", captions |
 | `src/scenes/` | One component per scene: `ClipScene` (the four recorded scenes), `LoginScene`, `SealScene` (animation A), `StampScene` (animation B), `EndScene` |
-| `src/components/` | Phone, the drawn app screens and keyboard, the stage (NEAR, enclave, fingerprint, dial, storage, reader), the clip player with loupe, FWD marker and VHS lines, captions |
+| `src/components/` | Phone, the drawn app screens and keyboard, the stage (NEAR, enclave, fingerprint, dial, storage, reader), the clip player with loupe, FWD marker and VHS lines, the stamp-button callout, captions |
 | `src/theme.ts` | The grid every scene shares: phone at the left, loupe or stage at the right, captions at the bottom right |
 | `public/fonts/` | Inter (variable), the site's font, SIL Open Font License (`LICENSE.txt`) |
 | `public/brand/` | The NTK mark and the 3D keyboard, from `brand/out/` (the keyboard rendered at 3× from its SVG) |

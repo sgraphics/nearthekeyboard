@@ -35,6 +35,16 @@ const clip = z.object({
 	note: z.string(),
 });
 const clipScene = z.object({seconds: z.number().min(1), label: z.string(), phone: z.string(), captions: z.array(caption), clip});
+// A layer over the loupe that points at something on the screen and explains it (the check scene's stamp button).
+const callout = z.object({
+	at: z.number(),
+	until: z.number(),
+	title: z.string(),
+	lines: z.array(zTextarea()),
+	target: z.object({x: z.number(), y: z.number(), w: z.number(), h: z.number()}),
+	apps: z.array(z.object({kind: z.enum(['chat', 'feed', 'mail']), label: z.string()})),
+	appsAt: z.number(),
+});
 const animScene = <T extends z.ZodRawShape>(beats: T) =>
 	z.object({seconds: z.number().min(1), label: z.string(), phone: z.string(), captions: z.array(caption), beats: z.object(beats)});
 const n = z.number();
@@ -91,7 +101,7 @@ export const timelineSchema = z.object({
 		stamp: animScene({
 			players: n, sign: n, travel: n, arrive: n, nearAsk: n, nearOk: n, open: n, score: n, press: n, tagBack: n, publish: n, lookup: n, match: n,
 		}),
-		verify: clipScene,
+		verify: clipScene.extend({callout}),
 		end: animScene({keyboard: n, title: n, links: n}),
 	}),
 });
@@ -272,41 +282,65 @@ export const LaunchComposition: React.FC = () => (
 					},
 				},
 				verify: {
-					seconds: 20,
+					seconds: 30.7,
 					label: 'The check',
 					phone: 'Maya’s phone',
 					captions: [
-						{from: 0.2, to: 3.4, text: 'Maya has NTK too: on her phone the tag is a button.'},
-						{from: 3.4, to: 9.4, text: 'One tap: MATCH. The stamp is genuine and the text unchanged.'},
-						{from: 9.4, to: 20, text: 'Anyone can check it. Change one word and it fails.'},
+						{from: 0.2, to: 7.6, text: 'On Maya’s phone, NTK turns the tag into a button. In any app.'},
+						{from: 7.6, to: 11.1, text: 'Maya taps it.'},
+						{from: 11.1, to: 16.6, text: 'MATCH: the stamp is genuine and the text unchanged.'},
+						{from: 16.6, to: 30.7, text: 'Anyone can check it. Change one word and it fails.'},
 					],
 					clip: {
 						src: 'clips/verify.mp4',
 						placeholder: false,
-						start: 0,
+						start: 8.0,
 						parts: [
-							{from: 2.2, to: 5.5, speed: 1},
-							{from: 5.5, to: 9.8, speed: 1},
-							{from: 9.8, to: 39.5, speed: 12},
-							{from: 39.5, to: 44.0, speed: 1.5},
+							{from: 4.2, to: 5.5, speed: 1},
+							{from: 5.5, to: 10.6, speed: 1},
+							{from: 10.6, to: 39.5, speed: 12},
+							{from: 39.5, to: 44.0, speed: 1},
 							{from: 44.0, to: 48.8, speed: 6},
-							{from: 48.8, to: 52.4, speed: 2},
-							{from: 52.4, to: 56.4, speed: 1},
+							{from: 48.8, to: 57.4, speed: 1},
 						],
 						loupe: [
 							{at: 0, x: 0.5, y: 0.6, w: 1},
-							{at: 3.3, x: 0.5, y: 0.6, w: 1},
-							{at: 4.1, x: 0.5, y: 0.38, w: 1},
-							{at: 7.6, x: 0.5, y: 0.38, w: 1},
-							{at: 8.2, x: 0.5, y: 0.45, w: 1},
-							{at: 9.8, x: 0.5, y: 0.45, w: 1},
-							{at: 10.4, x: 0.5, y: 0.36, w: 1},
-							{at: 13.8, x: 0.5, y: 0.36, w: 1},
-							{at: 14.5, x: 0.5, y: 0.27, w: 1},
-							{at: 17.2, x: 0.5, y: 0.27, w: 1},
-							{at: 17.9, x: 0.5, y: 0.33, w: 1},
+							{at: 0.8, x: 0.5, y: 0.6, w: 1},
+							{at: 3.8, x: 0.4, y: 0.693, w: 0.75},
+							{at: 7.2, x: 0.4, y: 0.693, w: 0.75},
+							{at: 8.0, x: 0.5, y: 0.6, w: 1},
+							{at: 9.9, x: 0.5, y: 0.6, w: 1},
+							{at: 10.7, x: 0.5, y: 0.38, w: 1},
+							{at: 14.4, x: 0.5, y: 0.38, w: 1},
+							{at: 15.0, x: 0.5, y: 0.45, w: 1},
+							{at: 16.6, x: 0.5, y: 0.45, w: 1},
+							{at: 17.2, x: 0.5, y: 0.74, w: 1},
+							{at: 18.9, x: 0.5, y: 0.74, w: 1},
+							{at: 19.4, x: 0.5, y: 0.42, w: 1},
+							{at: 20.2, x: 0.5, y: 0.42, w: 1},
+							{at: 20.7, x: 0.5, y: 0.36, w: 1},
+							{at: 22.6, x: 0.5, y: 0.36, w: 1},
+							{at: 23.3, x: 0.5, y: 0.27, w: 1},
+							{at: 27.3, x: 0.5, y: 0.27, w: 1},
+							{at: 28.0, x: 0.5, y: 0.33, w: 1},
 						],
 						note: 'Taps in this clip: the test robot',
+					},
+					callout: {
+						at: 1.4,
+						until: 7.5,
+						title: 'The NTK button',
+						lines: [
+							'Android draws it over every [NTK …] tag, in any app: Messages, X, Reddit, email.',
+							'It comes with the NTK keyboard app. Nothing leaves the phone until you tap.',
+						],
+						target: {x: 0.527, y: 0.677, w: 0.313, h: 0.025},
+						apps: [
+							{kind: 'chat', label: 'Chat'},
+							{kind: 'feed', label: 'Feed'},
+							{kind: 'mail', label: 'Mail'},
+						],
+						appsAt: 2.6,
 					},
 				},
 				end: {

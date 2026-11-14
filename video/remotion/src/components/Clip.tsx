@@ -90,12 +90,20 @@ export const focusAt = (keys: Focus[], t: number): Focus => {
 };
 
 /** The region as fractions of the screen, kept inside the screen when it is narrower than the screen. */
-const region = (f: Focus) => {
+export const region = (f: Focus) => {
 	const w = f.w;
 	const h = (LOUPE.h / LOUPE.w) * (w / ASPECT);
 	const x = w < 1 ? Math.min(1 - w / 2, Math.max(w / 2, f.x)) : 0.5;
 	const y = h < 1 ? Math.min(1 - h / 2, Math.max(h / 2, f.y)) : 0.5;
 	return {x, y, w, h};
+};
+
+/** Where a point of the screen (fractions) shows in the loupe at scene time t, on the frame; and how much the loupe magnifies. */
+export const inLoupe = (keys: Focus[], t: number, px: number, py: number) => {
+	const r = region(focusAt(keys, t));
+	const fullW = LOUPE.w / r.w;
+	const fullH = fullW * ASPECT;
+	return {x: LOUPE.x + LOUPE.w / 2 + (px - r.x) * fullW, y: LOUPE.y + LOUPE.h / 2 + (py - r.y) * fullH, scale: fullW / 1080};
 };
 
 /** VHS tracking lines and a little grain over a box, at `strength` (0..1). */
