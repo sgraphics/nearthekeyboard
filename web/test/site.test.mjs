@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { createRelay } from '../../relay/server.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PAGES = ['/', '/e65ee28db5', '/feed/', '/feed/?embed=1', '/messages/', '/messages/?embed=1', '/login/', '/privacy/', '/app/'];
+const PAGES = ['/', '/e65ee28db5', '/feed/', '/feed/?embed=1', '/messages/', '/messages/?embed=1', '/login/', '/privacy/', '/app/', '/terms/'];
 const ENTRY = ['/embed/ntk-embed.js', '/embed/ntk-embed.css', '/favicon.ico', '/assets/ntk-social-1280x640.png'];
 
 async function startSite() {
@@ -83,7 +83,7 @@ test('every page and every file it refers to resolves, with the right type', asy
 test('markup fits the CSP: no inline scripts, no inline styles, no innerHTML', async () => {
   const { relay, base } = await startSite();
   try {
-    for (const p of ['/', '/feed/', '/messages/', '/login/', '/privacy/', '/app/']) {
+    for (const p of ['/', '/feed/', '/messages/', '/login/', '/privacy/', '/app/', '/terms/']) {
       const html = await (await fetch(base + p)).text();
       assert.doesNotMatch(html, /<script(?![^>]*\ssrc=)[^>]*>/i, `${p}: inline <script>`);
       assert.doesNotMatch(html, /\sstyle=/i, `${p}: style attribute`);
