@@ -99,8 +99,9 @@ export const region = (f: Focus) => {
 };
 
 /** Where a point of the screen (fractions) shows in the loupe at scene time t, on the frame; and how much the loupe magnifies. */
-export const inLoupe = (keys: Focus[], t: number, px: number, py: number) => {
-	const r = region(focusAt(keys, t));
+export const inLoupe = (keys: Focus[], t: number, px: number, py: number, shift = {x: 0, y: 0}) => {
+	const f = focusAt(keys, t);
+	const r = region({...f, x: f.x + shift.x, y: f.y + shift.y});
 	const fullW = LOUPE.w / r.w;
 	const fullH = fullW * ASPECT;
 	return {x: LOUPE.x + LOUPE.w / 2 + (px - r.x) * fullW, y: LOUPE.y + LOUPE.h / 2 + (py - r.y) * fullH, scale: fullW / 1080};
@@ -179,24 +180,33 @@ export const FwdChip: React.FC<{speed: number; strength: number; fwd: Fwd; scale
 };
 
 /** The clip on the phone's screen, with the VHS lines while fast. */
-export const ScreenClip: React.FC<{clip: ClipConfig; fwd: Fwd}> = ({clip, fwd}) => {
+/** What the screen shows before the clip starts, instead of its first frame, at a given size; and how far the loupe follows it. */
+export type PreStart = {render: (w: number, h: number) => React.ReactNode; shift: {x: number; y: number}};
+
+export const ScreenClip: React.FC<{clip: ClipConfig; fwd: Fwd; pre?: PreStart}> = ({clip, fwd, pre}) => {
 	const frame = useCurrentFrame();
 	const {parts} = clipPlan(clip);
 	const strength = fwdStrength(parts, frame);
 	return (
 		<>
-			<ClipFrames clip={clip} style={{position: 'absolute', left: 0, top: 0, width: SCREEN.w, height: SCREEN.h}} />
+			{pre && frame < clipPlan(clip).start ? (
+				pre.render(SCREEN.w, SCREEN.h)
+			) : (
+				<ClipFrames clip={clip} style={{position: 'absolute', left: 0, top: 0, width: SCREEN.w, height: SCREEN.h}} />
+			)}
 			<Vhs w={SCREEN.w} h={SCREEN.h} strength={strength} fwd={fwd} />
 		</>
 	);
 };
 
 /** The loupe: the region of the screen it looks at, framed on the phone and joined to it by two thin lines. */
-export const Loupe: React.FC<{clip: ClipConfig; look: Look; fwd: Fwd; t: number}> = ({clip, look, fwd, t}) => {
+export const Loupe: React.FC<{clip: ClipConfig; look: Look; fwd: Fwd; t: number; pre?: PreStart}> = ({clip, look, fwd, t, pre}) => {
 	const frame = useCurrentFrame();
 	const {parts} = clipPlan(clip);
 	const strength = fwdStrength(parts, frame);
-	const r = region(focusAt(clip.loupe, t));
+	const before = pre && frame < clipPlan(clip).start ? pre : null;
+	const f = focusAt(clip.loupe, t);
+	const r = region(before ? {...f, x: f.x + before.shift.x, y: f.y + before.shift.y} : f);
 	const fullW = LOUPE.w / r.w;
 	const fullH = fullW * ASPECT;
 	const left = LOUPE.w / 2 - r.x * fullW;
@@ -237,7 +247,11 @@ export const Loupe: React.FC<{clip: ClipConfig; look: Look; fwd: Fwd; t: number}
 					boxShadow: SHADOW,
 				}}
 			>
-				<ClipFrames clip={clip} style={{position: 'absolute', left, top, width: fullW, height: fullH}} />
+				{before ? (
+					<div style={{position: 'absolute', left, top, width: fullW, height: fullH}}>{before.render(fullW, fullH)}</div>
+				) : (
+					<ClipFrames clip={clip} style={{position: 'absolute', left, top, width: fullW, height: fullH}} />
+				)}
 				<Vhs w={LOUPE.w} h={LOUPE.h} strength={strength} fwd={fwd} />
 				<FwdChip speed={speedAt(parts, frame)} strength={strength} fwd={fwd} />
 				{clip.placeholder ? (

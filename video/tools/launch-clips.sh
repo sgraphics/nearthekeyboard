@@ -7,6 +7,8 @@
 #   bash video/tools/launch-clips.sh moment    reply there with NTK: the robot types, Sign, the wait, the tag, send
 #   bash video/tools/launch-clips.sh check     Maya's phone (/messages/?fresh=1&as=maya): the stamp button on the
 #                                              tag, the verify page with MATCH; one word changed: NO MATCH
+#   bash video/tools/launch-clips.sh feed      the X-like demo feed (/feed/) with the stamp buttons on: its stamped
+#                                              reply, with the NTK button on the tag (the check scene's app cycle)
 #   bash video/tools/launch-clips.sh enroll    the NTK app: Enroll, consent, three prompts typed by the robot,
 #                                              "Fingerprint created, sealed in the enclave"
 #
@@ -17,7 +19,7 @@
 set -euo pipefail
 export MSYS_NO_PATHCONV=1
 PART="${1:-}"
-case "$PART" in problem|moment|check|enroll) ;; *) echo "usage: $0 problem|moment|check|enroll"; exit 2 ;; esac
+case "$PART" in problem|moment|check|feed|enroll) ;; *) echo "usage: $0 problem|moment|check|feed|enroll"; exit 2 ;; esac
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 D="$ROOT/scripts/device"
 T="$ROOT/video/tools"
@@ -230,6 +232,23 @@ check)
   sleep 1.5
   adb shell input swipe 540 900 540 1250 500 # the verdict fully in view
   sleep 4; mark end
+  bash "$T/record.sh" stop "$NAME"
+  ;;
+feed)
+  bash "$D/a11y-on.sh"
+  open_url "$SITE/feed/"; sleep 6
+  # the stamped reply (the feed's own, [NTK e65ee28db5]) up to about two thirds of the screen
+  for _ in 1 2 3 4 5 6 7 8; do
+    y=$(bash "$D/ui.sh" | awk -F'	' 'index($1, "This reply was typed by me") { split($3, a, " "); print a[2]; exit }' || true)
+    [ -n "$y" ] && [ "$y" -gt 1350 ] && [ "$y" -lt 1800 ] && break
+    if [ -n "$y" ] && [ "$y" -le 1350 ]; then adb shell input swipe 540 1000 540 1300 900; else adb shell input swipe 540 1700 540 1200 900; fi
+    sleep 2
+  done
+  adb logcat -c
+  bash "$T/record.sh" start "$NAME" >/dev/null
+  sleep 1.5; mark start
+  adb shell input swipe 540 1300 540 1260 500 # a small scroll: frames are written, the service places its button again
+  sleep 6; mark end
   bash "$T/record.sh" stop "$NAME"
   ;;
 enroll)

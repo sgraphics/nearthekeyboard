@@ -51,10 +51,20 @@ What the config means:
   - `placeholder`: marks a clip that still has to be replaced.
   - `start`: when the clip starts playing. Before that it holds its first frame, as the
     check scene does while it explains the stamp button.
-- The check scene (`verify`) also has a `callout`: the layer over the loupe that
-  explains the NTK stamp button. It sets when the layer shows (`at`, `until`), the
-  `title` and `lines`, where the button is on the screen (`target`, fractions), and
-  the small app frames (`apps`, each a `chat`, `feed` or `mail`).
+- The check scene (`verify`) also has a `callout` and a `cycle`. The `callout` is
+  the layer over the loupe that explains the NTK stamp button: when it shows
+  (`at`, `until`), its `title` and `lines`. In a line, `{app}` becomes the name of
+  the app on screen. The `cycle` runs before the clip starts: Maya's phone
+  switches between apps that each show the button (`at`, then one app every
+  `every` seconds, with `slide` seconds per slide, then back to the first). Each
+  app is one of:
+  - `clip`: the scene's own first frame;
+  - `video`: a frame of another recording (`src`, `frame` in seconds);
+  - `forum` or `email`: a drawn screen labelled "illustration". Its stamped text is
+    in `lines`; the last line ends at the tag.
+
+  Each app also has `target`, where its button is on the screen (centre `x`, `y`,
+  size `w`, `h`, as fractions). The loupe and the ring follow it.
 - `defaultProps` in `src/timeline.tsx` must stay a plain literal (no
   variables or functions). Studio can then save into it, and `scripts/srt.mjs`
   can read it without running the video code.
@@ -67,7 +77,7 @@ What the config means:
 | `src/schedule.ts` | Timing math: scene starts, captions, clip parts, the `.srt`. Shared by the video and `scripts/srt.mjs` |
 | `src/Launch.tsx` | The layers, bottom to top: background, phone body, scenes, the mark and "testnet", captions |
 | `src/scenes/` | One component per scene: `ClipScene` (the four recorded scenes), `LoginScene`, `SealScene` (animation A), `StampScene` (animation B), `EndScene` |
-| `src/components/` | Phone, the drawn app screens and keyboard, the stage (NEAR, enclave, fingerprint, dial, storage, reader), the clip player with loupe, FWD marker and VHS lines, the stamp-button callout, captions |
+| `src/components/` | Phone, the drawn app screens and keyboard, the stage (NEAR, enclave, fingerprint, dial, storage, reader), the clip player with loupe, FWD marker and VHS lines, the stamp-button callout and app cycle, captions |
 | `src/theme.ts` | The grid every scene shares: phone at the left, loupe or stage at the right, captions at the bottom right |
 | `public/fonts/` | Inter (variable), the site's font, SIL Open Font License (`LICENSE.txt`) |
 | `public/brand/` | The NTK mark and the 3D keyboard, from `brand/out/` (the keyboard rendered at 3× from its SVG) |
@@ -86,6 +96,7 @@ synthetic typist, and the video says so under the loupe.
 bash video/tools/launch-clips.sh problem   # /messages/?fresh=1, ending with Maya's question
 bash video/tools/launch-clips.sh moment    # the robot answers with NTK, Sign, the tag, send
 bash video/tools/launch-clips.sh check     # Maya's view: the stamp button, MATCH; one word changed: NO MATCH
+bash video/tools/launch-clips.sh feed      # the X-like demo feed with the stamp buttons on (the app cycle)
 bash video/tools/launch-clips.sh enroll    # Enroll, three prompts typed by the robot, "Fingerprint created"
 ```
 
@@ -107,6 +118,7 @@ current clips were cut from the takes in `video/raw/` (not committed) like this:
 | `problem.mp4` | `--in ../raw/launch-problem.mp4 --range 1.0-11.8` |
 | `moment.mp4` | `--in ../raw/launch-moment.mp4 --range 2.0-38.0` |
 | `verify.mp4` | `--in ../raw/launch-check.mp4 --range 2.0-60.4` |
+| `feed.mp4` | `--in ../raw/launch-feed.mp4 --range 5.0-8.1` |
 | `enroll.mp4` | `--in ../raw/launch-enroll.mp4 --range 3.0-47.0 --range 47.0-358.0@2 --range 358.0-366.3 --gop 150` |
 
 The `moment` take must come before `check`, which taps the stamp that

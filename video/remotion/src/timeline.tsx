@@ -35,16 +35,21 @@ const clip = z.object({
 	note: z.string(),
 });
 const clipScene = z.object({seconds: z.number().min(1), label: z.string(), phone: z.string(), captions: z.array(caption), clip});
-// A layer over the loupe that points at something on the screen and explains it (the check scene's stamp button).
-const callout = z.object({
-	at: z.number(),
-	until: z.number(),
-	title: z.string(),
-	lines: z.array(zTextarea()),
+// The check scene: a layer over the loupe that points at the stamp button and explains it ("{app}" in a
+// line becomes the name of the app shown), and, before its clip starts, a cycle through apps that each
+// show the button. An app is the clip's own first frame ("clip"), a frame of another recording ("video",
+// src and frame in seconds), or a drawn screen ("forum", "email": lines, the last one ends at the tag),
+// with where its button is on the screen (target: centre x, y and size w, h as fractions).
+const callout = z.object({at: z.number(), until: z.number(), title: z.string(), lines: z.array(zTextarea())});
+const cycleApp = z.object({
+	kind: z.enum(['clip', 'video', 'forum', 'email']),
+	label: z.string(),
+	src: z.string(),
+	frame: z.number(),
+	lines: z.array(z.string()),
 	target: z.object({x: z.number(), y: z.number(), w: z.number(), h: z.number()}),
-	apps: z.array(z.object({kind: z.enum(['chat', 'feed', 'mail']), label: z.string()})),
-	appsAt: z.number(),
 });
+const cycle = z.object({at: z.number(), every: z.number().min(0.5), slide: z.number().min(0.05), apps: z.array(cycleApp).min(1)});
 const animScene = <T extends z.ZodRawShape>(beats: T) =>
 	z.object({seconds: z.number().min(1), label: z.string(), phone: z.string(), captions: z.array(caption), beats: z.object(beats)});
 const n = z.number();
@@ -101,7 +106,7 @@ export const timelineSchema = z.object({
 		stamp: animScene({
 			players: n, sign: n, travel: n, arrive: n, nearAsk: n, nearOk: n, open: n, score: n, press: n, tagBack: n, publish: n, lookup: n, match: n,
 		}),
-		verify: clipScene.extend({callout}),
+		verify: clipScene.extend({callout, cycle}),
 		end: animScene({keyboard: n, title: n, links: n}),
 	}),
 });
@@ -282,19 +287,19 @@ export const LaunchComposition: React.FC = () => (
 					},
 				},
 				verify: {
-					seconds: 30.7,
+					seconds: 34.7,
 					label: 'The check',
 					phone: 'Maya’s phone',
 					captions: [
-						{from: 0.2, to: 7.6, text: 'On Maya’s phone, NTK turns the tag into a button. In any app.'},
-						{from: 7.6, to: 11.1, text: 'Maya taps it.'},
-						{from: 11.1, to: 16.6, text: 'MATCH: the stamp is genuine and the text unchanged.'},
-						{from: 16.6, to: 30.7, text: 'Anyone can check it. Change one word and it fails.'},
+						{from: 0.2, to: 11.6, text: 'On Maya’s phone, NTK turns the tag into a button. In any app.'},
+						{from: 11.6, to: 15.1, text: 'Maya taps it.'},
+						{from: 15.1, to: 20.6, text: 'MATCH: the stamp is genuine and the text unchanged.'},
+						{from: 20.6, to: 34.7, text: 'Anyone can check it. Change one word and it fails.'},
 					],
 					clip: {
 						src: 'clips/verify.mp4',
 						placeholder: false,
-						start: 8.0,
+						start: 12.0,
 						parts: [
 							{from: 4.2, to: 5.5, speed: 1},
 							{from: 5.5, to: 10.6, speed: 1},
@@ -306,41 +311,59 @@ export const LaunchComposition: React.FC = () => (
 						loupe: [
 							{at: 0, x: 0.5, y: 0.6, w: 1},
 							{at: 0.8, x: 0.5, y: 0.6, w: 1},
-							{at: 3.8, x: 0.4, y: 0.693, w: 0.75},
-							{at: 7.2, x: 0.4, y: 0.693, w: 0.75},
-							{at: 8.0, x: 0.5, y: 0.6, w: 1},
-							{at: 9.9, x: 0.5, y: 0.6, w: 1},
-							{at: 10.7, x: 0.5, y: 0.38, w: 1},
-							{at: 14.4, x: 0.5, y: 0.38, w: 1},
-							{at: 15.0, x: 0.5, y: 0.45, w: 1},
-							{at: 16.6, x: 0.5, y: 0.45, w: 1},
-							{at: 17.2, x: 0.5, y: 0.74, w: 1},
-							{at: 18.9, x: 0.5, y: 0.74, w: 1},
-							{at: 19.4, x: 0.5, y: 0.42, w: 1},
-							{at: 20.2, x: 0.5, y: 0.42, w: 1},
-							{at: 20.7, x: 0.5, y: 0.36, w: 1},
-							{at: 22.6, x: 0.5, y: 0.36, w: 1},
-							{at: 23.3, x: 0.5, y: 0.27, w: 1},
+							{at: 3.0, x: 0.4, y: 0.693, w: 0.75},
+							{at: 11.2, x: 0.4, y: 0.693, w: 0.75},
+							{at: 12.0, x: 0.5, y: 0.6, w: 1},
+							{at: 13.9, x: 0.5, y: 0.6, w: 1},
+							{at: 14.7, x: 0.5, y: 0.38, w: 1},
+							{at: 18.4, x: 0.5, y: 0.38, w: 1},
+							{at: 19.0, x: 0.5, y: 0.45, w: 1},
+							{at: 20.6, x: 0.5, y: 0.45, w: 1},
+							{at: 21.2, x: 0.5, y: 0.74, w: 1},
+							{at: 22.9, x: 0.5, y: 0.74, w: 1},
+							{at: 23.4, x: 0.5, y: 0.42, w: 1},
+							{at: 24.2, x: 0.5, y: 0.42, w: 1},
+							{at: 24.7, x: 0.5, y: 0.36, w: 1},
+							{at: 26.6, x: 0.5, y: 0.36, w: 1},
 							{at: 27.3, x: 0.5, y: 0.27, w: 1},
-							{at: 28.0, x: 0.5, y: 0.33, w: 1},
+							{at: 31.3, x: 0.5, y: 0.27, w: 1},
+							{at: 32.0, x: 0.5, y: 0.33, w: 1},
 						],
 						note: 'Taps in this clip: the test robot',
 					},
 					callout: {
 						at: 1.4,
-						until: 7.5,
+						until: 11.6,
 						title: 'The NTK button',
 						lines: [
-							'Android draws it over every [NTK …] tag, in any app: Messages, X, Reddit, email.',
+							'In {app}, Android draws it over every [NTK …] tag.',
 							'It comes with the NTK keyboard app. Nothing leaves the phone until you tap.',
 						],
-						target: {x: 0.527, y: 0.677, w: 0.313, h: 0.025},
+					},
+					cycle: {
+						at: 3.6,
+						every: 2.0,
+						slide: 0.5,
 						apps: [
-							{kind: 'chat', label: 'Chat'},
-							{kind: 'feed', label: 'Feed'},
-							{kind: 'mail', label: 'Mail'},
+							{kind: 'clip', label: 'Messages', src: '', frame: 0, lines: [], target: {x: 0.527, y: 0.677, w: 0.313, h: 0.025}},
+							{kind: 'video', label: 'a social feed', src: 'clips/feed.mp4', frame: 2.5, lines: [], target: {x: 0.725, y: 0.595, w: 0.309, h: 0.023}},
+							{
+								kind: 'forum',
+								label: 'a forum',
+								src: '',
+								frame: 0,
+								lines: ['I agree with this, and I typed', 'every word myself.'],
+								target: {x: 0.679, y: 0.677, w: 0.313, h: 0.025},
+							},
+							{
+								kind: 'email',
+								label: 'email',
+								src: '',
+								frame: 0,
+								lines: ['You asked if I wrote it myself. Yes:', 'Every word of it was mine, typed on this', 'phone by me.'],
+								target: {x: 0.434, y: 0.677, w: 0.313, h: 0.025},
+							},
 						],
-						appsAt: 2.6,
 					},
 				},
 				end: {

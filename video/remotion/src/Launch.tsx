@@ -25,8 +25,10 @@ const SceneView: React.FC<{id: SceneId; t: Timeline}> = ({id, t}) => {
 		case 'moment':
 		case 'verify': {
 			const s = scenes[id];
-			const callout = id === 'verify' ? scenes.verify.callout : undefined;
-			return <ClipScene look={look} fwd={fwd} clip={s.clip} number={NUMBER[id]} label={s.label} phoneLabel={s.phone} callout={callout} />;
+			const check = id === 'verify' ? scenes.verify : undefined;
+			return (
+				<ClipScene look={look} fwd={fwd} clip={s.clip} number={NUMBER[id]} label={s.label} phoneLabel={s.phone} callout={check?.callout} cycle={check?.cycle} />
+			);
 		}
 		case 'login':
 			return <LoginScene look={look} story={story} b={scenes.login.beats} label={scenes.login.label} phoneLabel={scenes.login.phone} />;
