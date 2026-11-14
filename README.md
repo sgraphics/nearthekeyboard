@@ -506,8 +506,7 @@ TODO.md    Everything still to build, with priorities
 - All code was written inside the hackathon window; the first commit is dated
   2026-11-13. There is no earlier code base.
 - The same author also enters a second, independent project (rule Q-015):
-  Realsies, <https://github.com/sgraphics/realsies>. The two projects share no
-  code.
+  Realsies, <https://realsies.lol>. The two projects share no code.
 - The keyboard is built on Simple Keyboard by rkkr (Apache-2.0), commit
   `a053c4ca3b61182fc407096ff207d579e5471944`, itself a fork of Android's
   LatinIME; `android/NOTICE.md` lists what NTK changed. It adds one library,
