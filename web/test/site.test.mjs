@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { createRelay } from '../../relay/server.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PAGES = ['/', '/e65ee28db5', '/feed/', '/feed/?embed=1', '/messages/', '/messages/?embed=1', '/login/', '/privacy/'];
+const PAGES = ['/', '/e65ee28db5', '/feed/', '/feed/?embed=1', '/messages/', '/messages/?embed=1', '/login/', '/privacy/', '/app/'];
 const ENTRY = ['/embed/ntk-embed.js', '/embed/ntk-embed.css', '/favicon.ico', '/assets/ntk-social-1280x640.png'];
 
 async function startSite() {
@@ -62,7 +62,8 @@ test('every page and every file it refers to resolves, with the right type', asy
       if (p.endsWith('.svg')) assert.match(type, /image\/svg\+xml/, p);
       if (p.endsWith('.png')) assert.match(type, /image\/png/, p);
       if (p.endsWith('.ico')) assert.match(type, /image\/x-icon/, p);
-      for (const ref of references(base + p, type, text)) if (!seen.has(ref)) queue.push(ref);
+      // /download/ holds the signed APK, copied to the server by hand and not in the repository.
+      for (const ref of references(base + p, type, text)) if (!seen.has(ref) && !ref.startsWith('/download/')) queue.push(ref);
     }
     const files = [...seen.keys()];
     for (const must of ['/verify/main.js', '/verify/model.js', '/verify/sha-fallback.js', '/lib/ntk-verify.js',
@@ -82,7 +83,7 @@ test('every page and every file it refers to resolves, with the right type', asy
 test('markup fits the CSP: no inline scripts, no inline styles, no innerHTML', async () => {
   const { relay, base } = await startSite();
   try {
-    for (const p of ['/', '/feed/', '/messages/', '/login/', '/privacy/']) {
+    for (const p of ['/', '/feed/', '/messages/', '/login/', '/privacy/', '/app/']) {
       const html = await (await fetch(base + p)).text();
       assert.doesNotMatch(html, /<script(?![^>]*\ssrc=)[^>]*>/i, `${p}: inline <script>`);
       assert.doesNotMatch(html, /\sstyle=/i, `${p}: style attribute`);

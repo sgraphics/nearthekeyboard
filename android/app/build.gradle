@@ -12,7 +12,30 @@ if (ntkLocalFile.exists()) {
 def ntkQuote = { String s -> '"' + (s ?: '').replace('\\', '\\\\').replace('"', '\\"') + '"' }
 def ntkRelay = 'https://ntk.tools/api'
 
+// NTK: release signing from a properties file kept outside the repository (storeFile,
+// storePassword, keyAlias, keyPassword; storeFile may be relative to the file): the path
+// in the Gradle property ntk.releaseProperties, else ~/.ntk/release.properties. Without
+// it a release build stays unsigned, so CI and other machines still build.
+def ntkReleaseFile = file(project.findProperty('ntk.releaseProperties')
+        ?: "${System.getProperty('user.home')}/.ntk/release.properties")
+def ntkRelease = new Properties()
+if (ntkReleaseFile.isFile()) {
+    ntkReleaseFile.withInputStream { ntkRelease.load(it) }
+}
+def ntkSigned = ntkRelease.getProperty('storeFile') != null
+
 android {
+    signingConfigs {
+        if (ntkSigned) {
+            ntk {
+                def store = new File(ntkRelease.getProperty('storeFile'))
+                storeFile store.isAbsolute() ? store : new File(ntkReleaseFile.parentFile, store.path)
+                storePassword ntkRelease.getProperty('storePassword')
+                keyAlias ntkRelease.getProperty('keyAlias')
+                keyPassword ntkRelease.getProperty('keyPassword')
+            }
+        }
+    }
     defaultConfig {
         applicationId "tools.ntk.keyboard"
         compileSdk 37
@@ -35,6 +58,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "NTK_RELAY_URL", ntkQuote(ntkRelay)
             buildConfigField "String", "NTK_PAYMENT_KEY", ntkQuote('')
+            signingConfig ntkSigned ? signingConfigs.ntk : null
         }
     }
     namespace 'rkr.simplekeyboard.inputmethod'
@@ -55,6 +79,28 @@ android {
         includeInBundle = false
     }
 }
+
+// NTK: the signed release APK under the name people download, ntk-<versionName>.apk, next
+// to Gradle's app-release.apk, with its SHA-256 in ntk-<versionName>.apk.sha256.
+def ntkApkName = "ntk-${android.defaultConfig.versionName}.apk"
+def ntkApkDir = layout.buildDirectory.dir('outputs/apk/release')
+def ntkReleaseApk = tasks.register('ntkReleaseApk') {
+    description = 'Copies the signed release APK to ' + ntkApkName + ' and writes its SHA-256.'
+    doLast {
+        def dir = ntkApkDir.get().asFile
+        def apk = new File(dir, 'app-release.apk')
+        if (!apk.isFile()) {
+            logger.lifecycle('ntkReleaseApk: no signed app-release.apk (no release.properties): nothing to name')
+            return
+        }
+        def out = new File(dir, ntkApkName)
+        java.nio.file.Files.copy(apk.toPath(), out.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        def sha = java.security.MessageDigest.getInstance('SHA-256').digest(out.bytes).encodeHex().toString()
+        new File(dir, ntkApkName + '.sha256').text = "${sha}  ${ntkApkName}\n"
+        logger.lifecycle("${out}\nSHA-256 ${sha}")
+    }
+}
+tasks.configureEach { if (it.name == 'assembleRelease') it.finalizedBy(ntkReleaseApk) }
 
 dependencies {
     // NTK: the one library the app ships. Ed25519, X25519, ChaCha20-Poly1305, HKDF-SHA256.

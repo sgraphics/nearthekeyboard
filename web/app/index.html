@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Install on Android · Near The Keyboard</title>
+  <meta name="description" content="Download and install the NTK keyboard for Android (NEAR testnet), and check the file before you install it.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1D1F23" media="(prefers-color-scheme: dark)">
+  <meta name="referrer" content="no-referrer">
+  <link rel="icon" href="/assets/favicon.ico?v=043ec83d" sizes="any">
+  <link rel="icon" href="/assets/favicon-32.png?v=ad8ec9d2" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=776edb31">
+  <link rel="preload" href="/assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/ntk.css?v=138478f0">
+</head>
+<body class="page-doc">
+  <header class="site-bar">
+    <div class="wrap site-bar-in">
+      <a class="brand" href="/" aria-label="Near The Keyboard: check a stamp">
+        <picture>
+          <source srcset="/assets/ntk-badge-dark.svg?v=6800329f" media="(prefers-color-scheme: dark)">
+          <img class="badge" src="/assets/ntk-badge-light.svg?v=6800329f" alt="NTK" width="64" height="20">
+        </picture>
+      </a>
+      <span class="chip chip-testnet" title="NEAR testnet only">TESTNET</span>
+      <p class="site-name"><span class="page-name">install</span> <span class="brand-name">Near the keyboard</span></p>
+    </div>
+  </header>
+
+  <main class="wrap doc">
+    <h1>Install NTK on Android</h1>
+    <p class="lede">The NTK keyboard for Android phones, signed by the project. It runs on NEAR testnet only, so no
+      real money is involved. Version 0.2, 1.0 MB, Android 7 or newer (tested on Android 16).</p>
+
+    <section class="block doc-short" aria-labelledby="get-title">
+      <h2 id="get-title">Download</h2>
+      <p><a class="btn btn-primary" href="/download/ntk-keyboard-0.2.apk" download>Download the APK</a></p>
+      <p>Check the file before installing it, if you like. Its SHA-256:</p>
+      <p><code>2cde61ca827abe9b68f6eebd71e6512ff8b2e5c689927a76b98ff207a291e9c8</code></p>
+      <p>The signing certificate (CN=Near The Keyboard), SHA-256:</p>
+      <p><code>09:88:34:DE:9A:59:94:C0:CC:AF:0F:60:E7:4D:35:DF:16:77:D5:3F:62:5A:A1:5D:EB:6A:BD:7C:B2:87:50:65</code></p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="steps-title">
+      <h2 id="steps-title">Set it up</h2>
+      <ol>
+        <li>Open the downloaded file. Android asks whether your browser may install apps: allow it, then install.</li>
+        <li>Open NTK. Tap <strong>Turn on NTK in system settings</strong>, switch NTK on, then tap
+          <strong>Switch to the NTK keyboard</strong>.</li>
+        <li>Tap <strong>Log in with a NEAR wallet</strong> and approve one transaction in Meteor or Intear (a NEAR
+          testnet account with a little test NEAR). It adds a key that can only sign NTK requests. Or let NTK create
+          a testnet account for you.</li>
+        <li>Tap <strong>Enroll</strong> and type the three short texts. NTK learns how you type; the fingerprint is
+          sealed in the enclave.</li>
+        <li>Type anywhere. When you have typed at least 40 keys, tap <strong>sign</strong> on the keyboard's strip. On
+          a match the keyboard adds a tag like <code>[NTK &lt;id&gt;]</code> after your text.</li>
+        <li>Optional, stamp buttons in any app: in NTK's setup, open the stamp-button step and switch
+          <strong>NTK stamp buttons</strong> on under Accessibility. If Android says "Restricted setting", open
+          Settings, Apps, NTK, the menu at the top right, <strong>Allow restricted settings</strong>, and switch it
+          on again.</li>
+      </ol>
+      <p>Anyone can check a stamp at <a href="/">ntk.tools</a>, with or without the app. What the keyboard measures
+        and sends is on the <a href="/privacy/">privacy page</a>.</p>
+    </section>
+
+    <section class="doc-part" aria-labelledby="source-title">
+      <h2 id="source-title">Source</h2>
+      <p>The app is built from <a href="https://github.com/sgraphics/nearthekeyboard">github.com/sgraphics/nearthekeyboard</a>
+        (the <code>android/</code> folder, built on Simple Keyboard). Calls cost the project a little test money and
+        are rate limited.</p>
+    </section>
+  </main>
+
+  <footer class="site-foot wrap">
+    <p><a href="/">Check a stamp</a> <span aria-hidden="true">·</span> <a href="/privacy/">Privacy</a> <span aria-hidden="true">·</span> <a href="/feed/?embed=1">Demo feed</a>
+      <span aria-hidden="true">·</span> NEAR testnet</p>
+  </footer>
+</body>
+</html>

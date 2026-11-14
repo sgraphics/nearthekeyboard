@@ -42,6 +42,7 @@ const SHOTS = [
   { name: 'login-error', path: LOGIN, then: loginState('error', "document.getElementById('error-text').textContent = 'The wallet did not add the key: User rejected the transaction'; document.getElementById('switch-error').hidden = false;") },
   { name: 'login-invalid', path: '/login#pk=nope' },
   { name: 'privacy', path: '/privacy/' },
+  { name: 'app', path: '/app/' },
 ];
 
 async function main() {

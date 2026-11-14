@@ -20,3 +20,9 @@
 -keep class rkr.simplekeyboard.inputmethod.latin.settings.SettingsFragment
 -keep class rkr.simplekeyboard.inputmethod.latin.settings.LanguagesSettingsFragment
 -keep class rkr.simplekeyboard.inputmethod.latin.settings.SingleLanguageSettingsFragment
+
+# NTK: drawables inflated from XML by class name (res/drawable/ntk_*.xml,
+# <drawable class="tools.ntk.ui.…">). AAPT2 writes no keep rules for those, and the
+# framework creates them with Class.forName(name).getConstructor().
+-keep class tools.ntk.ui.TileDrawable { public <init>(); }
+-keep class tools.ntk.ui.FloorDrawable { public <init>(); }
