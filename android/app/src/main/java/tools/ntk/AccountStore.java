@@ -22,9 +22,10 @@ import javax.crypto.spec.GCMParameterSpec;
  * private key is stored encrypted with an AES key that lives in the Android
  * Keystore and never leaves it. Also keeps what the enclave last said about
  * enrollment, the last request time (ts must increase) and failed attempts.
+ * Each network keeps its own (Network.accountPrefs; testnet's is the file used
+ * before networks), so switching networks keeps both logins.
  */
 public final class AccountStore {
-    private static final String PREFS = "ntk_account";
     private static final String KEYSTORE = "AndroidKeyStore";
     private static final String KEY_ALIAS = "ntk-account-key-v1";
 
@@ -56,10 +57,10 @@ public final class AccountStore {
         return sInstance;
     }
 
-    /** Null before the first unlock (direct boot), when the account storage is not readable. */
+    /** The current network's. Null before the first unlock (direct boot), when the account storage is not readable. */
     private SharedPreferences prefs() {
         try {
-            return mContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            return mContext.getSharedPreferences(Network.current(mContext).accountPrefs, Context.MODE_PRIVATE);
         } catch (IllegalStateException e) {
             return null;
         }

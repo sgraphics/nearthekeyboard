@@ -36,6 +36,8 @@ public abstract class RobotBase {
         robot = new Robot(inst);
         // The first-run screen asks for the terms before anything else; a test user has agreed.
         Terms.accept(ctx);
+        // The robot's sessions and accounts are on testnet, whatever the default network.
+        Network.choose(ctx, Network.TESTNET);
         robot.shell("input keyevent KEYCODE_WAKEUP");
         robot.shell("wm dismiss-keyguard");
         robot.shell("svc power stayon true");

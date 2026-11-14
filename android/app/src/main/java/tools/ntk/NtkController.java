@@ -72,8 +72,9 @@ public final class NtkController {
     private volatile String mBusyOp;
     private volatile long mBusySince;
     private volatile String mBusyStatus = "";
-    private volatile boolean mInfoChecked;
+    private volatile String mInfoCheckedFor; // the network whose enclave info was checked
     private volatile String mKeyWarning;
+    private volatile String mKeyWarningFor;  // the network the warning is about
 
     private NtkController(Context context) {
         mContext = context;
@@ -109,9 +110,9 @@ public final class NtkController {
         return mBusyStatus;
     }
 
-    /** Set when the enclave's info named keys other than the pinned ones. Signing is then refused. */
+    /** Set when the current network's enclave named keys other than the pinned ones. Signing is then refused. */
     public String keyWarning() {
-        return mKeyWarning;
+        return Network.current(mContext).id.equals(mKeyWarningFor) ? mKeyWarning : null;
     }
 
     // ---- where calls go ------------------------------------------------------------
@@ -121,27 +122,39 @@ public final class NtkController {
     }
 
     /**
-     * Release builds: the relay only (https://ntk.tools/api). Debug builds: the
-     * relay too by default, at the URL set on the setup screen (for example
-     * http://localhost:3970/api through `adb reverse tcp:3970 tcp:3970`); OutLayer
-     * directly, with the testnet payment key from local.properties, only when
-     * chosen there as a fallback.
+     * Where the current network's calls go. Release builds: its relay only
+     * (Network.relay). Debug builds: the relay too by default, at the URL set on
+     * the setup screen for this network (for example http://localhost:3970/api
+     * through `adb reverse tcp:3970 tcp:3970`; for testnet also ntk.relayUrl in
+     * local.properties); OutLayer directly, with this network's payment key from
+     * local.properties, only when chosen there as a fallback.
      */
     public EnclaveClient client() {
-        if (BuildConfig.DEBUG) {
-            final SharedPreferences p = devPrefs();
-            final boolean useRelay = p.getBoolean("use_relay", true);
-            if (!useRelay && !BuildConfig.NTK_PAYMENT_KEY.isEmpty()) return EnclaveClient.direct(BuildConfig.NTK_PAYMENT_KEY);
-            return EnclaveClient.relay(p.getString("relay_url", BuildConfig.NTK_RELAY_URL));
-        }
-        return EnclaveClient.relay(BuildConfig.NTK_RELAY_URL);
+        return client(Network.current(mContext));
     }
 
-    /** Debug builds only: choose the relay (with its URL) or direct calls. */
+    EnclaveClient client(Network n) {
+        if (BuildConfig.DEBUG) {
+            final SharedPreferences p = devPrefs();
+            final String key = n.debugPaymentKey();
+            if (!p.getBoolean(devKey("use_relay", n), true) && !key.isEmpty()) return EnclaveClient.direct(key, n);
+            final String relay = n == Network.TESTNET && !BuildConfig.NTK_RELAY_URL.isEmpty() ? BuildConfig.NTK_RELAY_URL : n.relay;
+            return EnclaveClient.relay(p.getString(devKey("relay_url", n), relay));
+        }
+        return EnclaveClient.relay(n.relay);
+    }
+
+    /** Debug settings are kept per network; testnet's keep the names they had before networks. */
+    private static String devKey(String name, Network n) {
+        return n == Network.TESTNET ? name : name + "_" + n.id;
+    }
+
+    /** Debug builds only: for the current network, choose the relay (with its URL) or direct calls. */
     public void setDebugTransport(boolean useRelay, String relayUrl) {
         if (!BuildConfig.DEBUG) return;
-        final SharedPreferences.Editor e = devPrefs().edit().putBoolean("use_relay", useRelay);
-        if (relayUrl != null && !relayUrl.isEmpty()) e.putString("relay_url", relayUrl);
+        final Network n = Network.current(mContext);
+        final SharedPreferences.Editor e = devPrefs().edit().putBoolean(devKey("use_relay", n), useRelay);
+        if (relayUrl != null && !relayUrl.isEmpty()) e.putString(devKey("relay_url", n), relayUrl);
         e.apply();
     }
 
@@ -173,23 +186,29 @@ public final class NtkController {
         }
     };
 
-    /** Checks once per process, in the background, that the enclave's keys are the pinned ones. */
+    /**
+     * Checks once per process and network, in the background, that the current
+     * network's enclave answers with the keys pinned for it (Network).
+     */
     public void checkInfoOnce() {
-        if (mInfoChecked) return;
-        mInfoChecked = true;
+        final Network n = Network.current(mContext);
+        if (n.id.equals(mInfoCheckedFor) || !n.available()) return;
+        mInfoCheckedFor = n.id;
         new Thread(() -> {
             try {
-                final JSONObject info = client().info(Ntk.CALL_TIMEOUT_MS, null);
+                final JSONObject info = client(n).info(Ntk.CALL_TIMEOUT_MS, null);
                 final String t = info.optString("transport_pk");
                 final String s = info.optString("stamp_pk");
-                if (!Ntk.TRANSPORT_PK_HEX.equals(t) || !Ntk.STAMP_PK.equals(s)) {
+                if (!n.transportPkHex.equals(t) || !n.stampPk.equals(s)) {
                     mKeyWarning = "The enclave answers with keys other than the pinned ones. Signing is off until the app is updated.";
-                    Log.w(Ntk.TAG, "info: keys differ from the pinned keys");
+                    mKeyWarningFor = n.id;
+                    Log.w(Ntk.TAG, "info: keys differ from the pinned keys on " + n.id);
                 } else {
-                    NtkCapture.debug("info: keys match the pinned keys");
+                    if (n.id.equals(mKeyWarningFor)) mKeyWarningFor = null;
+                    NtkCapture.debug("info: keys match the pinned keys on " + n.id);
                 }
             } catch (Exception e) {
-                mInfoChecked = false; // try again next time
+                if (n.id.equals(mInfoCheckedFor)) mInfoCheckedFor = null; // try again next time
                 NtkCapture.debug("info check failed: " + e.getMessage());
             }
             notifyChanged();
@@ -206,13 +225,19 @@ public final class NtkController {
             cb.done(Result.error("Accept the terms first", "TERMS")); // nothing is sent before
             return;
         }
+        final Network net = Network.current(mContext);
+        if (!net.available()) {
+            cb.done(Result.error(net.label + " is not available yet", "NETWORK_UNAVAILABLE"));
+            return;
+        }
         final AccountStore.Account account = AccountStore.get(mContext).current();
         if (account == null) {
             cb.done(Result.error("Log in first", "NO_ACCOUNT"));
             return;
         }
-        if (mKeyWarning != null && session != null) {
-            cb.done(Result.error(mKeyWarning, "KEY_MISMATCH"));
+        final String warning = keyWarning();
+        if (warning != null && session != null) {
+            cb.done(Result.error(warning, "KEY_MISMATCH"));
             return;
         }
         if (isBusy()) {
@@ -228,8 +253,8 @@ public final class NtkController {
             Result r;
             JSONObject out = null;
             try {
-                out = call(op, account, sessionJson);
-                r = interpret(op, account, out, replayed);
+                out = call(net, op, account, sessionJson);
+                r = interpret(net, op, account, out, replayed);
             } catch (EnclaveClient.CallException e) {
                 r = Result.error(e.getMessage(), e.code);
             } catch (Exception e) {
@@ -245,11 +270,11 @@ public final class NtkController {
         });
     }
 
-    private JSONObject call(String op, AccountStore.Account account, String sessionJson) throws Exception {
+    private JSONObject call(Network net, String op, AccountStore.Account account, String sessionJson) throws Exception {
         final AccountStore store = AccountStore.get(mContext);
         NtkCrypto.Sealed sealed = null;
         if (sessionJson != null) {
-            sealed = NtkCrypto.seal(Codec.unhex(Ntk.TRANSPORT_PK_HEX), Codec.utf8(sessionJson), op, account.accountId, mRandom);
+            sealed = NtkCrypto.seal(Codec.unhex(net.transportPkHex), Codec.utf8(sessionJson), op, account.accountId, mRandom);
         }
         final long ts = store.nextTs();
         final String message = Auth.message(op, account.accountId, sealed == null ? "" : sealed.digestHex(), ts);
@@ -262,7 +287,7 @@ public final class NtkController {
         } finally {
             java.util.Arrays.fill(seed, (byte) 0);
         }
-        final EnclaveClient c = client();
+        final EnclaveClient c = client(net);
         mBusyStatus = "sending";
         notifyChanged();
         final String callId = c.start(Auth.input(op, auth, sealed));
@@ -301,7 +326,7 @@ public final class NtkController {
         }
     }
 
-    private Result interpret(String op, AccountStore.Account account, JSONObject out, String replayed) {
+    private Result interpret(Network net, String op, AccountStore.Account account, JSONObject out, String replayed) {
         final AccountStore store = AccountStore.get(mContext);
         if (!out.optBoolean("ok", false)) {
             final String code = out.optString("code", null);
@@ -328,7 +353,7 @@ public final class NtkController {
                 if ("MATCH".equals(verdict)) {
                     final JSONObject stamp = out.optJSONObject("stamp");
                     if (stamp == null) return Result.error("MATCH without a stamp", "NO_STAMP");
-                    final StampCheck.Result chk = StampCheck.verify(stamp, Ntk.STAMP_PK, account.accountId, replayed);
+                    final StampCheck.Result chk = StampCheck.verify(stamp, net.stampPk, net.project(), account.accountId, replayed);
                     if (!chk.ok) return new Result(Result.Kind.ERROR, "Stamp refused: " + chk.failure, "STAMP_CHECK", out);
                     final Result r = new Result(Result.Kind.MATCH, "MATCH", null, out);
                     r.stampId = chk.id;
@@ -352,6 +377,11 @@ public final class NtkController {
      * the account is confirmed on chain.
      */
     public void createTestnetAccount(final Callback<Result> cb) {
+        final Network net = Network.current(mContext);
+        if (!net.hasFaucet()) {
+            cb.done(Result.error("There is no faucet on " + net.label, "NO_FAUCET"));
+            return;
+        }
         if (isBusy()) {
             cb.done(Result.error("Another request is still running", "BUSY"));
             return;
@@ -365,16 +395,16 @@ public final class NtkController {
                 final AccountStore.Account pending = store.createPending(name, AccountStore.KIND_FAUCET);
                 mBusyStatus = "asking the testnet faucet";
                 notifyChanged();
-                NearRpc.createTestnetAccount(name, pending.publicKey);
+                NearRpc.createTestnetAccount(net, name, pending.publicKey);
                 mBusyStatus = "waiting for the account on chain";
                 notifyChanged();
                 boolean exists = false;
                 for (int i = 0; i < 40 && !exists; i++) {
-                    exists = NearRpc.accountExists(name);
+                    exists = NearRpc.accountExists(net, name);
                     if (!exists) Thread.sleep(1500);
                 }
                 if (!exists) throw new IllegalStateException("the faucet did not create " + name + " in time");
-                final Object perm = NearRpc.accessKeyPermission(name, pending.publicKey);
+                final Object perm = NearRpc.accessKeyPermission(net, name, pending.publicKey);
                 if (!"FullAccess".equals(perm)) throw new IllegalStateException("the key is not on " + name);
                 store.activate(name);
                 store.forgetEnrollment();
@@ -398,10 +428,11 @@ public final class NtkController {
     /**
      * Wallet login, step 2 (back from the login page with the account and the
      * key it approved): confirm on chain that this phone's key is on the
-     * account as a function-call key for nearthekeyboard.testnet, the one kind
+     * account as a function-call key for the network's project owner, the one kind
      * of delegated key the enclave accepts, and log in.
      */
     public void finishWalletLogin(final String accountId, final String approvedKey, final Callback<Result> cb) {
+        final Network net = Network.current(mContext);
         if (isBusy()) {
             cb.done(Result.error("Another request is still running", "BUSY"));
             return;
@@ -423,7 +454,7 @@ public final class NtkController {
                 }
                 Object perm = null;
                 for (int i = 0; i < 10 && perm == null; i++) {
-                    perm = NearRpc.accessKeyPermission(accountId, pending.publicKey);
+                    perm = NearRpc.accessKeyPermission(net, accountId, pending.publicKey);
                     if (perm == null) Thread.sleep(1500);
                 }
                 if (perm == null) throw new IllegalStateException("the key is not on " + accountId);
@@ -434,9 +465,9 @@ public final class NtkController {
                     throw new IllegalStateException("the key on " + accountId + " is not a function-call key ("
                             + (perm instanceof String ? perm : "unknown permission") + ")");
                 }
-                if (!Ntk.PROJECT_OWNER.equals(fc.optString("receiver_id"))) {
+                if (!net.projectOwner.equals(fc.optString("receiver_id"))) {
                     throw new IllegalStateException("the key on " + accountId + " is issued to " + fc.optString("receiver_id")
-                            + ", not " + Ntk.PROJECT_OWNER);
+                            + ", not " + net.projectOwner);
                 }
                 store.activate(accountId);
                 store.forgetEnrollment();

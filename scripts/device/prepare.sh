@@ -14,3 +14,5 @@ adb shell settings put global private_dns_mode hostname
 adb shell settings put global private_dns_specifier one.one.one.one
 bash "$(dirname "$0")/install.sh"
 bash "$(dirname "$0")/ime-on.sh"
+# Debug builds: accept the first-run terms as a test user (release builds ignore the extra).
+adb shell am start -n "$PKG/tools.ntk.ui.SetupActivity" --ez ntk.acceptTerms true >/dev/null

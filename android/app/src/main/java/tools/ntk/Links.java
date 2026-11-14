@@ -62,14 +62,15 @@ public final class Links {
 
     /**
      * The login page (the contract with the page at https://ntk.tools/login): it
-     * asks the user's NEAR wallet to add {@code publicKey} to their account as a
-     * function-call key for nearthekeyboard.testnet, then sends the browser to
+     * asks the user's NEAR wallet, on {@code network}, to add {@code publicKey} to
+     * their account as a function-call key for the network's project owner
+     * (nearthekeyboard.testnet, nearthekeyboard.near), then sends the browser to
      * {@code ntk://auth?account_id=<account>&public_key=<key>}.
      */
-    public static String loginUrl(String base, String publicKey) {
+    public static String loginUrl(String base, String publicKey, Network network) {
         final String b = base == null || base.isEmpty() ? Ntk.VERIFY_BASE : base;
         return b + "login#pk=" + urlEncode(publicKey) + "&return=" + urlEncode(Ntk.AUTH_SUCCESS_URL)
-                + "&network=" + Ntk.NETWORK;
+                + "&network=" + network.id;
     }
 
     private static final char[] HEX = "0123456789ABCDEF".toCharArray();

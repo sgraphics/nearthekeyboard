@@ -14,6 +14,8 @@ import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import org.json.JSONObject;
@@ -25,7 +27,7 @@ import rkr.simplekeyboard.inputmethod.R;
 import rkr.simplekeyboard.inputmethod.latin.settings.SettingsActivity;
 import tools.ntk.AccountStore;
 import tools.ntk.Links;
-import tools.ntk.Ntk;
+import tools.ntk.Network;
 import tools.ntk.NtkController;
 import tools.ntk.Terms;
 import tools.ntk.a11y.StampButtonService;
@@ -40,6 +42,9 @@ public final class SetupActivity extends Activity implements NtkController.Liste
     private TextView mKbStatus, mAccountStatus, mEnrollStatus, mBusy, mDebugTransport, mA11yStatus, mDebugSite;
     private Button mWallet, mFaucet, mLogout, mEnroll, mStatus, mForget;
     private EditText mDebugRelay, mDebugSiteUrl;
+    private RadioGroup mNetwork;
+    private RadioButton mNetTestnet, mNetMainnet;
+    private boolean mShowingNetwork;
     private String mLastMessage;
 
     @Override
@@ -67,6 +72,20 @@ public final class SetupActivity extends Activity implements NtkController.Liste
         mStatus = findViewById(R.id.ntk_btn_status);
         mForget = findViewById(R.id.ntk_btn_forget);
         mA11yStatus = findViewById(R.id.ntk_a11y_status);
+        mNetwork = findViewById(R.id.ntk_network);
+        mNetTestnet = findViewById(R.id.ntk_network_testnet);
+        mNetMainnet = findViewById(R.id.ntk_network_mainnet);
+        mNetwork.setOnCheckedChangeListener((group, checked) -> {
+            if (mShowingNetwork) return;
+            final Network n = checked == R.id.ntk_network_mainnet ? Network.MAINNET : Network.TESTNET;
+            // Each network keeps its own login; nothing changes while a call runs.
+            if (n != Network.current(this) && n.available() && !NtkController.get(this).isBusy()) {
+                Network.choose(this, n);
+                mLastMessage = null;
+                NtkController.get(this).checkInfoOnce();
+            }
+            refresh();
+        });
 
         findViewById(R.id.ntk_btn_enable).setOnClickListener(v ->
                 startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)));
@@ -217,6 +236,19 @@ public final class SetupActivity extends Activity implements NtkController.Liste
         mBusy.setText(text);
         final boolean busy = ctl.isBusy();
         for (Button b : new Button[] { mWallet, mFaucet, mStatus, mForget }) b.setEnabled(!busy);
+        showNetwork(busy);
+    }
+
+    /** The network choice; mainnet only once its keys are pinned (Network), and no switching while a call runs. */
+    private void showNetwork(boolean busy) {
+        final Network net = Network.current(this);
+        mShowingNetwork = true;
+        mNetwork.check(net == Network.MAINNET ? R.id.ntk_network_mainnet : R.id.ntk_network_testnet);
+        mShowingNetwork = false;
+        mNetTestnet.setText(Network.TESTNET.label);
+        mNetMainnet.setText(Network.MAINNET.available() ? Network.MAINNET.label : Network.MAINNET.label + " (not available yet)");
+        mNetTestnet.setEnabled(!busy && Network.TESTNET.available());
+        mNetMainnet.setEnabled(!busy && Network.MAINNET.available());
     }
 
     private void refresh() {
@@ -236,19 +268,20 @@ public final class SetupActivity extends Activity implements NtkController.Liste
         mKbStatus.setText(!enabled ? "NTK is not turned on yet."
                 : (id != null && id.equals(current)) ? "NTK is on and is your keyboard." : "NTK is on. Switch to it to type with it.");
 
-        // 2. Account
+        // 2. Account, on the chosen network
+        final Network net = Network.current(this);
         final AccountStore store = AccountStore.get(this);
         final AccountStore.Account a = store.current();
         if (a == null) {
-            mAccountStatus.setText("Not logged in. The wallet gives the keyboard a key that can only talk to NTK. "
-                    + "Or let NTK create a testnet account, whose key then lives on this phone (testnet only).");
+            mAccountStatus.setText("Not logged in on " + net.label + ". The wallet gives the keyboard a key that can only talk to NTK."
+                    + (net.hasFaucet() ? " Or let NTK create a testnet account, whose key then lives on this phone (testnet only)." : ""));
         } else if (AccountStore.KIND_WALLET.equals(a.kind)) {
-            mAccountStatus.setText(a.accountId + "\nKey on this phone: a function-call key for " + Ntk.PROJECT_OWNER + ".");
+            mAccountStatus.setText(a.accountId + "\nKey on this phone: a function-call key for " + net.projectOwner + ".");
         } else {
             mAccountStatus.setText(a.accountId + "\nA testnet account made by the faucet. This phone holds its full-access key, encrypted with an Android Keystore key.");
         }
         mWallet.setVisibility(a == null ? View.VISIBLE : View.GONE);
-        mFaucet.setVisibility(a == null ? View.VISIBLE : View.GONE);
+        mFaucet.setVisibility(a == null && net.hasFaucet() ? View.VISIBLE : View.GONE);
         mLogout.setVisibility(a == null ? View.GONE : View.VISIBLE);
 
         // 3. Fingerprint
@@ -276,7 +309,9 @@ public final class SetupActivity extends Activity implements NtkController.Liste
         }
         if (mDebugTransport != null) {
             mDebugTransport.setText("Calls go to: " + NtkController.get(this).client().describe()
-                    + (BuildConfig.NTK_PAYMENT_KEY.isEmpty() ? "\nNo payment key in local.properties." : "\nA payment key is in this debug build."));
+                    + (Network.current(this).debugPaymentKey().isEmpty()
+                            ? "\nNo payment key for " + Network.current(this).id + " in local.properties."
+                            : "\nA payment key for " + Network.current(this).id + " is in this debug build."));
         }
         refreshBusy();
     }
@@ -298,7 +333,7 @@ public final class SetupActivity extends Activity implements NtkController.Liste
     private void walletLogin() {
         try {
             final String pk = NtkController.get(this).startWalletLogin();
-            final Uri url = Uri.parse(Links.loginUrl(Links.siteBase(this), pk));
+            final Uri url = Uri.parse(Links.loginUrl(Links.siteBase(this), pk, Network.current(this)));
             message("Approve the key in your wallet, then come back.");
             final Intent i = new Intent(Intent.ACTION_VIEW, url);
             i.addCategory(Intent.CATEGORY_BROWSABLE);
@@ -317,7 +352,7 @@ public final class SetupActivity extends Activity implements NtkController.Liste
                     .setMessage("The key is deleted from this phone. It is still on " + a.accountId
                             + " until you remove it in your wallet's key list.")
                     .setPositiveButton("Open the wallet", (d, w) ->
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Ntk.WALLET_KEYS_URL))))
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Network.current(this).walletKeysUrl))))
                     .setNegativeButton("Later", null)
                     .show();
         } else {

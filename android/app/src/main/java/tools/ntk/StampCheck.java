@@ -32,10 +32,12 @@ public final class StampCheck {
 
     /**
      * @param stamp the published stamp {"id", "record", "sig", "pk"}
+     * @param pinnedPk the network's pinned stamp key (Network.stampPk)
+     * @param project the network's NTK project, "owner/name" (Network.project())
      * @param account the account the request was signed for, or null to skip that check
      * @param replayed the text the sealed session replays to, or null to skip the text check
      */
-    public static Result verify(JSONObject stamp, String pinnedPk, String account, String replayed) {
+    public static Result verify(JSONObject stamp, String pinnedPk, String project, String account, String replayed) {
         final String id = stamp.optString("id", "");
         final String recordJson = stamp.optString("record", "");
         final String pk = stamp.optString("pk", "");
@@ -56,7 +58,7 @@ public final class StampCheck {
         } catch (JSONException e) {
             return fail("the stamp record is not JSON", id, null);
         }
-        if (!"ntk-stamp".equals(record.optString("kind")) || !Ntk.PROJECT.equals(record.optString("project"))) {
+        if (!"ntk-stamp".equals(record.optString("kind")) || !project.equals(record.optString("project"))) {
             return fail("the stamp was not issued by the NTK project", id, record);
         }
         if (account != null && !account.equals(record.optString("account"))) {

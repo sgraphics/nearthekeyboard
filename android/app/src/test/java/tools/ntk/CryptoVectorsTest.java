@@ -99,21 +99,21 @@ public class CryptoVectorsTest {
     public void realStampVerifies() throws Exception {
         final JSONObject st = v().getJSONObject("stamp");
         assertEquals(st.getString("sig_sha256_hex"), Codec.hex(Codec.sha256(Codec.unb64(st.getString("sig")))));
-        final StampCheck.Result ok = StampCheck.verify(st, Ntk.STAMP_PK, "ntk-alice.testnet", st.getString("text"));
+        final StampCheck.Result ok = StampCheck.verify(st, Network.TESTNET.stampPk, Network.TESTNET.project(), "ntk-alice.testnet", st.getString("text"));
         assertTrue(ok.failure, ok.ok);
         assertEquals("e65ee28db5", ok.id);
         // Surrounding whitespace does not matter for a v1 record; an edited word does.
-        assertTrue(StampCheck.verify(st, Ntk.STAMP_PK, null, "  " + st.getString("text") + "\n").ok);
-        assertFalse(StampCheck.verify(st, Ntk.STAMP_PK, null, st.getString("text").replace("human", "robot")).ok);
-        assertFalse(StampCheck.verify(st, Ntk.STAMP_PK, "someone-else.testnet", st.getString("text")).ok);
+        assertTrue(StampCheck.verify(st, Network.TESTNET.stampPk, Network.TESTNET.project(), null, "  " + st.getString("text") + "\n").ok);
+        assertFalse(StampCheck.verify(st, Network.TESTNET.stampPk, Network.TESTNET.project(), null, st.getString("text").replace("human", "robot")).ok);
+        assertFalse(StampCheck.verify(st, Network.TESTNET.stampPk, Network.TESTNET.project(), "someone-else.testnet", st.getString("text")).ok);
         // Another key, an altered record, or a wrong id are refused.
-        assertFalse(StampCheck.verify(st, "ed25519:3WTypo2uYrwMHJ5yFFwUPX6T25n39PwNwke7pz22P4Ut", null, null).ok);
+        assertFalse(StampCheck.verify(st, "ed25519:3WTypo2uYrwMHJ5yFFwUPX6T25n39PwNwke7pz22P4Ut", Network.TESTNET.project(), null, null).ok);
         final JSONObject altered = new JSONObject(st.toString());
         altered.put("record", st.getString("record").replace("\"score_pct\":98", "\"score_pct\":99"));
-        assertFalse(StampCheck.verify(altered, Ntk.STAMP_PK, null, null).ok);
+        assertFalse(StampCheck.verify(altered, Network.TESTNET.stampPk, Network.TESTNET.project(), null, null).ok);
         final JSONObject wrongId = new JSONObject(st.toString());
         wrongId.put("id", "0000000000");
-        assertFalse(StampCheck.verify(wrongId, Ntk.STAMP_PK, null, null).ok);
+        assertFalse(StampCheck.verify(wrongId, Network.TESTNET.stampPk, Network.TESTNET.project(), null, null).ok);
     }
 
     @Test
@@ -121,13 +121,13 @@ public class CryptoVectorsTest {
         // Published by enclave 0.2.0 for the demo reply (docs: tag [NTK 26144e35e7]).
         final JSONObject st = TextRuleTest.vectors("stamp-v2-26144e35e7.json");
         final String reply = "I agree with this, and I typed every word myself.";
-        final StampCheck.Result ok = StampCheck.verify(st, Ntk.STAMP_PK, "ntk-alice.testnet", reply);
+        final StampCheck.Result ok = StampCheck.verify(st, Network.TESTNET.stampPk, Network.TESTNET.project(), "ntk-alice.testnet", reply);
         assertTrue(ok.failure, ok.ok);
         assertEquals("26144e35e7", ok.id);
         assertEquals(2, ok.record.getInt("v"));
         // v2: whitespace runs do not matter, one changed word does.
-        assertTrue(StampCheck.verify(st, Ntk.STAMP_PK, null, " I agree  with this,\nand I typed every word myself. ").ok);
-        assertFalse(StampCheck.verify(st, Ntk.STAMP_PK, null, reply.replace("every", "each")).ok);
+        assertTrue(StampCheck.verify(st, Network.TESTNET.stampPk, Network.TESTNET.project(), null, " I agree  with this,\nand I typed every word myself. ").ok);
+        assertFalse(StampCheck.verify(st, Network.TESTNET.stampPk, Network.TESTNET.project(), null, reply.replace("every", "each")).ok);
         // What a verifier does with the text before the tag (text rule v2).
         final String post = "@someone said: I agree with this, and I typed every word myself. [NTK 26144e35e7]";
         final int at = post.indexOf("[NTK ");

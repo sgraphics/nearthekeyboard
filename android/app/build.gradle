@@ -1,16 +1,16 @@
 apply plugin: 'com.android.application'
 
-// NTK: local.properties is ignored by git. A debug build may read a testnet
-// OutLayer payment key from it (ntk.paymentKey) to call OutLayer directly when
-// the relay is not available, and a relay URL (ntk.relayUrl). Release builds
-// never read either: their BuildConfig fields are empty / the public relay.
+// NTK: local.properties is ignored by git. A debug build may read OutLayer payment
+// keys from it, to call OutLayer directly when the relay is not available
+// (ntk.paymentKey for testnet, ntk.paymentKey.mainnet for mainnet), and a testnet
+// relay URL (ntk.relayUrl). Release builds never read them: their fields are empty.
+// The relays, projects and pinned keys of each network are in tools.ntk.Network.
 def ntkLocal = new Properties()
 def ntkLocalFile = rootProject.file('local.properties')
 if (ntkLocalFile.exists()) {
     ntkLocalFile.withInputStream { ntkLocal.load(it) }
 }
 def ntkQuote = { String s -> '"' + (s ?: '').replace('\\', '\\\\').replace('"', '\\"') + '"' }
-def ntkRelay = 'https://ntk.tools/api'
 
 // NTK: release signing from a properties file kept outside the repository (storeFile,
 // storePassword, keyAlias, keyPassword; storeFile may be relative to the file): the path
@@ -50,14 +50,16 @@ android {
     }
     buildTypes {
         debug {
-            buildConfigField "String", "NTK_RELAY_URL", ntkQuote(ntkLocal.getProperty('ntk.relayUrl', ntkRelay))
+            buildConfigField "String", "NTK_RELAY_URL", ntkQuote(ntkLocal.getProperty('ntk.relayUrl', ''))
             buildConfigField "String", "NTK_PAYMENT_KEY", ntkQuote(ntkLocal.getProperty('ntk.paymentKey', ''))
+            buildConfigField "String", "NTK_PAYMENT_KEY_MAINNET", ntkQuote(ntkLocal.getProperty('ntk.paymentKey.mainnet', ''))
         }
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField "String", "NTK_RELAY_URL", ntkQuote(ntkRelay)
+            buildConfigField "String", "NTK_RELAY_URL", ntkQuote('')
             buildConfigField "String", "NTK_PAYMENT_KEY", ntkQuote('')
+            buildConfigField "String", "NTK_PAYMENT_KEY_MAINNET", ntkQuote('')
             signingConfig ntkSigned ? signingConfigs.ntk : null
         }
     }

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
+import tools.ntk.Network;
 import tools.ntk.Ntk;
 
 /**
@@ -37,18 +38,33 @@ public final class EnclaveClient {
 
     private final String mRelay;
     private final String mPaymentKey;
+    private final Network mNetwork; // direct calls: OutLayer's API and the project on this network
 
-    private EnclaveClient(String relay, String paymentKey) {
+    private EnclaveClient(String relay, String paymentKey, Network network) {
         mRelay = relay;
         mPaymentKey = paymentKey;
+        mNetwork = network;
     }
 
+    /** Through a relay: its base URL, with /call and /calls/<id> below it (Network.relay). */
     public static EnclaveClient relay(String baseUrl) {
-        return new EnclaveClient(baseUrl.replaceAll("/+$", ""), null);
+        return new EnclaveClient(baseUrl.replaceAll("/+$", ""), null, null);
     }
 
-    public static EnclaveClient direct(String paymentKey) {
-        return new EnclaveClient(null, paymentKey);
+    /** Debug builds: OutLayer directly, on this network, paid with this key. */
+    public static EnclaveClient direct(String paymentKey, Network network) {
+        return new EnclaveClient(null, paymentKey, network);
+    }
+
+    /** Where a call starts. */
+    public String callUrl() {
+        return isDirect() ? mNetwork.outlayerApi + "/call/" + mNetwork.projectOwner + "/" + mNetwork.projectName
+                : mRelay + "/call";
+    }
+
+    /** Where a call is polled. */
+    public String pollUrl(String callId) {
+        return (isDirect() ? mNetwork.outlayerApi : mRelay) + "/calls/" + callId;
     }
 
     public boolean isDirect() {
@@ -56,7 +72,7 @@ public final class EnclaveClient {
     }
 
     public String describe() {
-        return isDirect() ? "OutLayer directly (debug)" : mRelay;
+        return isDirect() ? "OutLayer directly (debug, " + mNetwork.id + ")" : mRelay;
     }
 
     private Map<String, String> headers() {
@@ -67,11 +83,10 @@ public final class EnclaveClient {
     public String start(String inputJson) throws IOException, CallException {
         final String url;
         final String body;
+        url = callUrl();
         if (isDirect()) {
-            url = Ntk.OUTLAYER_API + "/call/" + Ntk.PROJECT_OWNER + "/" + Ntk.PROJECT_NAME;
             body = "{\"input\":" + inputJson + ",\"async\":true}";
         } else {
-            url = mRelay + "/call";
             body = "{\"input\":" + inputJson + "}";
         }
         final Http.Response r = Http.postJson(url, body, headers(), 60_000);
@@ -88,7 +103,7 @@ public final class EnclaveClient {
 
     /** One poll: OutLayer's call object. */
     public JSONObject poll(String callId) throws IOException, CallException {
-        final String url = (isDirect() ? Ntk.OUTLAYER_API : mRelay) + "/calls/" + callId;
+        final String url = pollUrl(callId);
         final Http.Response r = Http.get(url, headers(), 30_000);
         if (!r.ok()) throw new CallException("polling failed (HTTP " + r.code + "): " + Http.brief(r.body), "HTTP_" + r.code);
         try {

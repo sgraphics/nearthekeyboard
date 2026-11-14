@@ -10,7 +10,8 @@
 #   bash scripts/device/wallet-login.sh
 set -e
 . "$(dirname "$0")/_lib.sh"
-adb shell am start -n "$PKG/tools.ntk.ui.SetupActivity" >/dev/null
+# Debug builds: accept the first-run terms as a test user (release builds ignore the extra).
+adb shell am start -n "$PKG/tools.ntk.ui.SetupActivity" --ez ntk.acceptTerms true >/dev/null
 sleep 2
 if ! bash "$(dirname "$0")/tap-text.sh" "Log in with a NEAR wallet" >/dev/null; then
   echo "no wallet button: log out in the app first (or bash scripts/device/reset.sh)"; exit 1

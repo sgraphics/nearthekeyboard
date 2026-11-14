@@ -43,6 +43,8 @@ public class LinksTest {
     @Test
     public void loginUrlFollowsTheLoginPageContract() {
         assertEquals("https://ntk.tools/login#pk=ed25519%3A9fXr3kQ2&return=ntk%3A%2F%2Fauth&network=testnet",
-                Links.loginUrl("https://ntk.tools/", "ed25519:9fXr3kQ2"));
+                Links.loginUrl("https://ntk.tools/", "ed25519:9fXr3kQ2", Network.TESTNET));
+        assertEquals("https://ntk.tools/login#pk=ed25519%3A9fXr3kQ2&return=ntk%3A%2F%2Fauth&network=mainnet",
+                Links.loginUrl("https://ntk.tools/", "ed25519:9fXr3kQ2", Network.MAINNET));
     }
 }
