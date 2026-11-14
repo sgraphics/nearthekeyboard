@@ -8,7 +8,7 @@
 // overlap by `transition` seconds, where the next one fades in.
 //
 // Clip parts are seconds in the clip file (public/clips/), each with a speed:
-// a part faster than 1 shows the "FWD ▶▶" marker and the VHS lines. A jump
+// a part faster than 1 shows the "FWD ▶▶" marker (and VHS lines if fwd.vhs is on). A jump
 // between parts is a hard cut. The loupe is the large panel that magnifies a
 // region of the phone screen: x and y are the region's centre as fractions of
 // the screen (0..1), w its width as a fraction of the screen width (1 = all of
@@ -94,6 +94,7 @@ export const timelineSchema = z.object({
 	fwd: z.object({
 		label: z.string(),
 		showSpeed: z.boolean(),
+		vhs: z.boolean(),
 		lines: z.number().min(0).max(1),
 		grain: z.number().min(0).max(1),
 	}),
@@ -163,6 +164,7 @@ export const LaunchComposition: React.FC = () => (
 			fwd: {
 				label: 'FWD',
 				showSpeed: true,
+				vhs: false,
 				lines: 0.5,
 				grain: 0.35,
 			},

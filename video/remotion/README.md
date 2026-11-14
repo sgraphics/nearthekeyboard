@@ -23,7 +23,7 @@ npm run typecheck
 In Studio, pick the composition **Launch**. The **Props** panel on the right
 lists every setting: `look` (colours, caption size and weight), `story` (the
 account, the reply, the stamp id and score, the links), `fwd` (the
-fast-forward marker and VHS lines), `transition` (crossfade seconds) and
+fast-forward marker; `vhs` switches VHS lines on, off by default), `transition` (crossfade seconds) and
 `scenes`. Changes show at once. **Save** writes them back into
 `src/timeline.tsx`. The timeline at the bottom shows each scene as a named
 sequence, and each clip part with its speed.
@@ -40,7 +40,7 @@ What the config means:
 - Clip scenes (`problem`, `enroll`, `moment`, `verify`) have a `clip`:
   - `src`: the file in `public/clips/`.
   - `parts`: `{from, to, speed}` in seconds of that file. Any part faster than
-    1 shows the **FWD ▶▶ ×speed** marker and the VHS lines. A jump between
+    1 shows the **FWD ▶▶ ×speed** marker (and VHS lines when `fwd.vhs` is on). A jump between
     parts is a cut.
   - `loupe`: the large panel at the right that magnifies part of the phone
     screen. Each keyframe gives the time `at`, the centre `x`, `y` as fractions

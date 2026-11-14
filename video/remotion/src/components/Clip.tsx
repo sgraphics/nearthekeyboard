@@ -107,10 +107,10 @@ export const inLoupe = (keys: Focus[], t: number, px: number, py: number, shift 
 	return {x: LOUPE.x + LOUPE.w / 2 + (px - r.x) * fullW, y: LOUPE.y + LOUPE.h / 2 + (py - r.y) * fullH, scale: fullW / 1080};
 };
 
-/** VHS tracking lines and a little grain over a box, at `strength` (0..1). */
+/** VHS tracking lines and a little grain over a box, at `strength` (0..1); only when `fwd.vhs` is on. */
 export const Vhs: React.FC<{w: number; h: number; strength: number; fwd: Fwd}> = ({w, h, strength, fwd}) => {
 	const frame = useCurrentFrame();
-	if (strength <= 0) return null;
+	if (strength <= 0 || !fwd.vhs) return null;
 	const t = frame / FPS;
 	// Two tracking bands drifting down at different speeds: a soft grey band with a bright line on its top
 	// edge and a faint dark one under it, so they show on light screens as well as dark ones.
