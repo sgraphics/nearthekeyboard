@@ -206,12 +206,15 @@ test('found nowhere: the chip and the summary name every network that was asked'
   assert.equal(err.chip, 'TESTNET · MAINNET');
 });
 
-test('the site bar and footer: what index.html says for testnet alone, and both networks once mainnet is pinned', () => {
+test('the site bar and footer: index.html names the pinned networks before the script runs', () => {
   assert.equal(chipText(['testnet']), 'TESTNET');
+  assert.equal(siteNetworks(['testnet']).title, 'Stamps on NEAR testnet only');
   const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-  const one = siteNetworks(['testnet']);
-  assert.ok(html.includes(`<span id="site-net" class="chip chip-testnet" title="${one.title}">${one.chip}</span>`), 'the chip before the script runs');
-  assert.ok(html.includes(`<span id="foot-net">${one.footer}</span>`), 'the footer before the script runs');
+  const names = PINNED.map((p) => p.network);
+  const now = siteNetworks(names);
+  const cls = names.length === 1 ? `chip chip-${names[0]}` : 'chip';
+  assert.ok(html.includes(`<span id="site-net" class="${cls}" title="${now.title}">${now.chip}</span>`), 'the chip before the script runs');
+  assert.ok(html.includes(`<span id="foot-net">${now.footer}</span>`), 'the footer before the script runs');
   assert.deepEqual(siteNetworks(['testnet', 'mainnet']),
     { chip: 'TESTNET · MAINNET', title: 'Stamps on NEAR testnet and mainnet', footer: 'NEAR testnet and mainnet' });
   assert.deepEqual(siteNetworks(PINNED.map((p) => p.network)).chip, chipText(PINNED.map((p) => p.network)));

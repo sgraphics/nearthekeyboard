@@ -1,0 +1,37 @@
+/* ntk.tools/donate, on top of /assets/ntk.css and /login/login.css: the three
+   amounts as flat keys; the chosen one carries a thin orange ring, and the one
+   orange key is Send. */
+
+.amounts {
+  list-style: none;
+  margin: 1.2rem 0 .9rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.btn.amount {
+  width: 100%;
+  min-height: 72px;
+  padding: .7rem .5rem;
+  font-size: 1.2rem;
+  font-weight: 300;
+}
+.btn.amount.is-on { box-shadow: inset 0 0 0 2px var(--orange); font-weight: 500; }
+
+.to-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin: 0 0 1.2rem;
+  color: var(--ink-2);
+}
+.to-line .mono { color: var(--ink); }
+
+.thanks {
+  margin: .4rem 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 300;
+  line-height: 1.5;
+}

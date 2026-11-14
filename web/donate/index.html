@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Donate to NTK · Near The Keyboard</title>
+  <meta name="description" content="Support NTK with 5, 25 or 50 NEAR, sent from your own NEAR wallet.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1D1F23" media="(prefers-color-scheme: dark)">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/assets/favicon.ico?v=043ec83d" sizes="any">
+  <link rel="icon" href="/assets/favicon-32.png?v=ad8ec9d2" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=776edb31">
+  <link rel="preload" href="/assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/ntk.css?v=880f992c">
+  <link rel="stylesheet" href="/login/login.css">
+  <link rel="stylesheet" href="/donate/donate.css">
+  <!-- A classic script, not a module: it reads its own nonce (nginx puts a fresh one here) for the wallets' iframes. -->
+  <script src="/donate/bundle.js" nonce="NTK_CSP_NONCE" defer></script>
+</head>
+<body class="page-login page-donate" data-state="loading">
+  <header class="site-bar">
+    <div class="wrap site-bar-in">
+      <a class="brand" href="/" aria-label="Near The Keyboard: check a stamp">
+        <picture>
+          <source srcset="/assets/ntk-badge-dark.svg?v=6800329f" media="(prefers-color-scheme: dark)">
+          <img class="badge" src="/assets/ntk-badge-light.svg?v=6800329f" alt="NTK" width="64" height="20">
+        </picture>
+      </a>
+      <span class="chip" title="NEAR mainnet">MAINNET</span>
+      <p class="site-name"><span class="page-name">donate</span> <span class="brand-name">Near the keyboard</span></p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel pbox login" aria-labelledby="donate-title">
+      <h1 id="donate-title">Support NTK</h1>
+      <ul id="amounts" class="amounts" aria-label="Amount"></ul>
+      <p class="to-line">To <span class="donate-to mono">nearthekeyboard.near</span>
+        <button id="copy-to" type="button" class="btn btn-small">Copy</button></p>
+
+      <!-- Waiting: the busy dial of lib/dial.js, its needle advancing (dialMarkup wrote it; web/test/dial.test.mjs checks it). -->
+      <div class="busy" data-show="loading busy">
+        <p class="busy-text" role="status" aria-live="polite"><span id="busy-text">Loading…</span></p>
+        <div class="dial dial-busy" aria-hidden="true">
+          <svg class="dial-scale" viewBox="0 0 1000 30" preserveAspectRatio="none" focusable="false" aria-hidden="true">
+            <line x1="0" y1="26" x2="1000" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="0" y1="17" x2="0" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="25" y1="17" x2="25" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="50" y1="17" x2="50" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="75" y1="17" x2="75" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="100" y1="17" x2="100" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="125" y1="17" x2="125" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="150" y1="17" x2="150" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="175" y1="17" x2="175" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="200" y1="17" x2="200" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="225" y1="17" x2="225" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="250" y1="17" x2="250" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="275" y1="17" x2="275" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="300" y1="17" x2="300" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="325" y1="17" x2="325" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="350" y1="17" x2="350" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="375" y1="17" x2="375" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="400" y1="17" x2="400" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="425" y1="17" x2="425" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="450" y1="17" x2="450" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="475" y1="17" x2="475" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="500" y1="17" x2="500" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="525" y1="17" x2="525" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="550" y1="17" x2="550" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="575" y1="17" x2="575" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="600" y1="17" x2="600" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="625" y1="17" x2="625" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="650" y1="17" x2="650" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="675" y1="17" x2="675" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="700" y1="17" x2="700" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="725" y1="17" x2="725" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="750" y1="17" x2="750" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="775" y1="17" x2="775" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="800" y1="17" x2="800" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="825" y1="17" x2="825" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="850" y1="17" x2="850" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="875" y1="17" x2="875" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="900" y1="17" x2="900" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="925" y1="17" x2="925" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="950" y1="17" x2="950" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="975" y1="17" x2="975" y2="26" vector-effect="non-scaling-stroke"/>
+            <line x1="1000" y1="17" x2="1000" y2="26" vector-effect="non-scaling-stroke"/>
+          </svg>
+          <span class="dial-sweep"></span>
+        </div>
+      </div>
+
+      <div class="step" data-show="choose" hidden>
+        <h2 class="step-title">Choose your wallet</h2>
+        <ul id="wallets" class="wallets"></ul>
+        <p id="no-wallets" class="notice" hidden>No wallet could be loaded. Check the connection and reload the page.</p>
+      </div>
+
+      <div class="step" data-show="connected" hidden>
+        <p class="account-line">From <span id="wallet-name"></span></p>
+        <p class="account mono" id="account"></p>
+        <div class="row">
+          <button id="send" type="button" class="btn btn-primary">Send <span class="amount-text">25 NEAR</span></button>
+          <button id="switch" type="button" class="btn btn-small">Use another account</button>
+        </div>
+      </div>
+
+      <div class="step" data-show="done" hidden>
+        <p class="done-title"><span class="dot" aria-hidden="true"></span><span id="done-amount"></span> sent</p>
+        <p class="thanks">Thank you for your support.<br>— NTK Team</p>
+        <p><a id="tx-link" href="#" rel="noopener noreferrer" hidden>See the transaction</a></p>
+      </div>
+
+      <div class="step" data-show="error" hidden>
+        <p id="error-text" class="notice error-text" role="alert"></p>
+        <div class="row"><button id="retry" type="button" class="btn btn-primary">Try again</button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot wrap">
+    <p><a href="/privacy/">Privacy</a> <span aria-hidden="true">·</span> <a href="/">Check a stamp</a>
+      <span aria-hidden="true">·</span> NEAR mainnet</p>
+  </footer>
+  <noscript><p class="wrap notice">This page talks to your NEAR wallet and needs JavaScript.</p></noscript>
+</body>
+</html>

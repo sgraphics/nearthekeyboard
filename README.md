@@ -13,7 +13,7 @@ can check the stamp against the text at <https://ntk.tools>, without an account
 and without seeing the fingerprint.
 
 Built at NEAR HACKATHON (tracks: Privacy & Private AI, Open Innovation).
-Testnet only.
+Runs on NEAR testnet (the default) and on NEAR mainnet.
 
 ## The problem
 
@@ -24,14 +24,15 @@ or in an app where someone can copy it.
 
 ## Status
 
-Updated 2026-11-13. What is still open is in [TODO.md](TODO.md).
+Updated 2026-11-14. What is still open is in [TODO.md](TODO.md).
 
 | Part | Path | State |
 |---|---|---|
-| Enclave v0.2.0 (Rust, wasm32-wasip2) | `enclave/` | Live on OutLayer testnet as `nearthekeyboard.testnet/ntk`; reproducible build (Docker), active version `6fd05f44…`; 16 unit tests |
+| Enclave v0.2.0 (Rust, wasm32-wasip2) | `enclave/` | Live on OutLayer testnet as `nearthekeyboard.testnet/ntk` and on mainnet as `nearthekeyboard.near/ntk`: the same reproducible build (Docker), `6fd05f44…`, active on both; 16 unit tests |
+| Mainnet | `relay/`, `web/`, `android/` | Live since 2026-11-14. First mainnet stamp `[NTK c5682ebadf]` (a synthetic typist on a fresh implicit account, through the live relay): MATCH at <https://ntk.tools>, and `outlayer-verify` proves its call's TDX attestation (wasm `6fd05f44…`). About 2.5 s per call |
 | Protocol client, end-to-end suite | `client/` | 36 of 36 checks against the live enclave (2026-11-13), synthetic typists |
 | Verify page, demo feed, web embed, privacy page | `web/` | Live at <https://ntk.tools> |
-| Relay (holds the payment key) | `relay/` | Live at `https://ntk.tools/api`; web and relay: 107 tests |
+| Relay (holds the payment key) | `relay/` | Live at `https://ntk.tools/api` (testnet) and `https://ntk.tools/api/mainnet`; web and relay: 144 tests |
 | Android keyboard | `android/` | Signed release APK at <https://ntk.tools/app/>. Works on the Android emulator: a fresh testnet account enrolled and got MATCH (`[NTK 4420c168c8]`) through the live relay; 28 unit tests, robot typist tests |
 | Log in with a NEAR wallet | `web/login/`, `android/` | Login page live at <https://ntk.tools/login/> (NEAR Connect: Meteor, Intear). The app side works with a function-call key added from a script; not yet tried with a real wallet. The testnet faucet account also works |
 | Stamp buttons in other Android apps | `android/` | Works in Chrome on the emulator: a button over each tag opens the verify page; also "Verify NTK stamp" in the text selection menu. Not tried in the X app |
@@ -89,6 +90,10 @@ stamped.
 The text after `#` never reaches a server; only the stamp id does. This stamp
 was made by the test suite's synthetic typist, not by a person.
 
+On mainnet: <https://ntk.tools/c5682ebadf#t=TlRLIG9uIE5FQVIgbWFpbm5ldCwgdGhlIGZpcnN0IHN0YW1wLCBtYWRlIGJ5IGEgc3ludGhldGljIHRlc3QgdHlwaXN0Lg>, the first
+stamp on NEAR mainnet, also from a synthetic typist. The page looks every id up
+on both networks and says which one has it.
+
 ### 2. Tap a stamp in a feed
 
 Do: open <https://ntk.tools/feed/?embed=1>, then tap the stamp button at the
@@ -119,6 +124,13 @@ See: JSON with `"id":"26144e35e7"`, the stamp key
 the signed `record` (itself a JSON string): `"v":2`, the account, `text_sha256`,
 `text_chars` 49, the scores and the issuing `call_id`. The record never
 contains the text or any timing.
+
+The first mainnet stamp, signed by the mainnet key
+`ed25519:6ubp84rgbCnXND4LwYPd7UBKMQWwTyGC3uXgUaAEF1D4`:
+
+```bash
+curl -s "https://api.outlayer.ai/public/storage/get?project=nearthekeyboard.near%2Fntk&key=stamp%3Ac5682ebadf&format=raw"
+```
 
 ### 5. Run the tests
 
@@ -319,13 +331,20 @@ Each piece can be checked on its own.
    has an Intel TDX attestation: a quote signed inside the processor that names
    the hash of the code that ran and commits to the exact request and response.
    Anyone can fetch it at
-   `https://testnet-api.outlayer.ai/attestations/by-call/<call_id>` and check it
-   with `outlayer-verify call <call_id> --network testnet`. That command checks
+   `https://testnet-api.outlayer.ai/attestations/by-call/<call_id>` (mainnet:
+   `https://api.outlayer.ai/attestations/by-call/<call_id>`) and check it with
+   `outlayer-verify call <call_id> --network testnet` (or `--network mainnet`). That command checks
    Intel's signature chain, that the worker's measurements are on the approved
    list, and that the quote belongs to that input and output. The code hash it
    names can be rebuilt byte for byte from this repository (Try it, step 6), and
    the chain lists every version the project ever activated. So a stamp shows
    not only who typed, but which code decided.
+
+   Example: the first mainnet stamp, `[NTK c5682ebadf]`, came from call
+   `2ae1b905-7907-4cea-98c2-c7a4269803bc`. For that call `outlayer-verify`
+   reports PROVEN: genuine Intel TDX hardware, a worker image approved on chain,
+   project `nearthekeyboard.near/ntk`, and wasm sha256 `6fd05f44…`, the build in
+   this repository.
 6. **The device and the touches (planned).** Not built yet; see Next
    milestones. Today the enclave cannot tell a finger on a screen from taps that
    software produced.
@@ -342,8 +361,8 @@ Each piece can be checked on its own.
   that seals fingerprints and the key that signs stamps. Every call has a TDX
   attestation naming the code hash, input hash and output hash.
 - **The chain records which code may use those keys.** The project's version
-  list is in the `outlayer.testnet` contract, and the active version can be
-  rebuilt byte for byte (Try it, step 6).
+  list is in the `outlayer.testnet` contract on testnet and in `outlayer.near` on
+  mainnet, and the active version can be rebuilt byte for byte (Try it, step 6).
 - **Stamps are public records.** They sit in OutLayer's public storage and are
   read by id without an account.
 - **NEAR AI Cloud is not used yet.** It is planned for one job: judging, inside
@@ -448,8 +467,9 @@ Limits, not solved:
   draw buttons over other apps, so readers would check stamps through the share
   menu ("Verify NTK stamp") or a Safari extension. Roughly 1 to 2 weeks for one
   iOS developer, plus App Store review.
-- **Mainnet.** The OutLayer project owned by a DAO, or frozen, so no one can
-  publish a version that reads fingerprints.
+- **Mainnet as the default.** NTK runs on mainnet today, next to testnet. Next:
+  the OutLayer project owned by a DAO, or frozen, so no one can publish a
+  version that reads fingerprints.
 - **NEAR AI Cloud.** Judge, inside a private model, whether a text was
   composed or copied.
 - **Real typing data.** Tune the matcher with consenting volunteers; keep one

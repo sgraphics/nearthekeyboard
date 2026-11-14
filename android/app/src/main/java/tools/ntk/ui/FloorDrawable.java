@@ -50,6 +50,21 @@ public final class FloorDrawable extends Drawable {
         }
     }
 
+    /**
+     * The keyboard view's background, if it is a floor: its base is the bottom {@code px} pixels,
+     * of which the top {@code bandPx} are the lighter band (the DONATE ribbon above the system's area).
+     */
+    public static void setBase(Drawable d, int px, int bandPx) {
+        if (d instanceof FloorDrawable) {
+            final FloorDrawable f = (FloorDrawable) d;
+            if (f.mBasePx != px || f.mBandPx != bandPx) {
+                f.mBasePx = Math.max(0, px);
+                f.mBandPx = Math.max(0, bandPx);
+                d.invalidateSelf();
+            }
+        }
+    }
+
     /** The keyboard view's background, if it is a floor: its base is the bottom {@code px} pixels. */
     public static void setBase(Drawable d, int px) {
         if (d instanceof FloorDrawable && ((FloorDrawable) d).mBasePx != px) {

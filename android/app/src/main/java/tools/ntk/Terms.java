@@ -15,7 +15,7 @@ import android.content.SharedPreferences;
  */
 public final class Terms {
     /** The terms version the app asks for. Raise it when the terms change: users agree again. */
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
 
     private static final String PREFS = "ntk_ui";
     private static final String KEY_VERSION = "terms_version";

@@ -12,15 +12,15 @@ import rkr.simplekeyboard.inputmethod.BuildConfig;
  * and where the login is kept (each network keeps its own; the fingerprint is
  * per account, so a user enrolls again on another network).
  *
- * Mainnet becomes available once its two keys below are filled in, and the
+ * Mainnet is available because its two keys below are filled in; it becomes the
  * default by changing {@link #DEFAULT_NETWORK}.
  */
 public final class Network {
-    // ---- Mainnet's pinned keys: fill them in from the mainnet enclave's info -----------------
+    // ---- Mainnet's pinned keys, from the mainnet enclave's info (2026-11-14) -----------------
     /** The mainnet enclave's stamp key, "ed25519:…" (info.stamp_pk). Null: mainnet is not available. */
-    public static final String MAINNET_STAMP_PK = null;
+    public static final String MAINNET_STAMP_PK = "ed25519:6ubp84rgbCnXND4LwYPd7UBKMQWwTyGC3uXgUaAEF1D4";
     /** The mainnet enclave's transport key, 64 hex characters (info.transport_pk). Null: not available. */
-    public static final String MAINNET_TRANSPORT_PK_HEX = null;
+    public static final String MAINNET_TRANSPORT_PK_HEX = "a48b1d2bb59543a03d009c80340ef38a8cb72b0cc5349eb8f24fdea284529a29";
 
     public static final Network TESTNET = new Network(
             "testnet", "Testnet",

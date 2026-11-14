@@ -104,6 +104,13 @@ public final class MainKeyboardView extends KeyboardView implements MoreKeysPane
     private final TimerHandler mTimerHandler;
     private final int mLanguageOnSpacebarHorizontalMargin;
 
+    // NTK: the DONATE ribbon, a band under the keys and above the area where the system draws
+    // its navigation buttons (this view's bottom padding). A tap on it opens the donate panel
+    // (tools.ntk.ui.DonatePanel); it never reaches the keys.
+    private final int mNtkRibbonPx;
+    private final Paint mNtkRibbonPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private boolean mNtkRibbonDown;
+
     public MainKeyboardView(final Context context, final AttributeSet attrs) {
         this(context, attrs, R.attr.mainKeyboardViewStyle);
     }
@@ -173,6 +180,15 @@ public final class MainKeyboardView extends KeyboardView implements MoreKeysPane
 
         mLanguageOnSpacebarHorizontalMargin = (int)getResources().getDimension(
                 R.dimen.config_language_on_spacebar_horizontal_margin);
+
+        // NTK: the DONATE ribbon's label, centred, in the legend colour at half opacity.
+        mNtkRibbonPx = getResources().getDimensionPixelSize(R.dimen.ntk_donate_ribbon_height);
+        mNtkRibbonPaint.setTextAlign(Align.CENTER);
+        mNtkRibbonPaint.setTextSize(getResources().getDimension(R.dimen.ntk_donate_text));
+        mNtkRibbonPaint.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        mNtkRibbonPaint.setLetterSpacing(0.18f);
+        mNtkRibbonPaint.setColor(context.getColor(R.color.ntk_legend));
+        mNtkRibbonPaint.setAlpha(128);
     }
 
     private ObjectAnimator loadObjectAnimator(final int resId, final Object target) {
@@ -465,10 +481,67 @@ public final class MainKeyboardView extends KeyboardView implements MoreKeysPane
         return mTimerHandler.isInDoubleTapShiftKeyTimeout();
     }
 
+    // NTK: the DONATE ribbon. The view is the ribbon's height taller than the keys and its
+    // padding; the floor paints the ribbon in its lighter base colour and the system's area
+    // under it in the darker one.
+    @Override
+    protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        if (getKeyboard() != null && mNtkRibbonPx > 0) {
+            setMeasuredDimension(getMeasuredWidth(), getMeasuredHeight() + mNtkRibbonPx);
+        }
+    }
+
+    @Override
+    protected void onLayout(final boolean changed, final int left, final int top, final int right,
+            final int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        tools.ntk.ui.FloorDrawable.setBase(getBackground(), getPaddingBottom() + mNtkRibbonPx, mNtkRibbonPx);
+    }
+
+    @Override
+    protected void onDraw(final Canvas canvas) {
+        super.onDraw(canvas);
+        if (getKeyboard() == null || mNtkRibbonPx <= 0) return;
+        final float top = getHeight() - getPaddingBottom() - mNtkRibbonPx;
+        final Paint.FontMetrics fm = mNtkRibbonPaint.getFontMetrics();
+        final float baseline = top + mNtkRibbonPx / 2f - (fm.ascent + fm.descent) / 2f;
+        canvas.drawText(tools.ntk.Donate.LABEL, getWidth() / 2f, baseline, mNtkRibbonPaint);
+    }
+
+    /** A touch that starts on the DONATE ribbon is the ribbon's: a tap opens the donate panel. */
+    private boolean ntkRibbonTouch(final MotionEvent e) {
+        if (mNtkRibbonPx <= 0) return false;
+        final int bottom = getHeight() - getPaddingBottom();
+        final int top = bottom - mNtkRibbonPx;
+        switch (e.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                mNtkRibbonDown = e.getY() >= top && e.getY() < bottom;
+                return mNtkRibbonDown;
+            case MotionEvent.ACTION_UP:
+                if (!mNtkRibbonDown) return false;
+                mNtkRibbonDown = false;
+                if (e.getY() >= top - mNtkRibbonPx && e.getY() <= bottom + mNtkRibbonPx) {
+                    playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    tools.ntk.ui.DonatePanel.showFor(this);
+                }
+                return true;
+            case MotionEvent.ACTION_CANCEL:
+                if (!mNtkRibbonDown) return false;
+                mNtkRibbonDown = false;
+                return true;
+            default:
+                return mNtkRibbonDown;
+        }
+    }
+
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
         if (getKeyboard() == null) {
             return false;
+        }
+        if (ntkRibbonTouch(event)) {
+            return true;
         }
         if (NtkCapture.get().isHolding()) {
             // NTK: typing is held while a stamp request runs, so the tag lands right after the text.

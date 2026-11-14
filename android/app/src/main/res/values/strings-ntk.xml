@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="ntk_strip_height">44dp</dimen>
+    <!-- The DONATE ribbon under the keys (MainKeyboardView) and its label. -->
+    <dimen name="ntk_donate_ribbon_height">22dp</dimen>
+    <dimen name="ntk_donate_text">10sp</dimen>
     <!-- Key tiles (tools.ntk.ui.TileDrawable): corner radius, the soft shadow's blur and
          drop, and the room the face leaves inside the key's bounds for the shadow to fade
          out in. Legends are centred on the face. Drawing only: keys keep their bounds. -->

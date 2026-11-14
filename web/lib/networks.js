@@ -4,9 +4,9 @@
 // login/bundle.js) and the relay's smoke test read them from here.
 // docs/protocol.md lists the same values. Browsers and Node 20+, no build step.
 //
-// Testnet is the default. Mainnet is switched off until its enclave keys are
-// pinned below: while either key is null, mainnet is "not available yet" on
-// every page, and stamps are looked up on testnet only.
+// Testnet is the default; mainnet is available since its enclave keys were
+// pinned below. Setting either key to null switches mainnet off again: it is
+// then "not available yet" on every page, and stamps are looked up on testnet only.
 
 export const NETWORKS = Object.freeze({
   testnet: Object.freeze({
@@ -24,14 +24,12 @@ export const NETWORKS = Object.freeze({
     project: 'nearthekeyboard.near/ntk',
     owner: 'nearthekeyboard.near',
     rpc: 'https://rpc.mainnet.fastnear.com',
-    // ===== TO BE PINNED: the mainnet enclave's keys ================================
-    // From its `info` output (GET https://ntk.tools/api/mainnet/info, or
-    // `node relay/smoke.mjs https://ntk.tools --network mainnet`): stamp_pk and
-    // transport_pk. Fill in both, rebuild the login bundle (cd web/login && node
-    // build.mjs) and run the tests. Both null = mainnet switched off.
-    stampPk: null, // 'ed25519:<base58>'
-    transportPk: null, // '<64 lowercase hex characters>'
-    // ================================================================================
+    // Pinned 2026-11-14 from the mainnet enclave's `info` output (first mainnet
+    // call d8979062-e845-4754-8b63-2145de581fb4, enclave build 6fd05f44…). After a
+    // change here, rebuild the login bundle (cd web/login && node build.mjs) and
+    // run the tests. Both null = mainnet switched off.
+    stampPk: 'ed25519:6ubp84rgbCnXND4LwYPd7UBKMQWwTyGC3uXgUaAEF1D4',
+    transportPk: 'a48b1d2bb59543a03d009c80340ef38a8cb72b0cc5349eb8f24fdea284529a29',
   }),
 });
 

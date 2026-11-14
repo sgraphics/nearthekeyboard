@@ -24,21 +24,21 @@
           <img class="badge" src="/assets/ntk-badge-light.svg?v=6800329f" alt="NTK" width="64" height="20">
         </picture>
       </a>
-      <span class="chip chip-testnet" title="NEAR testnet only">TESTNET</span>
+      <span class="chip" title="NEAR testnet and mainnet">TESTNET · MAINNET</span>
       <p class="site-name"><span class="page-name">install</span> <span class="brand-name">Near the keyboard</span></p>
     </div>
   </header>
 
   <main class="wrap doc">
     <h1>Install NTK on Android</h1>
-    <p class="lede">The NTK keyboard for Android phones, signed by the project. It runs on NEAR testnet only, so no
-      real money is involved. Version 0.3, 1.0 MB, Android 7 or newer (tested on Android 16).</p>
+    <p class="lede">The NTK keyboard for Android phones, signed by the project. It runs on NEAR testnet by default,
+      where no real money is involved, and on NEAR mainnet if you choose it in its settings. Version 0.4, 1.0 MB, Android 7 or newer (tested on Android 16).</p>
 
     <section class="block doc-short" aria-labelledby="get-title">
       <h2 id="get-title">Download</h2>
-      <p><a class="btn btn-primary" href="/download/ntk-keyboard-0.3.apk" download>Download the APK</a></p>
+      <p><a class="btn btn-primary" href="/download/ntk-keyboard-0.4.apk" download>Download the APK</a></p>
       <p>Check the file before installing it, if you like. Its SHA-256:</p>
-      <p><code>743bf6611e9918e33e3e0b5b9a122974479080018b4bfd18006e3d3ebfb33413</code></p>
+      <p><code>a4b064e2b3cdf7a43f0e2f6be5b1a0227f8a07ef794edbf7af0b1a0f238ee9bd</code></p>
       <p>The signing certificate (CN=Near The Keyboard), SHA-256:</p>
       <p><code>09:88:34:DE:9A:59:94:C0:CC:AF:0F:60:E7:4D:35:DF:16:77:D5:3F:62:5A:A1:5D:EB:6A:BD:7C:B2:87:50:65</code></p>
     </section>
@@ -49,9 +49,9 @@
         <li>Open the downloaded file. Android asks whether your browser may install apps: allow it, then install.</li>
         <li>Open NTK, read the short notice and agree to the terms. Tap <strong>Turn on NTK in system settings</strong>, switch NTK on, then tap
           <strong>Switch to the NTK keyboard</strong>.</li>
-        <li>Tap <strong>Log in with a NEAR wallet</strong> and approve one transaction in Meteor or Intear (a NEAR
-          testnet account with a little test NEAR). It adds a key that can only sign NTK requests. Or let NTK create
-          a testnet account for you.</li>
+        <li>Tap <strong>Log in with a NEAR wallet</strong> and approve one transaction in Meteor or Intear. It adds
+          a key that can only sign NTK requests. NTK starts on NEAR testnet, where it can also create an account for
+          you; mainnet is in its settings.</li>
         <li>Tap <strong>Enroll</strong> and type the three short texts. NTK learns how you type; the fingerprint is
           sealed in the enclave.</li>
         <li>Type anywhere. When you have typed at least 40 keys, tap <strong>sign</strong> on the keyboard's strip. On
@@ -68,14 +68,13 @@
     <section class="doc-part" aria-labelledby="source-title">
       <h2 id="source-title">Source</h2>
       <p>The app is built from <a href="https://github.com/sgraphics/nearthekeyboard">github.com/sgraphics/nearthekeyboard</a>
-        (the <code>android/</code> folder, built on Simple Keyboard). Calls cost the project a little test money and
-        are rate limited.</p>
+        (the <code>android/</code> folder, built on Simple Keyboard). Calls are paid by the project and rate limited.</p>
     </section>
   </main>
 
   <footer class="site-foot wrap">
     <p><a href="/">Check a stamp</a> <span aria-hidden="true">·</span> <a href="/privacy/">Privacy</a> <span aria-hidden="true">·</span> <a href="/feed/?embed=1">Demo feed</a>
-      <span aria-hidden="true">·</span> <a href="/terms/">Terms</a> <span aria-hidden="true">·</span> NEAR testnet</p>
+      <span aria-hidden="true">·</span> <a href="/terms/">Terms</a> <span aria-hidden="true">·</span> NEAR testnet and mainnet</p>
   </footer>
 </body>
 </html>

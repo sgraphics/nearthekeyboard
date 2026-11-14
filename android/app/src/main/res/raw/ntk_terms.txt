@@ -2,7 +2,7 @@ Terms of use: https://ntk.tools/terms/
 Privacy notice: https://ntk.tools/privacy/
 
 TERMS OF USE
-The short version: NTK is a hackathon prototype on NEAR testnet, provided as it is. Use it at your own risk. Updated 14 November 2026. Terms version 1.
+The short version: NTK is a hackathon prototype on NEAR, provided as it is. Use it at your own risk. Updated 14 November 2026. Terms version 2.
 
 In short
 - NTK measures how you type: how long you hold each key, the time between keys and where your finger lands. It does not keep what you type.
@@ -12,13 +12,13 @@ In short
 - NTK comes without any warranty. Use it at your own risk.
 
 What NTK is
-NTK (Near The Keyboard) is an open-source keyboard for Android and a website, built at a hackathon. It runs on NEAR testnet only, so no real money is involved. It may change, stop working or be shut down at any time, and testnet data may be lost.
+NTK (Near The Keyboard) is an open-source keyboard for Android and a website, built at a hackathon. It runs on NEAR testnet by default, where no real money is involved. If you choose mainnet in the app, logging in adds a key to your NEAR mainnet account, and your wallet charges a small network fee for that; NTK itself charges nothing. NTK may change, stop working or be shut down at any time, and its data may be lost.
 
 What you agree to
 By using the keyboard you agree that it measures your typing as described on the privacy page and sends those measurements, sealed, to the NTK enclave when you tap Enroll or Sign. The enclave keeps your typing fingerprint encrypted and uses it only to check new typing.
 
 Services we do not control
-NTK relies on NEAR OutLayer (which runs the enclave in Intel TDX and holds its keys), Intel TDX, NEAR testnet, your NEAR wallet, Cloudflare and the server that hosts ntk.tools and the relay. We do not run these services and cannot guarantee their security, privacy or availability. A fault or a breach in one of them could expose your typing statistics or stop NTK from working.
+NTK relies on NEAR OutLayer (which runs the enclave in Intel TDX and holds its keys), Intel TDX, NEAR testnet and mainnet, your NEAR wallet, Cloudflare and the server that hosts ntk.tools and the relay. We do not run these services and cannot guarantee their security, privacy or availability. A fault or a breach in one of them could expose your typing statistics or stop NTK from working.
 
 Stamps
 A stamp is a public record: your NEAR account, a hash of the text, its length, the scores and the time. It cannot be deleted. A stamp is evidence that a text was typed key by key on the NTK keyboard by someone whose typing matches the account's fingerprint. It does not prove who you are, and it does not prove the text was written without help.
@@ -36,7 +36,7 @@ If these terms change, the app asks you to agree again. Questions: github.com/sg
 
 
 PRIVACY NOTICE
-NTK is a phone keyboard that measures how you type, so that you can prove you typed a text by hand. Here is what it measures, what it sends and when, and who can see what. Updated 13 November 2026.
+NTK is a phone keyboard that measures how you type, so that you can prove you typed a text by hand. Here is what it measures, what it sends and when, and who can see what. Updated 14 November 2026.
 
 In short
 - The keyboard sends nothing while you type. It sends one sealed typing session when you tap Enroll or Sign, and nothing else.
@@ -73,4 +73,4 @@ The login page asks your own wallet (Meteor or Intear) to add the app's key to y
 ntk.tools runs on the project's server behind Cloudflare. Both log requests (address, time, page), as most websites do. The site sets no cookies of its own and has no analytics or ads.
 
 Testnet, and contact
-NTK is a hackathon project and runs on NEAR testnet only. Questions and requests: github.com/sgraphics/nearthekeyboard.
+NTK is a hackathon project. It runs on NEAR testnet by default, and on NEAR mainnet if you choose it in the app. Each network keeps its own fingerprints and stamps. Questions and requests: github.com/sgraphics/nearthekeyboard.

@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { createRelay } from '../../relay/server.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PAGES = ['/', '/e65ee28db5', '/feed/', '/feed/?embed=1', '/messages/', '/messages/?embed=1', '/login/', '/privacy/', '/app/', '/terms/', '/trailer/'];
+const PAGES = ['/', '/e65ee28db5', '/feed/', '/feed/?embed=1', '/messages/', '/messages/?embed=1', '/login/', '/donate/', '/privacy/', '/app/', '/terms/', '/trailer/'];
 const ENTRY = ['/embed/ntk-embed.js', '/embed/ntk-embed.css', '/favicon.ico', '/assets/ntk-social-1280x640.png'];
 
 async function startSite() {

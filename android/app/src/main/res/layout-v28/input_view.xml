@@ -44,4 +44,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </LinearLayout>
+    <!-- NTK: the donate panel, over the strip and the keys after a tap on the DONATE ribbon
+         (tools.ntk.ui.DonatePanel). Hidden until then. -->
+    <tools.ntk.ui.DonatePanel
+        android:id="@+id/ntk_donate_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </rkr.simplekeyboard.inputmethod.latin.InputView>

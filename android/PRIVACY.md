@@ -30,7 +30,7 @@ leaves the phone, and only when you ask for it.
   fetches the stamp by its id.
 - **Verify NTK stamp** in the text selection menu does the same for text you
   select, and only when you choose it.
-- Testnet only.
+- NEAR testnet by default; NEAR mainnet when the user chooses it in settings. Each network keeps its own fingerprints and stamps.
 
 Debug builds, which are never distributed, also save each sent session in the
 app's private storage for tuning.
