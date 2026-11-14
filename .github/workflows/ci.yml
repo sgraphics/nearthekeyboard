@@ -3,7 +3,13 @@ name: tests
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+# A newer push cancels the run of an older one.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -33,7 +39,7 @@ jobs:
         with:
           node-version: 22
       - name: Verify page, feed, embed, reference verifier, relay, deploy files
-        run: node --test web/test/ relay/test/
+        run: node --test "web/test/*.test.mjs" "relay/test/*.test.mjs"
       - name: Secret check
         run: node scripts/check-secrets.mjs
 

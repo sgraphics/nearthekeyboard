@@ -124,7 +124,7 @@ contains the text or any timing.
 
 ```bash
 cd enclave && cargo test --release          # 16 passed
-cd .. && node --test web/test/ relay/test/  # 107 tests: 106 pass, 1 live test skipped
+cd .. && node --test "web/test/*.test.mjs" "relay/test/*.test.mjs"  # 107 tests: 106 pass, 1 live test skipped
 ```
 
 ### 6. Rebuild the binary that is live
