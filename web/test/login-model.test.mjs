@@ -9,8 +9,10 @@ import {
   NTK_LOGIN, decodeBase58, parsePublicKey, parseReturnUrl, parseRequest, isAccountId,
   addKeyAction, addKeyTransaction, redirectUrl, viewAccessKeyBody, keyStateFromRpc,
   fetchKeyState, outcomeFailure, outcomeSucceeded, errorText, addNtkKey,
+  loginPins, networkError, accountOnNetwork,
 } from '../login/src/model.js';
 import { WALLET_IDS, WALLET_MANIFEST } from '../login/src/wallets.js';
+import { NETWORKS, isAvailable } from '../lib/networks.js';
 
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 function b58(bytes) {
@@ -80,12 +82,12 @@ test('the request in the fragment: the app\'s exact link, and what goes wrong', 
   assert.deepEqual(parseRequest(`#pk=${PK}&return=ntk://auth`), { ok: true, publicKey: PK, returnUrl: 'ntk://auth', network: 'testnet' });
   assert.equal(parseRequest(hashOf({ pk: PK, return: 'ntk://auth', network: 'testnet', debug: '1' })).ok, true, 'extra fields are ignored');
 
-  const r = parseRequest(hashOf({ pk: 'ed25519:abc', return: 'https://evil.example/', network: 'mainnet' }));
+  const r = parseRequest(hashOf({ pk: 'ed25519:abc', return: 'https://evil.example/', network: 'betanet' }));
   assert.equal(r.ok, false);
   assert.equal(r.errors.length, 3);
   assert.match(r.errors.join(' '), /bytes long|not valid/);
   assert.match(r.errors.join(' '), /ntk:\/\//);
-  assert.match(r.errors.join(' '), /testnet only/);
+  assert.match(r.errors.join(' '), /NTK runs on NEAR testnet.*; the link asks for "betanet"/);
   assert.deepEqual(parseRequest('').errors.length, 2, 'nothing at all: no key, no return address');
   assert.equal(parseRequest(undefined).ok, false);
 });
@@ -157,6 +159,7 @@ const RPC = {
   noAccount: { jsonrpc: '2.0', id: 'x', error: { name: 'HANDLER_ERROR', cause: { name: 'UNKNOWN_ACCOUNT', info: {} }, code: -32000, message: 'Server error' } },
   ntk: { jsonrpc: '2.0', id: 'x', result: { nonce: 1, permission: { FunctionCall: { allowance: '100000000000000000000000', method_names: [], receiver_id: 'nearthekeyboard.testnet' } }, block_height: 2, block_hash: 'h' } },
   other: { jsonrpc: '2.0', id: 'x', result: { nonce: 1, permission: { FunctionCall: { allowance: '250000000000000000000000', method_names: [], receiver_id: 'wrap.testnet' } }, block_height: 2, block_hash: 'h' } },
+  ntkMainnet: { jsonrpc: '2.0', id: 'x', result: { nonce: 1, permission: { FunctionCall: { allowance: '100000000000000000000000', method_names: [], receiver_id: 'nearthekeyboard.near' } }, block_height: 2, block_hash: 'h' } },
   full: { jsonrpc: '2.0', id: 'x', result: { nonce: 1, permission: 'FullAccess', block_height: 2, block_hash: 'h' } },
   busy: { jsonrpc: '2.0', id: 'x', error: { name: 'INTERNAL_ERROR', cause: { name: 'INTERNAL_ERROR' }, code: -32000, message: 'Server error', data: 'timeout' } },
 };
@@ -297,6 +300,90 @@ test('fetchKeyState and the small helpers', async () => {
   assert.equal(errorText(new Error('boom')), 'boom');
   assert.equal(errorText({ code: 4001 }), '{"code":4001}');
   assert.equal(errorText(null), 'unknown error');
+});
+
+// ---- mainnet ---------------------------------------------------------------------
+
+// lib/networks.js with mainnet's keys pinned (stand-ins), and without.
+const PINNED_BOTH = { testnet: NETWORKS.testnet, mainnet: { ...NETWORKS.mainnet, stampPk: PK, transportPk: 'ab'.repeat(32) } };
+const UNPINNED = { testnet: NETWORKS.testnet, mainnet: { ...NETWORKS.mainnet, stampPk: null, transportPk: null } };
+const MAIN_ACCOUNT = 'ntk-alice.near';
+const linkFor = (network) => hashOf({ pk: PK, return: 'ntk://auth', network });
+
+test('network=mainnet in the link: refused until mainnet\'s keys are pinned, then accepted', () => {
+  const off = parseRequest(linkFor('mainnet'), { networks: UNPINNED });
+  assert.equal(off.ok, false);
+  assert.deepEqual(off.errors, ['NTK runs on NEAR testnet only for now: mainnet is not available yet.']);
+  assert.equal(off.network, null, 'the page then shows testnet');
+  assert.deepEqual(parseRequest(linkFor('mainnet'), { networks: PINNED_BOTH }),
+    { ok: true, publicKey: PK, returnUrl: 'ntk://auth', network: 'mainnet' });
+  assert.equal(parseRequest(linkFor('testnet'), { networks: PINNED_BOTH }).network, 'testnet');
+  assert.equal(parseRequest(`#pk=${PK}&return=ntk://auth`, { networks: PINNED_BOTH }).network, 'testnet', 'no network: testnet');
+  // With the real lib/networks.js: mainnet works exactly when its keys are pinned there.
+  assert.equal(parseRequest(linkFor('mainnet')).ok, isAvailable(NETWORKS.mainnet));
+  // Other names, and names that are properties of every object.
+  assert.equal(networkError('betanet', PINNED_BOTH), 'NTK runs on NEAR testnet and mainnet; the link asks for "betanet".');
+  assert.equal(networkError('betanet', UNPINNED), 'NTK runs on NEAR testnet only; the link asks for "betanet".');
+  for (const odd of ['__proto__', 'constructor', 'toString', 'Mainnet', 'MAINNET']) {
+    assert.equal(parseRequest(linkFor(odd), { networks: PINNED_BOTH }).ok, false, odd);
+  }
+  // A link that is broken otherwise still names its network (the page shows it).
+  const bad = parseRequest(hashOf({ pk: 'nope', return: 'ntk://auth', network: 'mainnet' }), { networks: PINNED_BOTH });
+  assert.deepEqual([bad.ok, bad.network], [false, 'mainnet']);
+});
+
+test('mainnet: the key is for nearthekeyboard.near, the same allowance; testnet\'s pins unchanged', () => {
+  const m = loginPins('mainnet');
+  assert.deepEqual({ ...m }, { network: 'mainnet', receiverId: 'nearthekeyboard.near', allowanceYocto: '100000000000000000000000',
+    allowanceNear: '0.1', rpc: 'https://rpc.mainnet.fastnear.com' });
+  assert.deepEqual({ ...NTK_LOGIN }, { network: 'testnet', receiverId: 'nearthekeyboard.testnet', allowanceYocto: '100000000000000000000000',
+    allowanceNear: '0.1', rpc: 'https://rpc.testnet.fastnear.com' });
+  assert.deepEqual(loginPins('testnet'), NTK_LOGIN);
+  assert.throws(() => loginPins('betanet'), /not an NTK network/);
+  assert.throws(() => loginPins('__proto__'), /not an NTK network/);
+  const tx = addKeyTransaction(MAIN_ACCOUNT, PK, m);
+  assert.deepEqual([tx.signerId, tx.receiverId, tx.actions.length], [MAIN_ACCOUNT, MAIN_ACCOUNT, 1]);
+  assert.equal(JSON.stringify(tx.actions[0]),
+    `{"type":"AddKey","params":{"publicKey":"${PK}","accessKey":{"permission":{"receiverId":"nearthekeyboard.near","allowance":"100000000000000000000000","methodNames":[]}}}}`);
+});
+
+test('mainnet: the mocked wallet adds the mainnet key and the mainnet RPC confirms it', async () => {
+  const pins = loginPins('mainnet');
+  const wallet = fakeWallet(SUCCESS);
+  const rpc = fakeRpc(['missing', 'missing', 'ntkMainnet']);
+  const r = await addNtkKey({ wallet, accountId: MAIN_ACCOUNT, publicKey: PK, pins, fetchImpl: rpc.fetchImpl, sleep: async () => {}, polls: 5 });
+  assert.deepEqual(r, { ok: true, already: false });
+  assert.equal(wallet.calls.length, 1);
+  assert.deepEqual(wallet.calls[0], addKeyTransaction(MAIN_ACCOUNT, PK, pins));
+  assert.equal(wallet.calls[0].actions[0].params.accessKey.permission.receiverId, 'nearthekeyboard.near');
+  assert.equal(rpc.calls.length, 3);
+  for (const c of rpc.calls) {
+    assert.equal(c.url, 'https://rpc.mainnet.fastnear.com');
+    assert.equal(c.body.params.account_id, MAIN_ACCOUNT);
+  }
+  // A key NTK uses on one network is a key for "another app" on the other.
+  assert.deepEqual(keyStateFromRpc(RPC.ntk, pins), { state: 'other', receiverId: 'nearthekeyboard.testnet' });
+  assert.equal(keyStateFromRpc(RPC.ntkMainnet, pins).state, 'ntk');
+  assert.deepEqual(keyStateFromRpc(RPC.ntkMainnet), { state: 'other', receiverId: 'nearthekeyboard.near' });
+  const already = await addNtkKey({ wallet: fakeWallet(SUCCESS), accountId: MAIN_ACCOUNT, publicKey: PK, pins,
+    fetchImpl: fakeRpc(['ntkMainnet']).fetchImpl, sleep: async () => {} });
+  assert.deepEqual(already, { ok: true, already: true });
+});
+
+test('an account of the other network is not used (a wallet may keep a session from it)', () => {
+  const cases = [
+    ['ntk-alice.testnet', true, false],
+    ['alice.near', false, true],
+    ['sub.alice.near', false, true],
+    ['f'.repeat(64), true, true],
+    [`0x${'a'.repeat(40)}`, true, true],
+    ['alice.tg', true, true],
+    ['Not An Account', false, false],
+  ];
+  for (const [account, testnet, mainnet] of cases) {
+    assert.equal(accountOnNetwork(account, 'testnet'), testnet, `${account} on testnet`);
+    assert.equal(accountOnNetwork(account, 'mainnet'), mainnet, `${account} on mainnet`);
+  }
 });
 
 // ---- the wallets ---------------------------------------------------------------

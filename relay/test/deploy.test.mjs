@@ -82,6 +82,8 @@ test('nginx: the same security headers as the relay serves in development, at se
     assert.equal(m[1], value, `${name} is the same in nginx and the relay`);
   }
   assert.match(SECURITY_HEADERS['Content-Security-Policy'], /connect-src 'self' https:\/\/testnet-api\.outlayer\.ai/);
+  assert.deepEqual(cspOf(SECURITY_HEADERS['Content-Security-Policy'])['connect-src'],
+    ["'self'", 'https://testnet-api.outlayer.ai', 'https://api.outlayer.ai'], 'stamps are read from testnet and mainnet storage');
   // An add_header inside a location drops every server-level one there: only /login/ does it, and repeats them all.
   const inLogin = new Set(locationBlock(CONF, 'location /login/ {').filter((l) => l.startsWith('add_header')));
   for (const { line, depth } of depths(CONF)) {
@@ -109,10 +111,13 @@ test('nginx: /login/ repeats every header, with a CSP of its own and a fresh non
   for (const name of ['default-src', 'object-src', 'base-uri', 'form-action', 'frame-ancestors']) {
     assert.deepEqual(csp[name], site[name], `${name} as on the rest of the site`);
   }
-  for (const host of ['https://rpc.testnet.fastnear.com', 'https://raw.githubusercontent.com', 'https://wallet.intear.tech']) {
+  for (const host of ['https://rpc.testnet.fastnear.com', 'https://raw.githubusercontent.com', 'https://wallet.intear.tech',
+    'https://rpc.mainnet.fastnear.com', 'https://free.rpc.fastnear.com']) {
     assert.ok(csp['connect-src'].includes(host), `connect-src ${host}`);
   }
-  assert.ok(!csp['connect-src'].includes('https://testnet-api.outlayer.ai'), 'the login page reads no stamps');
+  for (const host of ['https://testnet-api.outlayer.ai', 'https://api.outlayer.ai']) {
+    assert.ok(!csp['connect-src'].includes(host), `the login page reads no stamps: ${host}`);
+  }
   assert.deepEqual(csp['frame-src'], ['https://wallet.intear.tech', 'meteorwallet:', 'intear:']);
   for (const v of Object.values(csp).flat()) assert.ok(!/^\*$|^https:$|unsafe-eval/.test(v), `no wildcard or eval: ${v}`);
 });

@@ -1,11 +1,15 @@
 // ntk.tools/login: the NTK app opens this page to get a key that can act for the
 // user's NEAR account. The page connects the user's own wallet through NEAR
 // Connector (@hot-labs/near-connect), asks it to send ONE transaction that adds
-// the app's key (a function-call key for nearthekeyboard.testnet), checks the key
-// on chain and goes back to the app. The logic lives in model.js; this file only
-// builds the DOM. Bundled into ../bundle.js by ../build.mjs.
+// the app's key (a function-call key for the NTK project's owner: nearthekeyboard.testnet,
+// or nearthekeyboard.near when the link says network=mainnet), checks the key on
+// that network's chain and goes back to the app. The logic lives in model.js; this
+// file only builds the DOM. Bundled into ../bundle.js by ../build.mjs.
 import { NearConnector } from '@hot-labs/near-connect';
-import { NTK_LOGIN, parseRequest, addNtkKey, redirectUrl, shortKey, isAccountId, errorText } from './model.js';
+import {
+  NTK_LOGIN, loginPins, parseRequest, addNtkKey, redirectUrl, shortKey, isAccountId, accountOnNetwork, errorText,
+} from './model.js';
+import { availableNetworks } from '../../lib/networks.js';
 import { WALLET_IDS, WALLET_MANIFEST } from './wallets.js';
 
 // nginx gives this script a fresh nonce per response (deploy/nginx/ntk.conf); the
@@ -51,14 +55,28 @@ let lastSignIn = null;
 
 const request = parseRequest(window.location.hash);
 const debug = /(^|[#&])debug=1(&|$)/.test(window.location.hash);
+// The network the app asked for: its project owner receives the key, its RPC confirms it.
+const pins = request.network ? loginPins(request.network) : NTK_LOGIN;
+
+/** The page names its network: the chip, and every .net-name / .net-owner in the text. */
+function renderNetwork() {
+  const chip = $('net-chip');
+  if (chip) { // a page cached from before it had an id is left as it is
+    chip.textContent = pins.network.toUpperCase();
+    chip.title = `NEAR ${pins.network}${availableNetworks().length === 1 ? ' only' : ''}`;
+    chip.className = `chip chip-${pins.network}`;
+  }
+  for (const el of document.querySelectorAll('.net-name')) el.textContent = pins.network;
+  for (const el of document.querySelectorAll('.net-owner')) el.textContent = pins.receiverId;
+}
 
 function renderFacts(req) {
   const facts = $('key-facts');
   facts.replaceChildren(
     h('div', { class: 'fact fact-wide' }, h('dt', {}, 'Key from the app'), h('dd', { class: 'mono', title: req.publicKey }, shortKey(req.publicKey))),
-    h('div', { class: 'fact fact-wide' }, h('dt', {}, 'It can only call'), h('dd', { class: 'mono' }, NTK_LOGIN.receiverId)),
-    h('div', { class: 'fact' }, h('dt', {}, 'Fee allowance'), h('dd', {}, `${NTK_LOGIN.allowanceNear} NEAR at most`)),
-    h('div', { class: 'fact' }, h('dt', {}, 'Network'), h('dd', {}, 'NEAR testnet')),
+    h('div', { class: 'fact fact-wide' }, h('dt', {}, 'It can only call'), h('dd', { class: 'mono' }, pins.receiverId)),
+    h('div', { class: 'fact' }, h('dt', {}, 'Fee allowance'), h('dd', {}, `${pins.allowanceNear} NEAR at most`)),
+    h('div', { class: 'fact' }, h('dt', {}, 'Network'), h('dd', {}, `NEAR ${pins.network}`)),
   );
 }
 
@@ -100,6 +118,9 @@ async function connect(wallet) {
     const accounts = (lastSignIn && lastSignIn.accounts) || (await connected.getAccounts());
     const accountId = accounts && accounts[0] && accounts[0].accountId;
     if (!isAccountId(accountId)) throw new Error(`${name} did not give an account`);
+    if (!accountOnNetwork(accountId, pins.network)) {
+      throw new Error(`${accountId} is not a NEAR ${pins.network} account. Choose a ${pins.network} account in ${name}`);
+    }
     current = { wallet: connected, accountId };
     showConnected();
   } catch (e) {
@@ -114,6 +135,7 @@ async function addKey() {
     wallet,
     accountId,
     publicKey: request.publicKey,
+    pins,
     onStep: (step) => show('busy', {
       precheck: `Looking at the keys of ${accountId}…`,
       wallet: `Waiting for ${name}. Check the key and approve it there.`,
@@ -148,13 +170,14 @@ async function switchAccount() {
 }
 
 async function start() {
+  renderNetwork();
   if (!request.ok) return renderInvalid(request.errors);
   renderFacts(request);
   show('busy', 'Loading wallets…');
   connector = new NearConnector({
-    network: NTK_LOGIN.network,
+    network: pins.network,
     manifest: structuredClone(WALLET_MANIFEST),
-    providers: { mainnet: [], testnet: [NTK_LOGIN.rpc] },
+    providers: { mainnet: [], testnet: [], [pins.network]: [pins.rpc] },
     features: { signAndSendTransaction: true },
     footerBranding: null,
     autoConnect: false,
@@ -173,7 +196,8 @@ async function start() {
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000)),
     ]);
     const accountId = restored.accounts[0] && restored.accounts[0].accountId;
-    if (WALLET_IDS.includes(restored.wallet.manifest.id) && isAccountId(accountId)) {
+    // Only on the network asked for: the session may be from the other one.
+    if (WALLET_IDS.includes(restored.wallet.manifest.id) && accountOnNetwork(accountId, pins.network)) {
       current = { wallet: restored.wallet, accountId };
       return showConnected();
     }

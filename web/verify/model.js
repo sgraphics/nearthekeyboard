@@ -1,7 +1,8 @@
 // Verify page logic without the DOM: what the address asks to check, and what
-// to show for a result of verifyStamp() / verifyText() from lib/ntk-verify.js.
+// to show for a result of verifyId() / verifyText() from lib/ntk-verify.js.
 // Every function here is pure, so `node --test` covers it (web/test/).
 import { NTK, decodeText, canonicalText } from '../lib/ntk-verify.js';
+import { joinNames } from '../lib/networks.js';
 
 /** Hosts that are the real verify site. Anywhere else (local dev) links use location.origin. */
 export const SITE_HOSTS = new Set(['ntk.tools', 'www.ntk.tools']);
@@ -54,6 +55,18 @@ export function parseLocation({ pathname = '/', hash = '' } = {}) {
 /** Base for links to verify pages: the real site, or this origin in local development. */
 export function verifyBaseFor({ hostname = '', origin = '' } = {}) {
   return SITE_HOSTS.has(hostname) || !origin || origin === 'null' ? NTK.verifyBase : `${origin}/`;
+}
+
+/** The chip for a list of network names: TESTNET, or TESTNET · MAINNET. */
+export const chipText = (names) => names.map((n) => String(n).toUpperCase()).join(' · ');
+
+/** The site bar's chip and footer for the networks stamps are looked up on. */
+export function siteNetworks(names) {
+  return {
+    chip: chipText(names),
+    title: `Stamps on NEAR ${joinNames(names)}${names.length === 1 ? ' only' : ''}`,
+    footer: `NEAR ${joinNames(names)}`,
+  };
 }
 
 /** The message as it looked: the text, a space, the tag. Prefills the box on /<id>#t=… */
@@ -131,10 +144,14 @@ function score(r) {
 
 /**
  * Everything the page shows for one result.
- * `result`: from verifyStamp() (plus `{ verdict: 'ERROR', error }` when the lookup failed).
+ * `result`: from verifyId() or verifyStamp() (plus `{ verdict: 'ERROR', error }` when the lookup failed).
  * `textGiven`: false when the address or the box had no text before the tag.
+ * `pins`: the pins of the network the stamp was found on (verifyId puts them in the result).
+ * `networks`: the names of the networks the id was looked up on.
  */
-export function buildView(result, { id, textGiven = true, pins = NTK, link = null } = {}) {
+export function buildView(result, {
+  id, textGiven = true, pins = result.pins || NTK, link = null, networks = result.networks || [pins.network],
+} = {}) {
   const record = result.record || null;
   let verdict = result.verdict;
   if (verdict === 'NO_MATCH' && !textGiven) verdict = 'NO_TEXT';
@@ -159,7 +176,9 @@ export function buildView(result, { id, textGiven = true, pins = NTK, link = nul
       summary = 'Not a valid NTK stamp: it is not signed by the NTK enclave key, or it was altered.';
       break;
     case 'UNKNOWN':
-      summary = `No stamp has the id ${id}. Check the tag for a typo.`;
+      summary = networks.length > 1
+        ? `No stamp has the id ${id} on NEAR ${joinNames(networks, 'or')}. Check the tag for a typo.`
+        : `No stamp has the id ${id}. Check the tag for a typo.`;
       break;
     default:
       verdict = 'ERROR';
@@ -168,6 +187,9 @@ export function buildView(result, { id, textGiven = true, pins = NTK, link = nul
 
   const tone = { MATCH: 'match', NO_MATCH: 'nomatch', INVALID: 'invalid', UNKNOWN: 'unknown', NO_TEXT: 'neutral', ERROR: 'error' }[verdict];
   const showCovered = (verdict === 'MATCH' || verdict === 'NO_MATCH') && result.covered != null;
+  // The network the stamp was found on; when it was found nowhere, every network that was asked.
+  const network = (genuine && record && record.network) || pins.network;
+  const nowhere = verdict === 'UNKNOWN' || verdict === 'ERROR';
   return {
     id,
     link, // this check's own address (verifyUrl), for sharing
@@ -175,7 +197,9 @@ export function buildView(result, { id, textGiven = true, pins = NTK, link = nul
     title: TITLES[verdict],
     tone,
     summary,
-    network: (genuine && record && record.network) || pins.network,
+    network,
+    networks: [...networks],
+    chip: nowhere && networks.length ? chipText(networks) : chipText([network]),
     covered: showCovered ? result.covered : null,
     coveredLabel: verdict === 'MATCH' ? 'The stamp covers this text' : `The last ${chars} characters before the tag`,
     facts: genuine && record ? facts(record) : [],

@@ -1,9 +1,10 @@
 // Verify page. Reads the address (/<id>#t=<text>) or the paste box, checks the
 // stamp with lib/ntk-verify.js and shows every check. Only the stamp id goes
-// over the network, to OutLayer's public storage; the text stays on the page.
+// over the network, to OutLayer's public storage on each pinned network (testnet,
+// and mainnet once its keys are pinned); the text stays on the page.
 // The logic lives in model.js; this file only builds the DOM.
-import { fetchStamp, verifyStamp, verifyText, findTags, verifyUrl } from '../lib/ntk-verify.js';
-import { parseLocation, verifyBaseFor, boxMessage, buildView, hasText } from './model.js';
+import { PINNED, verifyId, verifyText, findTags, verifyUrl } from '../lib/ntk-verify.js';
+import { parseLocation, verifyBaseFor, boxMessage, buildView, hasText, siteNetworks } from './model.js';
 import { installSubtleFallback } from './sha-fallback.js';
 import { iconSvg } from '../lib/icons.js';
 import { dialEl } from '../lib/dial.js';
@@ -22,6 +23,20 @@ const exampleLink = $('example-link');
 const PLACEHOLDER = box.getAttribute('placeholder') || '';
 const BASE = verifyBaseFor(window.location); // https://ntk.tools/, or this origin in local development
 const linkFor = (id, prefix) => verifyUrl(id, hasText(prefix) ? prefix : '', BASE);
+const ASKED = PINNED.map((p) => p.network); // the networks a stamp id is looked up on
+
+// The site bar and the footer name those networks (a page cached from before they had ids is left as it is).
+{
+  const site = siteNetworks(ASKED);
+  const chip = $('site-net');
+  if (chip) {
+    chip.textContent = site.chip;
+    chip.title = site.title;
+    chip.className = ASKED.length === 1 ? `chip chip-${ASKED[0]}` : 'chip';
+  }
+  const foot = $('foot-net');
+  if (foot) foot.textContent = site.footer;
+}
 
 /** Element builder: strings become text nodes, never HTML. */
 function h(tag, attrs, ...children) {
@@ -82,7 +97,7 @@ function renderView(v) {
   const head = h('div', { class: 'result-head' },
     h('div', { class: 'result-top' },
       h('p', { class: 'stamp-line' }, 'Stamp ', h('code', {}, v.id || '?')),
-      h('span', { class: 'chip chip-testnet' }, String(v.network).toUpperCase())),
+      h('span', { class: v.chip === String(v.network).toUpperCase() ? `chip chip-${v.network}` : 'chip' }, v.chip)),
     h('div', { class: 'verdict-row' },
       h('span', { class: 'indicator', 'aria-hidden': 'true' }),
       h('h2', { class: 'verdict' }, v.title)),
@@ -152,11 +167,10 @@ async function checkAddress() {
   let view;
   const link = linkFor(loc.id, loc.text);
   try {
-    const published = await fetchStamp(loc.id);
-    const result = await verifyStamp(published, textGiven ? loc.text : null, { id: loc.id });
+    const result = await verifyId(loc.id, textGiven ? loc.text : null);
     view = buildView(result, { id: loc.id, textGiven, link });
   } catch (e) {
-    view = buildView({ verdict: 'ERROR', error: e.message, checks: [] }, { id: loc.id, textGiven, link });
+    view = buildView({ verdict: 'ERROR', error: e.message, checks: [], networks: ASKED }, { id: loc.id, textGiven, link });
   }
   if (my !== seq) return;
   showResults([view], textGiven ? 'Change the text and check again' : 'Check the text');
@@ -182,7 +196,7 @@ async function checkBox(ev) {
       return buildView(r, { id: r.tag.id, textGiven: hasText(prefix), link: linkFor(r.tag.id, prefix) });
     });
   } catch (e) {
-    views = tags.map((t) => buildView({ verdict: 'ERROR', error: e.message, checks: [] },
+    views = tags.map((t) => buildView({ verdict: 'ERROR', error: e.message, checks: [], networks: ASKED },
       { id: t.id, link: linkFor(t.id, text.slice(0, t.index)) }));
   }
   if (my !== seq) return;

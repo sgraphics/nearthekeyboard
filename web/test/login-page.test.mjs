@@ -5,7 +5,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { WALLET_MANIFEST } from '../login/src/wallets.js';
-import { NTK_LOGIN } from '../login/src/model.js';
+import { NTK_LOGIN, loginPins } from '../login/src/model.js';
+import { NETWORKS } from '../lib/networks.js';
+
+// Meteor's executor talks to its own RPC on each network (NEAR_BASE_CONNECT_CONFIG_* in
+// meteor-near-connect-latest.js, read 2026-11-14): test.rpc.fastnear.com, free.rpc.fastnear.com.
+const METEOR_RPC = { testnet: 'https://test.rpc.fastnear.com', mainnet: 'https://free.rpc.fastnear.com' };
 
 const read = (p) => fs.readFileSync(new URL(p, import.meta.url), 'utf8');
 const HTML = read('../login/index.html');
@@ -34,6 +39,20 @@ test('every element the script looks up is in the page', () => {
   }
 });
 
+test('the page names its network where the script can change it, and says testnet before it runs', () => {
+  assert.match(HTML, /<span id="net-chip" class="chip chip-testnet" title="NEAR testnet only">TESTNET<\/span>/);
+  const names = [...HTML.matchAll(/<span class="net-name">([^<]*)<\/span>/g)].map((m) => m[1]);
+  const owners = [...HTML.matchAll(/<span class="net-owner">([^<]*)<\/span>/g)].map((m) => m[1]);
+  assert.ok(names.length >= 3 && names.every((n) => n === 'testnet'), `net-name: ${names}`);
+  assert.deepEqual(owners, [NTK_LOGIN.receiverId]);
+  assert.ok(MAIN.includes(".querySelectorAll('.net-name')") && MAIN.includes(".querySelectorAll('.net-owner')"));
+  assert.ok(MAIN.includes("$('net-chip')"));
+  // Every other mention of testnet is one of those, so a mainnet login never says testnet.
+  const rest = HTML.replace(/<span class="net-name">testnet<\/span>/g, '').replace(/<span class="net-owner">[^<]*<\/span>/g, '')
+    .replace(/<span id="net-chip"[^>]*>TESTNET<\/span>/, '');
+  assert.doesNotMatch(rest, /testnet/i);
+});
+
 test("the page states what the wallet will do, in the brief's words", () => {
   const text = HTML.replace(/\s+/g, ' ');
   assert.ok(text.includes('Your wallet adds a key that can only sign NTK requests. It cannot move your funds. You can remove it any time in your wallet.'));
@@ -43,6 +62,10 @@ test("the page states what the wallet will do, in the brief's words", () => {
 test('the /login/ CSP lets in what the pinned wallets and the RPC need, and no more hosts', () => {
   const origin = (u) => new URL(u).origin;
   assert.ok(CSP['connect-src'].includes(NTK_LOGIN.rpc), 'the RPC that confirms the key');
+  for (const n of Object.values(NETWORKS)) {
+    assert.ok(CSP['connect-src'].includes(loginPins(n.network).rpc), `${n.network}: the RPC that confirms the key`);
+    assert.ok(CSP['connect-src'].includes(METEOR_RPC[n.network]), `${n.network}: Meteor's own RPC`);
+  }
   for (const w of WALLET_MANIFEST.wallets) {
     assert.ok(CSP['connect-src'].includes(origin(w.executor)), `${w.id}: its executor is fetched from ${origin(w.executor)}`);
     if (w.icon.startsWith('data:')) assert.ok(CSP['img-src'].includes('data:'), `${w.id} icon`);
@@ -53,7 +76,8 @@ test('the /login/ CSP lets in what the pinned wallets and the RPC need, and no m
       assert.ok(CSP['frame-src'].includes(scheme.replace('//', '')), `${w.id}: frame-src ${scheme}`);
     }
   }
-  const allowed = new Set([NTK_LOGIN.rpc, 'https://test.rpc.fastnear.com', ...WALLET_MANIFEST.wallets.map((w) => origin(w.executor)),
+  const allowed = new Set([...Object.values(NETWORKS).map((n) => n.rpc), ...Object.values(METEOR_RPC),
+    ...WALLET_MANIFEST.wallets.map((w) => origin(w.executor)),
     'wss://logout-bridge-service.intear.tech', 'https://mc.meteorwallet.app', 'wss://mc.meteorwallet.app']);
   for (const src of CSP['connect-src']) if (src !== "'self'") assert.ok(allowed.has(src), `connect-src ${src} is accounted for`);
 });
@@ -70,7 +94,8 @@ test('bundle.js is the build of web/login/src/ (when node_modules is installed)'
   const bundle = read('../login/bundle.js');
   assert.match(bundle, /^\/\* ntk\.tools\/login: built by web\/login\/build\.mjs/);
   assert.match(bundle, /@hot-labs\/near-connect 0\.12\.0, MIT License/);
-  for (const s of ['nearthekeyboard.testnet', '100000000000000000000000', 'https://rpc.testnet.fastnear.com', 'meteor-wallet', 'intear-wallet']) {
+  for (const s of ['nearthekeyboard.testnet', '100000000000000000000000', 'https://rpc.testnet.fastnear.com', 'meteor-wallet', 'intear-wallet',
+    'nearthekeyboard.near', 'https://rpc.mainnet.fastnear.com']) {
     assert.ok(bundle.includes(s), `the bundle has ${s}`);
   }
   if (!fs.existsSync(new URL('../login/node_modules/esbuild/package.json', import.meta.url))) {

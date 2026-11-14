@@ -19,6 +19,8 @@ const ONLY = opt('--only') ? opt('--only').split(',') : null;
 
 const PK = 'ed25519:HjjfT73KM5PpL9TEeqFbfWdVgsc5wysKt7mLCr4jsRLG';
 const LOGIN = `/login#pk=${encodeURIComponent(PK)}&return=${encodeURIComponent('ntk://auth')}&network=testnet`;
+// Mainnet: the invalid state ("not available yet") until its keys are pinned in lib/networks.js, then its wallets.
+const LOGIN_MAINNET = LOGIN.replace('network=testnet', 'network=mainnet');
 // The README's example: "I agree with this, and I typed every word myself." and the same with "!".
 const TEXT = 'SSBhZ3JlZSB3aXRoIHRoaXMsIGFuZCBJIHR5cGVkIGV2ZXJ5IHdvcmQgbXlzZWxmLg';
 const EDITED = 'SSBhZ3JlZSB3aXRoIHRoaXMsIGFuZCBJIHR5cGVkIGV2ZXJ5IHdvcmQgbXlzZWxmIQ';
@@ -41,6 +43,7 @@ const SHOTS = [
   { name: 'login-done', path: LOGIN, then: loginState('done', "document.getElementById('done-account').textContent = 'ntk-alice.testnet'; document.getElementById('done-detail').textContent = 'The key is on your account.';") },
   { name: 'login-error', path: LOGIN, then: loginState('error', "document.getElementById('error-text').textContent = 'The wallet did not add the key: User rejected the transaction'; document.getElementById('switch-error').hidden = false;") },
   { name: 'login-invalid', path: '/login#pk=nope' },
+  { name: 'login-mainnet', path: LOGIN_MAINNET },
   { name: 'privacy', path: '/privacy/' },
   { name: 'app', path: '/app/' },
   { name: 'trailer', path: '/trailer/' },
@@ -63,8 +66,11 @@ async function main() {
         if (wide > 0) page.log.push({ where: 'page', kind: 'layout', text: `${wide}px wider than the screen` });
         const file = await page.shot(`${shot.name}-${dark ? 'dark' : 'light'}`);
         console.log(`${shot.name} ${dark ? 'dark ' : 'light'} ${file}`);
-        // A stamp id that does not exist answers 404 on purpose (the UNKNOWN STAMP page).
-        const log = page.log.filter((e) => !(shot.name === 'unknown' && e.kind === 'log.network' && /status of 404/.test(e.text)));
+        // A stamp lookup answers 404 where there is no such stamp: on purpose on the UNKNOWN STAMP page, and on
+        // every network but the stamp's own once more than one is pinned (a tag names no network).
+        // /download/ (the APK, the launch video) is copied to the server by hand and is not served here (as in site.test.mjs).
+        const log = page.log.filter((e) => !(e.kind === 'log.network' && /status of 404/.test(e.text) &&
+          /\/public\/storage\/get\?|\/download\//.test(e.text)));
         for (const e of log) { reported++; console.log(`   [${e.kind}] (${e.where}) ${e.text.slice(0, 300)}`); }
         await page.close();
       }

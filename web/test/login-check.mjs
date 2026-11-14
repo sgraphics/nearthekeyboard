@@ -10,6 +10,8 @@
 //                   (no login: nothing is typed into any wallet)
 //   --out <dir>     where screenshots go (default: <tmp>/ntk-login-check)
 //   --wallet <id>   with --open-wallets: only this one (meteor-wallet, intear-wallet)
+//   --network <n>   the network the link asks for: testnet (default), or mainnet once its keys are
+//                   pinned in web/lib/networks.js (the wallets then load for mainnet)
 //   --verbose       print every console message and frame as it happens
 //   --map <host>=<ip>:<port>  send <host> to another address, e.g. ntk.tools=127.0.0.1:18088 for
 //                   deploy/nginx/ntk.conf running in a container: node … http://ntk.tools --map …
@@ -39,6 +41,7 @@ const OUT = path.resolve(opt('--out', path.join(os.tmpdir(), 'ntk-login-check'))
 const VERBOSE = flag('--verbose');
 // --map ntk.tools=127.0.0.1:18088 sends that host name to another address (an nginx in a container, say).
 const MAP = opt('--map') ? /^([^=]+)=([^:]+):(\d+)$/.exec(opt('--map')) : null;
+const NETWORK = opt('--network', 'testnet');
 
 // ---- the site, served the way nginx serves it ------------------------------
 
@@ -312,7 +315,8 @@ async function main() {
     console.log(`nonce: ${nonce.ok ? 'ok' : 'MISMATCH'}, ${nonce.detail}`);
     if (!nonce.ok) problems.push('nonce');
 
-    const loginUrl = `${base}/login#pk=${encodeURIComponent(TEST_PK)}&return=${encodeURIComponent('ntk://auth')}&network=testnet`;
+    const loginUrl = `${base}/login#pk=${encodeURIComponent(TEST_PK)}&return=${encodeURIComponent('ntk://auth')}&network=${encodeURIComponent(NETWORK)}`;
+    console.log(`network: ${NETWORK}`);
     for (const dark of [false, true]) {
       const page = await openPage(cdp, { dark });
       await page.goto(loginUrl);

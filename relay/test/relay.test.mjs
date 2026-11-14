@@ -6,7 +6,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { createRelay, loadConfig, parseEnvFile, rateLimiter, MAX_BODY, SECURITY_HEADERS } from '../server.mjs';
+import { createRelay, loadConfig, mainnetConfig, parseEnvFile, rateLimiter, MAX_BODY, SECURITY_HEADERS } from '../server.mjs';
 
 const KEY = 'test-owner.testnet:1:THIS-IS-NOT-A-REAL-PAYMENT-KEY-0123456789';
 const PROJECT = 'test-owner.testnet/ntk';
@@ -14,18 +14,22 @@ const WEB = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(
 const UUID = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const INFO_OUTPUT = { ok: true, ntk: '0.1.0', project: PROJECT, transport_pk: 'ab'.repeat(32), stamp_pk: 'ed25519:test' };
 
-/** A fake OutLayer: POST /call/<owner>/<name> starts a call, GET /calls/<id> answers pending, then completed. */
-async function mockOutLayer() {
+/**
+ * A fake OutLayer: POST /call/<owner>/<name> starts a call, GET /calls/<id> answers pending, then completed.
+ * One per network: its payment key, its project, and call ids counted from `first`.
+ */
+async function mockOutLayer({ key = KEY, project = PROJECT, first = 1 } = {}) {
+  const info = { ...INFO_OUTPUT, project };
   const mock = {
     requests: [],
     calls: new Map(),
-    next: 1,
+    next: first,
     polls: 0,
     postStatus: 200,
     postHeaders: {},
     postBody: null,
     pendingPolls: 1,
-    output: (input) => JSON.stringify(input.operation === 'info' ? INFO_OUTPUT : { ok: true, op: input.operation }),
+    output: (input) => JSON.stringify(input.operation === 'info' ? info : { ok: true, op: input.operation }),
   };
   mock.server = http.createServer((req, res) => {
     let body = '';
@@ -36,8 +40,8 @@ async function mockOutLayer() {
         res.writeHead(status, { 'Content-Type': 'application/json', ...headers });
         res.end(typeof obj === 'string' ? obj : JSON.stringify(obj));
       };
-      if (req.headers['x-payment-key'] !== KEY) return json(401, { error: 'invalid payment key' });
-      if (req.method === 'POST' && req.url === `/call/${PROJECT}`) {
+      if (req.headers['x-payment-key'] !== key) return json(401, { error: 'invalid payment key' });
+      if (req.method === 'POST' && req.url === `/call/${project}`) {
         if (mock.postStatus !== 200) return json(mock.postStatus, mock.postBody ?? { error: 'nope' }, mock.postHeaders);
         const { input, async } = JSON.parse(body);
         const id = UUID(mock.next++);
@@ -362,6 +366,162 @@ test('configuration: env file, real environment wins, required names', () => {
     assert.throws(() => loadConfig({ NTK_API: 'https://x', NTK_PROJECT: 'a/b', NTK_PAYMENT_KEY: 'k', STATIC_DIR: dir }), /index\.html/);
     assert.throws(() => loadConfig({ NTK_API: 'https://x', NTK_PROJECT: 'a/b', NTK_PAYMENT_KEY: 'k', PORT: 'abc' }), /PORT/);
     assert.equal(loadConfig({ NTK_API: 'https://x', NTK_PROJECT: 'a/b', NTK_PAYMENT_KEY: 'k', STATIC_DIR: WEB }).staticDir, WEB);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// ---- mainnet: /api/mainnet/, a second OutLayer project with its own payment key ----
+
+const MAIN_KEY = 'test-owner.near:1:THIS-IS-NOT-A-REAL-MAINNET-PAYMENT-KEY-9876543210';
+const MAIN_PROJECT = 'test-owner.near/ntk';
+
+/** A relay in front of two mock OutLayers: testnet (t.mock) and mainnet (t.main, call ids from 1001). */
+async function setupBoth(over = {}) {
+  const main = await mockOutLayer({ key: MAIN_KEY, project: MAIN_PROJECT, first: 1001 });
+  const t = await setup({ ...over, mainnet: { api: main.url, project: MAIN_PROJECT, paymentKey: MAIN_KEY } });
+  return { ...t, main, done: async () => { await t.done(); await new Promise((r) => main.server.close(r)); } };
+}
+const postMain = (base, body, headers = {}) => fetch(`${base}/api/mainnet/call`, {
+  method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body),
+});
+
+test('mainnet not set up: every /api/mainnet/ endpoint answers 503 {"error":"mainnet is not set up"}; testnet as before', async () => {
+  const t = await setup();
+  try {
+    const cases = [
+      ['POST', '/api/mainnet/call', JSON.stringify({ input: { operation: 'info' } })],
+      ['GET', `/api/mainnet/calls/${UUID(1)}`],
+      ['GET', '/api/mainnet/info'],
+      ['GET', '/api/mainnet/call'],
+    ];
+    for (const [method, p, body] of cases) {
+      const res = await fetch(t.base + p, { method, body, headers: body ? { 'Content-Type': 'application/json' } : {} });
+      assert.equal(res.status, 503, `${method} ${p}`);
+      assert.equal(await res.text(), '{"error":"mainnet is not set up"}');
+      assert.equal(res.headers.get('access-control-allow-origin'), '*');
+    }
+    assert.equal((await fetch(`${t.base}/api/mainnet/call`, { method: 'OPTIONS' })).status, 204, 'CORS preflight');
+    assert.equal((await fetch(`${t.base}/api/mainnet/nothing`)).status, 404);
+    assert.equal((await fetch(`${t.base}/api/mainnet`)).status, 404);
+    assert.equal(t.mock.requests.length, 0, 'nothing reached OutLayer');
+    assert.equal(t.relay.networks.mainnet, null);
+    const { call_id } = await (await post(t.base, { input: { operation: 'info' } })).json();
+    assert.equal((await fetch(`${t.base}/api/calls/${call_id}`)).status, 200, 'testnet works as before');
+  } finally { await t.done(); }
+});
+
+test('mainnet: forwarded to its own OutLayer with its project and payment key; calls are kept per network', async () => {
+  const t = await setupBoth();
+  try {
+    const input = stampInput('alice.near');
+    const res = await postMain(t.base, { input });
+    assert.equal(res.status, 200);
+    const { call_id: mainCall } = await res.json();
+    assert.equal(mainCall, UUID(1001));
+    const [req] = t.main.requests;
+    assert.equal(req.url, `/call/${MAIN_PROJECT}`);
+    assert.equal(req.headers['x-payment-key'], MAIN_KEY);
+    assert.deepEqual(JSON.parse(req.body), { input, async: true });
+    assert.equal(t.mock.requests.length, 0, 'testnet\'s OutLayer was not asked');
+
+    const first = await fetch(`${t.base}/api/mainnet/calls/${mainCall}`);
+    assert.equal(first.status, 200);
+    assert.deepEqual(await first.json(), { call_id: mainCall, status: 'pending' });
+    assert.equal((await (await fetch(`${t.base}/api/mainnet/calls/${mainCall}`)).json()).status, 'completed');
+
+    const { call_id: testCall } = await (await post(t.base, { input: stampInput('alice.testnet') })).json();
+    assert.equal(testCall, UUID(1));
+    assert.equal(t.mock.requests[0].headers['x-payment-key'], KEY, 'testnet keeps its own key');
+    assert.equal((await fetch(`${t.base}/api/calls/${mainCall}`)).status, 404, 'a mainnet call is not polled through testnet');
+    assert.equal((await fetch(`${t.base}/api/mainnet/calls/${testCall}`)).status, 404, 'nor a testnet call through mainnet');
+    assert.equal((await fetch(`${t.base}/api/calls/${testCall}`)).status, 200);
+    assert.equal(t.mock.requests.filter((r) => r.method === 'GET').length, 1, 'only the valid poll reached testnet');
+    assert.equal((await fetch(`${t.base}/api/mainnet/calls/not-a-uuid`)).status, 400);
+    assert.equal((await fetch(`${t.base}/api/mainnet/call`)).status, 405);
+  } finally { await t.done(); }
+});
+
+test('mainnet: its own info cache', async () => {
+  const t = await setupBoth();
+  try {
+    const main = await (await fetch(`${t.base}/api/mainnet/info`)).json();
+    assert.equal(main.output.project, MAIN_PROJECT);
+    assert.equal((await (await fetch(`${t.base}/api/mainnet/info`)).json()).at, main.at, 'cached');
+    assert.equal(t.main.requests.filter((r) => r.method === 'POST').length, 1);
+    assert.equal(t.mock.requests.length, 0, 'testnet\'s info was not fetched');
+    const test_ = await (await fetch(`${t.base}/api/info`)).json();
+    assert.equal(test_.output.project, PROJECT);
+    assert.notEqual(t.relay.networks.mainnet.state, t.relay.networks.testnet.state);
+    assert.equal(t.relay.state, t.relay.networks.testnet.state, 'relay.state is testnet\'s, as before');
+  } finally { await t.done(); }
+});
+
+test('mainnet: rate limits are counted per network', async () => {
+  const t = await setupBoth({ limits: { ipPerMin: 2, accountPerMin: 1000, globalPerMin: 1000 } });
+  try {
+    assert.equal((await post(t.base, { input: { operation: 'info' } })).status, 200);
+    assert.equal((await post(t.base, { input: { operation: 'info' } })).status, 200);
+    assert.equal((await post(t.base, { input: { operation: 'info' } })).status, 429, 'testnet: the IP used its 2');
+    assert.equal((await postMain(t.base, { input: { operation: 'info' } })).status, 200, 'mainnet counts on its own');
+    assert.equal((await postMain(t.base, { input: { operation: 'info' } })).status, 200);
+    assert.equal((await postMain(t.base, { input: { operation: 'info' } })).status, 429);
+  } finally { await t.done(); }
+  const g = await setupBoth({ limits: { globalPerMin: 1 } });
+  try {
+    assert.equal((await postMain(g.base, { input: { operation: 'info' } })).status, 200);
+    assert.equal((await postMain(g.base, { input: { operation: 'info' } }, { 'X-Real-IP': '198.51.100.7' })).status, 429, 'mainnet overall');
+    assert.equal((await post(g.base, { input: { operation: 'info' } })).status, 200, 'testnet overall is separate');
+  } finally { await g.done(); }
+});
+
+test('mainnet: errors are scrubbed of its payment key; logs name the path, never a key', async () => {
+  const t = await setupBoth();
+  try {
+    t.main.postStatus = 402;
+    t.main.postBody = { error: `insufficient balance on ${MAIN_KEY}` };
+    const broke = await postMain(t.base, { input: stampInput('alice.near') });
+    assert.equal(broke.status, 502);
+    const text = await broke.text();
+    assert.ok(!text.includes(MAIN_KEY));
+    assert.match(text, /insufficient balance on <payment key>/);
+    await settle();
+    assert.ok(t.logs.some((l) => /POST \/api\/mainnet\/call op=stamp account=alice\.near 502 \d+ms upstream=402/.test(l)));
+    const all = t.logs.join('\n');
+    assert.ok(!all.includes(MAIN_KEY) && !all.includes(KEY), 'no payment key');
+    assert.ok(!all.includes('SECRET-CIPHERTEXT'), 'no body');
+  } finally { await t.done(); }
+});
+
+test('mainnet: prefetched at start like testnet, but never kept warm', async () => {
+  const t = await setupBoth({ keepWarmSec: 0.05, prefetchInfo: true });
+  try {
+    await new Promise((r) => setTimeout(r, 400));
+    assert.ok(t.mock.requests.filter((r) => r.method === 'POST').length >= 2, 'testnet: prefetch and keep-warm');
+    assert.equal(t.main.requests.filter((r) => r.method === 'POST').length, 1, 'mainnet: the prefetch only');
+    assert.ok(t.relay.networks.mainnet.state.info);
+    assert.ok(t.logs.some((l) => /mainnet info refreshed by call/.test(l)));
+  } finally { await t.done(); }
+});
+
+test('configuration: mainnet is optional, all three settings or none; a mistake keeps it off and never stops testnet', () => {
+  const testnet = { NTK_API: 'https://testnet-api.example', NTK_PROJECT: 'me.testnet/ntk', NTK_PAYMENT_KEY: 'k:1:abc' };
+  const mainnet = { NTK_MAINNET_API: 'https://api.example/', NTK_MAINNET_PROJECT: 'me.near/ntk', NTK_MAINNET_PAYMENT_KEY: 'm:1:secret-mainnet' };
+  assert.deepEqual([loadConfig(testnet).mainnet, loadConfig(testnet).mainnetProblem], [null, null]);
+  assert.deepEqual(loadConfig({ ...testnet, ...mainnet }).mainnet, { api: 'https://api.example', project: 'me.near/ntk', paymentKey: 'm:1:secret-mainnet' });
+  const partial = loadConfig({ ...testnet, ...mainnet, NTK_MAINNET_PROJECT: '' });
+  assert.deepEqual([partial.mainnet, partial.mainnetProblem], [null, 'missing NTK_MAINNET_PROJECT']);
+  assert.equal(partial.paymentKey, 'k:1:abc', 'testnet is set up all the same');
+  assert.deepEqual(mainnetConfig({ ...mainnet, NTK_MAINNET_API: 'ftp://x' }), { mainnet: null, problem: 'NTK_MAINNET_API must be an http(s) URL' });
+  assert.deepEqual(mainnetConfig({ ...mainnet, NTK_MAINNET_PROJECT: 'ntk' }), { mainnet: null, problem: 'NTK_MAINNET_PROJECT must look like <owner>/<name>' });
+  assert.deepEqual(mainnetConfig({ NTK_MAINNET_PAYMENT_KEY: 'm:1:secret-mainnet' }).problem, 'missing NTK_MAINNET_API, NTK_MAINNET_PROJECT');
+  assert.throws(() => loadConfig(mainnet), /missing NTK_API, NTK_PROJECT, NTK_PAYMENT_KEY/, 'mainnet alone is not enough');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ntk-relay-'));
+  try {
+    const file = path.join(dir, 'both.env');
+    fs.writeFileSync(file, `${Object.entries({ ...testnet, ...mainnet }).map(([k, v]) => `${k}=${v}`).join('\n')}\n`);
+    const c = loadConfig({ NTK_ENV_FILE: file, NTK_MAINNET_PROJECT: 'other.near/ntk' });
+    assert.deepEqual(c.mainnet, { api: 'https://api.example', project: 'other.near/ntk', paymentKey: 'm:1:secret-mainnet' });
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

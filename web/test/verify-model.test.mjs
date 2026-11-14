@@ -3,10 +3,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { verifyStamp, verifyUrl, encodeText } from '../lib/ntk-verify.js';
+import { NTK, PINNED, pinsFor, verifyStamp, verifyId, verifyUrl, encodeText } from '../lib/ntk-verify.js';
+import { NETWORKS } from '../lib/networks.js';
 import {
   parseLocation, verifyBaseFor, boxMessage, hasText, formatUtc, issuingCall, checkList, buildView, MEANING, TITLES,
+  chipText, siteNetworks,
 } from '../verify/model.js';
+import { testKey, pinnedMainnet, signedStamp, storageFetch } from './stamp-signer.mjs';
 
 const { stamp: STAMP } = JSON.parse(fs.readFileSync(new URL('../../docs/test-vectors/crypto-v1.json', import.meta.url), 'utf8'));
 const PUBLISHED = { id: STAMP.id, pk: STAMP.pk, record: STAMP.record, sig: STAMP.sig };
@@ -154,4 +157,62 @@ test('a result carries its own link, built on the right base', async () => {
 test('checkList keeps the labels verifyStamp gives', async () => {
   const r = await verifyStamp(PUBLISHED, TEXT, { id: ID });
   assert.deepEqual(checkList(r).map((c) => c.label), r.checks.map((c) => c.label));
+});
+
+// ---- the network chip ---------------------------------------------------------
+
+const MAIN_KEY = testKey();
+const MAINNET = pinsFor(pinnedMainnet(MAIN_KEY));
+const MAIN_TEXT = 'Typed on mainnet, every key of it, by me.';
+const tables = (main = {}) => storageFetch({ [NETWORKS.testnet.api]: { [ID]: PUBLISHED }, [NETWORKS.mainnet.api]: main });
+
+test('a stamp found on testnet: the chip says TESTNET, as before', async () => {
+  const r = await verifyId(ID, TEXT, { networks: [NTK, MAINNET], fetchImpl: tables() });
+  const v = buildView(r, { id: ID });
+  assert.equal(v.verdict, 'MATCH');
+  assert.equal(v.network, 'testnet');
+  assert.equal(v.chip, 'TESTNET');
+  assert.equal(v.call.url, `https://testnet-api.outlayer.ai/attestations/by-call/${CALL}`);
+});
+
+test('a stamp found on mainnet: the chip says MAINNET, the attestation is on the mainnet API', async () => {
+  const stamp = await signedStamp(MAIN_KEY, MAIN_TEXT);
+  const r = await verifyId(stamp.id, MAIN_TEXT, { networks: [NTK, MAINNET], fetchImpl: tables({ [stamp.id]: stamp }) });
+  const v = buildView(r, { id: stamp.id });
+  assert.equal(v.verdict, 'MATCH');
+  assert.equal(v.network, 'mainnet');
+  assert.equal(v.chip, 'MAINNET');
+  const call = JSON.parse(stamp.record).call_id;
+  assert.deepEqual(v.call, { id: call, url: `https://api.outlayer.ai/attestations/by-call/${call}`, command: `outlayer-verify call ${call} --network mainnet` });
+  assert.equal(Object.fromEntries(v.facts.map((f) => [f.label, f.value])).Network, 'mainnet');
+  assert.match(v.summary, /ntk-alice\.near/);
+  // INVALID on mainnet (the record names the wrong network): the chip still says where it was found.
+  const wrong = await signedStamp(MAIN_KEY, MAIN_TEXT, { network: 'testnet' });
+  const bad = buildView(await verifyId(wrong.id, MAIN_TEXT, { networks: [NTK, MAINNET], fetchImpl: tables({ [wrong.id]: wrong }) }), { id: wrong.id });
+  assert.equal(bad.verdict, 'INVALID');
+  assert.equal(bad.chip, 'MAINNET');
+  assert.deepEqual(bad.facts, []);
+});
+
+test('found nowhere: the chip and the summary name every network that was asked', async () => {
+  const both = buildView(await verifyId('0000000000', TEXT, { networks: [NTK, MAINNET], fetchImpl: tables() }), { id: '0000000000' });
+  assert.equal(both.verdict, 'UNKNOWN');
+  assert.equal(both.chip, 'TESTNET · MAINNET');
+  assert.equal(both.summary, 'No stamp has the id 0000000000 on NEAR testnet or mainnet. Check the tag for a typo.');
+  const one = buildView(await verifyId('0000000000', TEXT, { networks: [NTK], fetchImpl: tables() }), { id: '0000000000' });
+  assert.equal(one.chip, 'TESTNET');
+  assert.equal(one.summary, 'No stamp has the id 0000000000. Check the tag for a typo.', 'unchanged with testnet alone');
+  const err = buildView({ verdict: 'ERROR', error: 'offline', checks: [], networks: ['testnet', 'mainnet'] }, { id: ID });
+  assert.equal(err.chip, 'TESTNET · MAINNET');
+});
+
+test('the site bar and footer: what index.html says for testnet alone, and both networks once mainnet is pinned', () => {
+  assert.equal(chipText(['testnet']), 'TESTNET');
+  const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const one = siteNetworks(['testnet']);
+  assert.ok(html.includes(`<span id="site-net" class="chip chip-testnet" title="${one.title}">${one.chip}</span>`), 'the chip before the script runs');
+  assert.ok(html.includes(`<span id="foot-net">${one.footer}</span>`), 'the footer before the script runs');
+  assert.deepEqual(siteNetworks(['testnet', 'mainnet']),
+    { chip: 'TESTNET · MAINNET', title: 'Stamps on NEAR testnet and mainnet', footer: 'NEAR testnet and mainnet' });
+  assert.deepEqual(siteNetworks(PINNED.map((p) => p.network)).chip, chipText(PINNED.map((p) => p.network)));
 });

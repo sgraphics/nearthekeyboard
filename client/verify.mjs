@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 // Check NTK stamps in a text. Needs no key, no account and no enclave call.
+// A tag names no network: each id is looked up on every network whose keys are
+// pinned in web/lib/networks.js (testnet, and mainnet once pinned), in parallel.
 //
 //   node verify.mjs "<text with its tag>"
 //   echo "<text with its tag>" | node verify.mjs
 //
 // Exit code 0 when every tag is MATCH, 1 otherwise (2 when there is no tag).
-import { verifyText, findTags } from '../web/lib/ntk-verify.js';
+import { verifyText, findTags, PINNED } from '../web/lib/ntk-verify.js';
+import { joinNames } from '../web/lib/networks.js';
 
 const readStdin = async () => {
   const chunks = [];
@@ -22,7 +25,8 @@ if (findTags(text).length === 0) {
 let allMatch = true;
 for (const r of await verifyText(text)) {
   allMatch &&= r.verdict === 'MATCH';
-  console.log(`\n[NTK ${r.tag.id}]  ${r.verdict.replace('_', ' ')}`);
+  const where = r.network ? `on NEAR ${r.network}` : `looked up on NEAR ${joinNames(r.networks || PINNED.map((p) => p.network), 'and')}`;
+  console.log(`\n[NTK ${r.tag.id}]  ${r.verdict.replace('_', ' ')}  (${where})`);
   if (r.error) console.log(`  error: ${r.error}`);
   for (const c of r.checks) console.log(`  ${c.ok ? 'pass' : 'FAIL'}  ${c.label}${c.detail ? `  (${c.detail})` : ''}`);
   if (r.record) {

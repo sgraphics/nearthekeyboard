@@ -6,9 +6,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
-  NTK, canonicalText, charCount, coveredText, findTags, sha256Hex, encodeText, decodeText,
-  verifyUrl, stampUrl, fetchStamp, verifyStamp, verifyText,
+  NTK, PINNED, pinsFor, canonicalText, charCount, coveredText, findTags, sha256Hex, encodeText, decodeText,
+  verifyUrl, stampUrl, fetchStamp, findStamp, verifyStamp, verifyId, verifyText,
 } from '../lib/ntk-verify.js';
+import { NETWORKS, availableNetworks } from '../lib/networks.js';
+import { testKey, pinnedMainnet, signedStamp, storageFetch } from './stamp-signer.mjs';
 
 const read = (p) => JSON.parse(fs.readFileSync(new URL(p, import.meta.url), 'utf8'));
 const TEXT_V2 = read('../../docs/test-vectors/text-v2.json');
@@ -146,4 +148,119 @@ test('live: e65ee28db5 and 26144e35e7 from OutLayer public storage (NTK_LIVE=1)'
   const [v2] = await verifyText(`${V2_TEXT} [NTK 26144e35e7]`);
   assert.equal(v2.verdict, 'MATCH');
   assert.deepEqual(await fetchStamp('26144e35e7'), V2, 'the saved fixture is what OutLayer publishes');
+});
+
+// ---- networks: a tag names none, so a verifier looks the id up on every pinned one ----
+
+const TESTNET_API = NETWORKS.testnet.api;
+const MAINNET_API = NETWORKS.mainnet.api;
+const MAIN_KEY = testKey(); // stands in for the mainnet enclave's stamp key until the real one is pinned
+const MAINNET = pinsFor(pinnedMainnet(MAIN_KEY));
+const BOTH = [NTK, MAINNET];
+const MAIN_TEXT = 'Typed on mainnet, every key of it, by me.';
+
+test('the pins: testnet is NTK and comes first; PINNED holds exactly the networks with both keys', () => {
+  assert.equal(PINNED[0], NTK);
+  assert.deepEqual(PINNED.map((p) => p.network), availableNetworks().map((n) => n.network));
+  assert.deepEqual(NTK, { project: 'nearthekeyboard.testnet/ntk', network: 'testnet', api: 'https://testnet-api.outlayer.ai',
+    stampPk: 'ed25519:HjjfT73KM5PpL9TEeqFbfWdVgsc5wysKt7mLCr4jsRLG', verifyBase: 'https://ntk.tools/' }, 'unchanged');
+  assert.deepEqual(pinsFor(NETWORKS.mainnet), { project: 'nearthekeyboard.near/ntk', network: 'mainnet', api: 'https://api.outlayer.ai',
+    stampPk: NETWORKS.mainnet.stampPk, verifyBase: 'https://ntk.tools/' });
+  assert.equal(stampUrl('26144e35e7', MAINNET),
+    'https://api.outlayer.ai/public/storage/get?project=nearthekeyboard.near%2Fntk&key=stamp%3A26144e35e7&format=raw');
+});
+
+test('found on testnet: both networks are asked at once, the testnet pins check it', async () => {
+  const fetchImpl = storageFetch({ [TESTNET_API]: { '26144e35e7': V2 }, [MAINNET_API]: {} });
+  const r = await verifyId('26144e35e7', V2_TEXT, { networks: BOTH, fetchImpl });
+  assert.equal(r.verdict, 'MATCH');
+  assert.equal(r.network, 'testnet');
+  assert.equal(r.pins, NTK);
+  assert.deepEqual(r.networks, ['testnet', 'mainnet']);
+  assert.deepEqual(fetchImpl.calls.map((u) => new URL(u).origin).sort(), [MAINNET_API, TESTNET_API].sort());
+  assert.equal(fetchImpl.maxInFlight, 2, 'the two lookups ran in parallel');
+});
+
+test('found on mainnet: MATCH with the mainnet pins (its key, its project, network mainnet)', async () => {
+  const stamp = await signedStamp(MAIN_KEY, MAIN_TEXT);
+  const fetchImpl = storageFetch({ [TESTNET_API]: {}, [MAINNET_API]: { [stamp.id]: stamp } });
+  const r = await verifyId(stamp.id, `Earlier text. ${MAIN_TEXT} `, { networks: BOTH, fetchImpl });
+  assert.equal(r.verdict, 'MATCH');
+  assert.equal(r.network, 'mainnet');
+  assert.equal(r.pins, MAINNET);
+  assert.equal(r.record.network, 'mainnet');
+  assert.equal(r.covered, MAIN_TEXT);
+  assert.deepEqual(r.checks.map((c) => [c.key, c.ok]),
+    [['found', true], ['key', true], ['signature', true], ['id', true], ['project', true], ['text', true]]);
+  assert.equal(fetchImpl.maxInFlight, 2);
+  // verifyText checks tags of both networks in one text.
+  const text = `${V2_TEXT} [NTK 26144e35e7] and then ${MAIN_TEXT} [NTK ${stamp.id}]`;
+  const both = storageFetch({ [TESTNET_API]: { '26144e35e7': V2 }, [MAINNET_API]: { [stamp.id]: stamp } });
+  assert.deepEqual((await verifyText(text, { networks: BOTH, fetchImpl: both })).map((x) => [x.tag.id, x.verdict, x.network]),
+    [['26144e35e7', 'MATCH', 'testnet'], [stamp.id, 'MATCH', 'mainnet']]);
+  // The mainnet stamp checked against the testnet pins is not an NTK stamp there.
+  assert.equal((await verifyStamp(stamp, MAIN_TEXT, { id: stamp.id })).verdict, 'INVALID');
+});
+
+test('mainnet not pinned: skipped, never asked; the lookup is on testnet alone', async () => {
+  const unpinned = pinsFor({ ...NETWORKS.mainnet, stampPk: null, transportPk: null });
+  const fetchImpl = storageFetch({ [TESTNET_API]: { '26144e35e7': V2 } }); // a request to mainnet would be an error
+  const r = await verifyId('26144e35e7', V2_TEXT, { networks: [NTK, unpinned], fetchImpl });
+  assert.equal(r.verdict, 'MATCH');
+  assert.deepEqual(r.networks, ['testnet']);
+  assert.deepEqual(fetchImpl.calls.map((u) => new URL(u).origin), [TESTNET_API]);
+  const unknown = await verifyId('0123456789', V2_TEXT, { networks: [NTK, unpinned], fetchImpl });
+  assert.equal(unknown.verdict, 'UNKNOWN');
+  assert.equal(unknown.network, null);
+  assert.deepEqual(unknown.networks, ['testnet']);
+  if (!NETWORKS.mainnet.stampPk) assert.ok(PINNED.every((p) => p.network !== 'mainnet'), 'mainnet is off until pinned');
+});
+
+test('a record whose network does not match its pins: INVALID, though the key and signature are right', async () => {
+  // Signed by the mainnet key, published on mainnet, but the record says testnet.
+  const stamp = await signedStamp(MAIN_KEY, MAIN_TEXT, { network: 'testnet' });
+  const fetchImpl = storageFetch({ [TESTNET_API]: {}, [MAINNET_API]: { [stamp.id]: stamp } });
+  const r = await verifyId(stamp.id, MAIN_TEXT, { networks: BOTH, fetchImpl });
+  assert.equal(r.verdict, 'INVALID');
+  assert.equal(r.network, 'mainnet');
+  assert.deepEqual(r.checks.filter((c) => !c.ok).map((c) => c.key), ['project']);
+  assert.equal(r.checks.find((c) => c.key === 'project').detail,
+    'nearthekeyboard.near/ntk, testnet (NTK on mainnet is nearthekeyboard.near/ntk)');
+  assert.equal(r.covered, null);
+  // The testnet project named in a stamp of the mainnet key: INVALID too.
+  const crossed = await signedStamp(MAIN_KEY, MAIN_TEXT, { project: NTK.project });
+  assert.equal((await verifyStamp(crossed, MAIN_TEXT, { id: crossed.id, pins: MAINNET })).verdict, 'INVALID');
+  // And the real testnet stamp checked with pins that say mainnet (same key, same project): INVALID.
+  assert.equal((await verifyStamp(V2, V2_TEXT, { id: '26144e35e7', pins: { ...NTK, network: 'mainnet' } })).verdict, 'INVALID');
+});
+
+test('lookup failures: ERROR only when no network has the stamp', async () => {
+  const stamp = await signedStamp(MAIN_KEY, MAIN_TEXT);
+  const down = storageFetch({ [TESTNET_API]: { [stamp.id]: 503 }, [MAINNET_API]: {} });
+  const e = await verifyId(stamp.id, MAIN_TEXT, { networks: BOTH, fetchImpl: down });
+  assert.equal(e.verdict, 'ERROR');
+  assert.equal(e.error, 'testnet: stamp lookup failed: HTTP 503');
+  assert.deepEqual(e.networks, ['testnet', 'mainnet']);
+  const found = storageFetch({ [TESTNET_API]: { [stamp.id]: 503 }, [MAINNET_API]: { [stamp.id]: stamp } });
+  assert.equal((await verifyId(stamp.id, MAIN_TEXT, { networks: BOTH, fetchImpl: found })).verdict, 'MATCH');
+  const { found: f, missing, errors } = await findStamp(stamp.id, { networks: BOTH, fetchImpl: down });
+  assert.deepEqual([f.length, missing.map((p) => p.network), errors.map((x) => x.pins.network)], [0, ['mainnet'], ['testnet']]);
+  await assert.rejects(verifyId('XYZ', '', { networks: BOTH, fetchImpl: down }), /10 lowercase hex/);
+});
+
+test('the same id on both networks: the genuine stamp wins', async () => {
+  const stamp = await signedStamp(MAIN_KEY, MAIN_TEXT);
+  const fetchImpl = storageFetch({ [TESTNET_API]: { [stamp.id]: stamp }, [MAINNET_API]: { [stamp.id]: stamp } });
+  const r = await verifyId(stamp.id, MAIN_TEXT, { networks: BOTH, fetchImpl });
+  assert.equal(r.verdict, 'MATCH');
+  assert.equal(r.network, 'mainnet', 'not testnet, where its key is not the pinned one');
+});
+
+test('the old API: verifyText and verifyStamp with `pins` check that one network', async () => {
+  const fetchImpl = storageFetch({ [TESTNET_API]: { '26144e35e7': V2 } });
+  const [r] = await verifyText(`${V2_TEXT} [NTK 26144e35e7]`, { pins: NTK, fetchImpl });
+  assert.equal(r.verdict, 'MATCH');
+  assert.equal(r.network, 'testnet');
+  assert.deepEqual(fetchImpl.calls.map((u) => new URL(u).origin), [TESTNET_API]);
+  assert.equal((await verifyStamp(V2, V2_TEXT, { id: '26144e35e7' })).verdict, 'MATCH', 'NTK by default');
 });

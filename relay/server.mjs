@@ -1,23 +1,32 @@
 #!/usr/bin/env node
-// NTK relay: holds the OutLayer payment key, so the keyboard does not have to.
+// NTK relay: holds the OutLayer payment keys, so the keyboard does not have to.
 // Node 20+, no dependencies. Endpoints (docs/protocol.md, "Calling the enclave"):
 //
 //   POST /api/call        {"input": {...}}  -> {"call_id"}   forwards {input, async: true} to OutLayer
 //   GET  /api/calls/<id>  OutLayer's call object, unchanged (only for calls this relay started)
 //   GET  /api/info        {"output": <the enclave's info output>, "at": <ms>}, cached, refreshed in the background
 //
+// Those are testnet. The same three for mainnet are under /api/mainnet/ (/api/mainnet/call,
+// /api/mainnet/calls/<id>, /api/mainnet/info); without the NTK_MAINNET_ settings each of them
+// answers 503 {"error":"mainnet is not set up"}. Each network has its own payment key, rate
+// limits, calls and info cache: a call started on one network cannot be polled on the other.
+//
 // What it can and cannot do: it sees account names, operations, times and sizes.
 // It cannot read sessions (sealed to the enclave) or act for a user (requests
 // are signed by the user's NEAR key and bound to the sealed session).
 //
 // Environment:
-//   NTK_API, NTK_PROJECT, NTK_PAYMENT_KEY   required (or from NTK_ENV_FILE)
+//   NTK_API, NTK_PROJECT, NTK_PAYMENT_KEY   required: testnet (or from NTK_ENV_FILE)
+//   NTK_MAINNET_API, NTK_MAINNET_PROJECT, NTK_MAINNET_PAYMENT_KEY   optional: mainnet, all three or none
+//                   (e.g. https://api.outlayer.ai and nearthekeyboard.near/ntk). When they are incomplete
+//                   or invalid, mainnet stays off and the start-up line says why; testnet runs either way.
 //   NTK_ENV_FILE    optional KEY=value file, e.g. ~/.ntk/testnet.env; real environment variables win
 //   PORT=3970  HOST=127.0.0.1
 //   STATIC_DIR      optional: also serve web/ (local development: one port for the emulator)
-//   KEEP_WARM_SEC=0 call `info` this often to keep the enclave warm (0 = off)
+//   KEEP_WARM_SEC=0 call testnet's `info` this often to keep the enclave warm (0 = off; never on mainnet,
+//                   where calls cost real NEAR: mainnet's info is fetched at start and when asked for)
 //   INFO_TTL_SEC=600  RATE_IP_PER_MIN=20  RATE_IP_PER_DAY=500  RATE_ACCOUNT_PER_MIN=10
-//   RATE_ACCOUNT_PER_DAY=300  RATE_POLL_PER_MIN=120  RATE_GLOBAL_PER_MIN=120
+//   RATE_ACCOUNT_PER_DAY=300  RATE_POLL_PER_MIN=120  RATE_GLOBAL_PER_MIN=120   (counted per network)
 //
 // Logs: one line per request with method, path, operation, account, status and
 // duration. Never bodies, never keys, never IP addresses.
@@ -41,8 +50,8 @@ const DAY = 86_400_000;
 /** The CSP and other headers the site is served with (the same as deploy/nginx/ntk.conf). */
 export const SECURITY_HEADERS = Object.freeze({
   'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
-    "font-src 'self'; connect-src 'self' https://testnet-api.outlayer.ai; object-src 'none'; base-uri 'none'; " +
-    "form-action 'self'; frame-ancestors 'none'",
+    "font-src 'self'; connect-src 'self' https://testnet-api.outlayer.ai https://api.outlayer.ai; object-src 'none'; " +
+    "base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
   'X-Frame-Options': 'DENY',
@@ -92,7 +101,27 @@ function int(env, name, dflt, { min = 0 } = {}) {
   return n;
 }
 
-/** Settings from the environment (and NTK_ENV_FILE). Throws when a required one is missing. */
+const API_RE = /^https?:\/\/[^/\s]+/;
+const PROJECT_RE = /^[^/\s]+\/[^\s]+$/;
+const MAINNET_VARS = ['NTK_MAINNET_API', 'NTK_MAINNET_PROJECT', 'NTK_MAINNET_PAYMENT_KEY'];
+
+/**
+ * The optional mainnet settings: all three NTK_MAINNET_ variables, or none.
+ * Returns { mainnet: { api, project, paymentKey } | null, problem: <why it is off> | null }.
+ * Never throws: a mistake here must not stop testnet. The problem never contains the key.
+ */
+export function mainnetConfig(env) {
+  const given = MAINNET_VARS.filter((k) => env[k]);
+  if (!given.length) return { mainnet: null, problem: null };
+  const missing = MAINNET_VARS.filter((k) => !env[k]);
+  if (missing.length) return { mainnet: null, problem: `missing ${missing.join(', ')}` };
+  const api = String(env.NTK_MAINNET_API).replace(/\/+$/, '');
+  if (!API_RE.test(api)) return { mainnet: null, problem: 'NTK_MAINNET_API must be an http(s) URL' };
+  if (!PROJECT_RE.test(env.NTK_MAINNET_PROJECT)) return { mainnet: null, problem: 'NTK_MAINNET_PROJECT must look like <owner>/<name>' };
+  return { mainnet: { api, project: env.NTK_MAINNET_PROJECT, paymentKey: env.NTK_MAINNET_PAYMENT_KEY }, problem: null };
+}
+
+/** Settings from the environment (and NTK_ENV_FILE). Throws when a required (testnet) one is missing. */
 export function loadConfig(env = process.env) {
   let merged = { ...env };
   if (env.NTK_ENV_FILE) {
@@ -104,14 +133,17 @@ export function loadConfig(env = process.env) {
   const missing = ['NTK_API', 'NTK_PROJECT', 'NTK_PAYMENT_KEY'].filter((k) => !merged[k]);
   if (missing.length) throw new Error(`missing ${missing.join(', ')} (set them, or NTK_ENV_FILE=<file with KEY=value lines>)`);
   const api = String(merged.NTK_API).replace(/\/+$/, '');
-  if (!/^https?:\/\/[^/\s]+/.test(api)) throw new Error('NTK_API must be an http(s) URL');
-  if (!/^[^/\s]+\/[^\s]+$/.test(merged.NTK_PROJECT)) throw new Error('NTK_PROJECT must look like <owner>/<name>');
+  if (!API_RE.test(api)) throw new Error('NTK_API must be an http(s) URL');
+  if (!PROJECT_RE.test(merged.NTK_PROJECT)) throw new Error('NTK_PROJECT must look like <owner>/<name>');
   const staticDir = merged.STATIC_DIR ? path.resolve(expandHome(merged.STATIC_DIR)) : null;
   if (staticDir && !fs.existsSync(path.join(staticDir, 'index.html'))) throw new Error(`STATIC_DIR: no index.html in ${staticDir}`);
+  const { mainnet, problem } = mainnetConfig(merged);
   return {
     api,
     project: merged.NTK_PROJECT,
     paymentKey: merged.NTK_PAYMENT_KEY,
+    mainnet,
+    mainnetProblem: problem,
     port: int(merged, 'PORT', 3970),
     host: merged.HOST || '127.0.0.1',
     staticDir,
@@ -202,110 +234,19 @@ function clientIp(req) {
 // ---- the relay ----------------------------------------------------------
 
 /**
- * Build the relay. Returns { server, listen(), close(), refreshInfo(), state }.
- * `fetchImpl` and `log` are replaceable for tests.
+ * Build the relay. Returns { server, listen(), close(), refreshInfo(), state, networks }.
+ * `config` is testnet's api, project and paymentKey plus the shared settings, and
+ * optionally `mainnet: { api, project, paymentKey }`. `state` and `refreshInfo` are
+ * testnet's; `networks.testnet` and `networks.mainnet` (null when mainnet is not set
+ * up) have each network's { state, refreshInfo }. `fetchImpl` and `log` are
+ * replaceable for tests.
  */
 export function createRelay(config, { fetchImpl = globalThis.fetch, log = (line) => console.log(line), now = Date.now } = {}) {
   const cfg = config;
-  const limiter = rateLimiter(now);
-  const issued = new Map(); // call_id -> expiry: the relay passes on polls only for calls it started
   const stop = new AbortController();
   const timers = [];
-  const state = { info: null, infoInflight: null, lastInfoAttempt: 0, upstreamCalls: 0 };
-  const scrub = (s) => String(s).split(cfg.paymentKey).join('<payment key>');
-
-  async function upstream(method, urlPath, body, timeoutMs) {
-    state.upstreamCalls++;
-    const headers = { 'X-Payment-Key': cfg.paymentKey, Accept: 'application/json' };
-    if (body != null) headers['Content-Type'] = 'application/json';
-    // Aborted by close() or after timeoutMs (AbortSignal.any needs Node 20.3; this works on every 20.x).
-    const ac = new AbortController();
-    const timer = setTimeout(() => ac.abort(Object.assign(new Error('timeout'), { name: 'TimeoutError' })), timeoutMs);
-    const onStop = () => ac.abort(stop.signal.reason);
-    stop.signal.addEventListener('abort', onStop, { once: true });
-    try {
-      const res = await fetchImpl(`${cfg.api}${urlPath}`, { method, headers, body, signal: ac.signal });
-      const text = await res.text();
-      return { status: res.status, headers: res.headers, text };
-    } finally {
-      clearTimeout(timer);
-      stop.signal.removeEventListener('abort', onStop);
-    }
-  }
-
-  function remember(callId) {
-    const t = now();
-    issued.set(callId, t + cfg.callTtlSec * 1000);
-    if (issued.size > 10_000) for (const [k, exp] of issued) if (exp <= t) issued.delete(k);
-  }
-
-  /** POST the call to OutLayer (async). Returns the call_id, or throws an HttpError for the client. */
-  async function startCall(input) {
-    let r;
-    try {
-      r = await upstream('POST', `/call/${cfg.project}`, JSON.stringify({ input, async: true }), 30_000);
-    } catch (e) {
-      throw new HttpError(502, `OutLayer did not answer (${e.name === 'TimeoutError' ? 'timeout' : 'network error'})`);
-    }
-    if (r.status === 429 || r.status === 503) {
-      const retry = r.headers.get('retry-after');
-      throw Object.assign(new HttpError(r.status, `OutLayer is busy (HTTP ${r.status}); try again shortly`,
-        retry ? { 'Retry-After': retry } : {}), { upstream: r.status });
-    }
-    let call = null;
-    try { call = JSON.parse(r.text); } catch { /* handled below */ }
-    if (r.status < 200 || r.status >= 300 || !call || typeof call.call_id !== 'string') {
-      const detail = call && (call.error || call.message) ? scrub(call.error || call.message).slice(0, 300) : undefined;
-      throw Object.assign(new HttpError(502, `OutLayer answered HTTP ${r.status}`), { upstream: r.status, detail });
-    }
-    remember(call.call_id);
-    return call.call_id;
-  }
-
-  /** Start a call and poll it until it is completed; returns the parsed output. */
-  async function runCall(input) {
-    const callId = await startCall(input);
-    const deadline = now() + cfg.pollTimeoutMs;
-    while (now() < deadline && !stop.signal.aborted) {
-      await sleep(cfg.pollIntervalMs, stop.signal);
-      let r;
-      try { r = await upstream('GET', `/calls/${callId}`, null, 20_000); } catch { continue; }
-      if (r.status !== 200) continue;
-      let call;
-      try { call = JSON.parse(r.text); } catch { continue; }
-      if (call.status === 'completed') {
-        let out = call.output;
-        if (typeof out === 'string') { try { out = JSON.parse(out); } catch { /* keep the string */ } }
-        return { callId, output: out };
-      }
-      if (call.status === 'failed') throw new Error(`call ${callId} failed`);
-    }
-    throw new Error(`call ${callId} did not complete in time`);
-  }
-
-  /** Fetch `info` from the enclave into the cache. One at a time; at most one attempt per 30 s unless forced. */
-  function refreshInfo({ force = false } = {}) {
-    if (state.infoInflight) return state.infoInflight;
-    if (!force && now() - state.lastInfoAttempt < 30_000) return Promise.resolve(state.info);
-    state.lastInfoAttempt = now();
-    const t0 = now();
-    state.infoInflight = (async () => {
-      try {
-        const { callId, output } = await runCall({ operation: 'info' });
-        if (!isObject(output) || output.ok !== true) throw new Error(`call ${callId}: info did not answer ok`);
-        state.info = { output, at: now() };
-        log(`${new Date().toISOString()} info refreshed by call ${callId} in ${Math.round((now() - t0) / 1000)}s`);
-      } catch (e) {
-        if (!stop.signal.aborted) log(`${new Date().toISOString()} info refresh failed: ${scrub(e.message)}`);
-      } finally {
-        state.infoInflight = null;
-      }
-      return state.info;
-    })();
-    return state.infoInflight;
-  }
-
-  // ---- handlers ----
+  const paymentKeys = [cfg.paymentKey, cfg.mainnet?.paymentKey].filter(Boolean);
+  const scrub = (s) => paymentKeys.reduce((text, key) => text.split(key).join('<payment key>'), String(s));
 
   function send(res, status, body, headers = {}) {
     const isJson = body !== undefined && typeof body !== 'string' && !Buffer.isBuffer(body);
@@ -318,74 +259,185 @@ export function createRelay(config, { fetchImpl = globalThis.fetch, log = (line)
     res.end(payload);
   }
 
-  function limited(res, ...checks) {
-    for (const [key, max, windowMs] of checks) {
-      const r = limiter.hit(key, max, windowMs);
-      if (!r.ok) {
-        send(res, 429, { error: 'too many requests', retry_after: r.retryAfter }, { 'Retry-After': String(r.retryAfter) });
-        return true;
-      }
-    }
-    return false;
-  }
+  /**
+   * One network: its OutLayer API, project and payment key (`target`), with
+   * rate limits, started calls and an info cache of its own.
+   */
+  function createLane(network, target) {
+    const limiter = rateLimiter(now);
+    const issued = new Map(); // call_id -> expiry: the relay passes on polls only for calls it started
+    const state = { info: null, infoInflight: null, lastInfoAttempt: 0, upstreamCalls: 0 };
 
-  async function postCall(req, res, ctx) {
-    const ip = clientIp(req);
-    const L = cfg.limits;
-    if (limited(res, [`ip-min:${ip}`, L.ipPerMin, MIN], [`ip-day:${ip}`, L.ipPerDay, DAY])) return;
-    const raw = await readBody(req, MAX_BODY);
-    let body;
-    try { body = JSON.parse(raw.toString('utf8')); } catch { return send(res, 400, { error: 'the body must be JSON: {"input": {...}}' }); }
-    const input = isObject(body) ? body.input : null;
-    if (!isObject(input)) return send(res, 400, { error: 'input must be an object' });
-    if (typeof input.operation !== 'string' || !OPERATIONS.includes(input.operation)) {
-      return send(res, 400, { error: `operation must be one of ${OPERATIONS.join(', ')}` });
-    }
-    ctx.op = input.operation;
-    if (ctx.op !== 'info') {
-      const account = isObject(input.auth) ? input.auth.account_id : null;
-      if (typeof account !== 'string' || !ACCOUNT_RE.test(account)) {
-        return send(res, 400, { error: 'auth.account_id must be a NEAR account id' });
+    async function upstream(method, urlPath, body, timeoutMs) {
+      state.upstreamCalls++;
+      const headers = { 'X-Payment-Key': target.paymentKey, Accept: 'application/json' };
+      if (body != null) headers['Content-Type'] = 'application/json';
+      // Aborted by close() or after timeoutMs (AbortSignal.any needs Node 20.3; this works on every 20.x).
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(Object.assign(new Error('timeout'), { name: 'TimeoutError' })), timeoutMs);
+      const onStop = () => ac.abort(stop.signal.reason);
+      stop.signal.addEventListener('abort', onStop, { once: true });
+      try {
+        const res = await fetchImpl(`${target.api}${urlPath}`, { method, headers, body, signal: ac.signal });
+        const text = await res.text();
+        return { status: res.status, headers: res.headers, text };
+      } finally {
+        clearTimeout(timer);
+        stop.signal.removeEventListener('abort', onStop);
       }
-      ctx.account = account;
-      if (limited(res, [`acct-min:${account}`, L.accountPerMin, MIN], [`acct-day:${account}`, L.accountPerDay, DAY])) return;
     }
-    if (limited(res, ['global-min', L.globalPerMin, MIN])) return;
-    try {
+
+    function remember(callId) {
+      const t = now();
+      issued.set(callId, t + cfg.callTtlSec * 1000);
+      if (issued.size > 10_000) for (const [k, exp] of issued) if (exp <= t) issued.delete(k);
+    }
+
+    /** POST the call to OutLayer (async). Returns the call_id, or throws an HttpError for the client. */
+    async function startCall(input) {
+      let r;
+      try {
+        r = await upstream('POST', `/call/${target.project}`, JSON.stringify({ input, async: true }), 30_000);
+      } catch (e) {
+        throw new HttpError(502, `OutLayer did not answer (${e.name === 'TimeoutError' ? 'timeout' : 'network error'})`);
+      }
+      if (r.status === 429 || r.status === 503) {
+        const retry = r.headers.get('retry-after');
+        throw Object.assign(new HttpError(r.status, `OutLayer is busy (HTTP ${r.status}); try again shortly`,
+          retry ? { 'Retry-After': retry } : {}), { upstream: r.status });
+      }
+      let call = null;
+      try { call = JSON.parse(r.text); } catch { /* handled below */ }
+      if (r.status < 200 || r.status >= 300 || !call || typeof call.call_id !== 'string') {
+        const detail = call && (call.error || call.message) ? scrub(call.error || call.message).slice(0, 300) : undefined;
+        throw Object.assign(new HttpError(502, `OutLayer answered HTTP ${r.status}`), { upstream: r.status, detail });
+      }
+      remember(call.call_id);
+      return call.call_id;
+    }
+
+    /** Start a call and poll it until it is completed; returns the parsed output. */
+    async function runCall(input) {
       const callId = await startCall(input);
-      send(res, 200, { call_id: callId });
-    } catch (e) {
-      ctx.upstream = e.upstream;
-      send(res, e.status || 502, { error: e.message, ...(e.detail ? { detail: e.detail } : {}) }, e.headers);
+      const deadline = now() + cfg.pollTimeoutMs;
+      while (now() < deadline && !stop.signal.aborted) {
+        await sleep(cfg.pollIntervalMs, stop.signal);
+        let r;
+        try { r = await upstream('GET', `/calls/${callId}`, null, 20_000); } catch { continue; }
+        if (r.status !== 200) continue;
+        let call;
+        try { call = JSON.parse(r.text); } catch { continue; }
+        if (call.status === 'completed') {
+          let out = call.output;
+          if (typeof out === 'string') { try { out = JSON.parse(out); } catch { /* keep the string */ } }
+          return { callId, output: out };
+        }
+        if (call.status === 'failed') throw new Error(`call ${callId} failed`);
+      }
+      throw new Error(`call ${callId} did not complete in time`);
     }
+
+    /** Fetch `info` from the enclave into the cache. One at a time; at most one attempt per 30 s unless forced. */
+    function refreshInfo({ force = false } = {}) {
+      if (state.infoInflight) return state.infoInflight;
+      if (!force && now() - state.lastInfoAttempt < 30_000) return Promise.resolve(state.info);
+      state.lastInfoAttempt = now();
+      const t0 = now();
+      state.infoInflight = (async () => {
+        try {
+          const { callId, output } = await runCall({ operation: 'info' });
+          if (!isObject(output) || output.ok !== true) throw new Error(`call ${callId}: info did not answer ok`);
+          state.info = { output, at: now() };
+          log(`${new Date().toISOString()} ${network} info refreshed by call ${callId} in ${Math.round((now() - t0) / 1000)}s`);
+        } catch (e) {
+          if (!stop.signal.aborted) log(`${new Date().toISOString()} ${network} info refresh failed: ${scrub(e.message)}`);
+        } finally {
+          state.infoInflight = null;
+        }
+        return state.info;
+      })();
+      return state.infoInflight;
+    }
+
+    function limited(res, ...checks) {
+      for (const [key, max, windowMs] of checks) {
+        const r = limiter.hit(key, max, windowMs);
+        if (!r.ok) {
+          send(res, 429, { error: 'too many requests', retry_after: r.retryAfter }, { 'Retry-After': String(r.retryAfter) });
+          return true;
+        }
+      }
+      return false;
+    }
+
+    async function postCall(req, res, ctx) {
+      const ip = clientIp(req);
+      const L = cfg.limits;
+      if (limited(res, [`ip-min:${ip}`, L.ipPerMin, MIN], [`ip-day:${ip}`, L.ipPerDay, DAY])) return;
+      const raw = await readBody(req, MAX_BODY);
+      let body;
+      try { body = JSON.parse(raw.toString('utf8')); } catch { return send(res, 400, { error: 'the body must be JSON: {"input": {...}}' }); }
+      const input = isObject(body) ? body.input : null;
+      if (!isObject(input)) return send(res, 400, { error: 'input must be an object' });
+      if (typeof input.operation !== 'string' || !OPERATIONS.includes(input.operation)) {
+        return send(res, 400, { error: `operation must be one of ${OPERATIONS.join(', ')}` });
+      }
+      ctx.op = input.operation;
+      if (ctx.op !== 'info') {
+        const account = isObject(input.auth) ? input.auth.account_id : null;
+        if (typeof account !== 'string' || !ACCOUNT_RE.test(account)) {
+          return send(res, 400, { error: 'auth.account_id must be a NEAR account id' });
+        }
+        ctx.account = account;
+        if (limited(res, [`acct-min:${account}`, L.accountPerMin, MIN], [`acct-day:${account}`, L.accountPerDay, DAY])) return;
+      }
+      if (limited(res, ['global-min', L.globalPerMin, MIN])) return;
+      try {
+        const callId = await startCall(input);
+        send(res, 200, { call_id: callId });
+      } catch (e) {
+        ctx.upstream = e.upstream;
+        send(res, e.status || 502, { error: e.message, ...(e.detail ? { detail: e.detail } : {}) }, e.headers);
+      }
+    }
+
+    async function getCall(req, res, id) {
+      if (!CALL_ID_RE.test(id)) return send(res, 400, { error: 'a call id is a UUID' });
+      if (limited(res, [`poll-min:${clientIp(req)}`, cfg.limits.pollPerMin, MIN])) return;
+      const exp = issued.get(id);
+      if (!exp || exp <= now()) return send(res, 404, { error: 'unknown call id: this relay did not start that call, or it is too old' });
+      let r;
+      try {
+        r = await upstream('GET', `/calls/${id}`, null, 20_000);
+      } catch (e) {
+        return send(res, 502, { error: `OutLayer did not answer (${e.name === 'TimeoutError' ? 'timeout' : 'network error'})` });
+      }
+      send(res, r.status, r.text, { 'Content-Type': r.headers.get('content-type') || 'application/json' });
+    }
+
+    async function getInfo(req, res) {
+      if (limited(res, [`info-min:${clientIp(req)}`, 60, MIN])) return;
+      const fresh = state.info && now() - state.info.at < cfg.infoTtlSec * 1000;
+      if (state.info) {
+        if (!fresh) refreshInfo();
+        return send(res, 200, state.info);
+      }
+      const pending = refreshInfo();
+      const waited = await Promise.race([pending, sleep(cfg.infoWaitSec * 1000, stop.signal).then(() => null)]);
+      if (waited) return send(res, 200, waited);
+      send(res, 503, { error: 'info is being fetched from the enclave; try again shortly' }, { 'Retry-After': '10' });
+    }
+
+    return { network, state, limiter, refreshInfo, postCall, getCall, getInfo };
   }
 
-  async function getCall(req, res, id) {
-    if (!CALL_ID_RE.test(id)) return send(res, 400, { error: 'a call id is a UUID' });
-    if (limited(res, [`poll-min:${clientIp(req)}`, cfg.limits.pollPerMin, MIN])) return;
-    const exp = issued.get(id);
-    if (!exp || exp <= now()) return send(res, 404, { error: 'unknown call id: this relay did not start that call, or it is too old' });
-    let r;
-    try {
-      r = await upstream('GET', `/calls/${id}`, null, 20_000);
-    } catch (e) {
-      return send(res, 502, { error: `OutLayer did not answer (${e.name === 'TimeoutError' ? 'timeout' : 'network error'})` });
-    }
-    send(res, r.status, r.text, { 'Content-Type': r.headers.get('content-type') || 'application/json' });
-  }
+  const lanes = {
+    testnet: createLane('testnet', cfg),
+    mainnet: cfg.mainnet ? createLane('mainnet', cfg.mainnet) : null,
+  };
+  const active = Object.values(lanes).filter(Boolean);
 
-  async function getInfo(req, res) {
-    if (limited(res, [`info-min:${clientIp(req)}`, 60, MIN])) return;
-    const fresh = state.info && now() - state.info.at < cfg.infoTtlSec * 1000;
-    if (state.info) {
-      if (!fresh) refreshInfo();
-      return send(res, 200, state.info);
-    }
-    const pending = refreshInfo();
-    const waited = await Promise.race([pending, sleep(cfg.infoWaitSec * 1000, stop.signal).then(() => null)]);
-    if (waited) return send(res, 200, waited);
-    send(res, 503, { error: 'info is being fetched from the enclave; try again shortly' }, { 'Retry-After': '10' });
-  }
+  // ---- handlers ----
 
   async function serveStatic(req, res, pathname) {
     let rel;
@@ -408,6 +460,9 @@ export function createRelay(config, { fetchImpl = globalThis.fetch, log = (line)
     fs.createReadStream(file).on('error', () => res.destroy()).pipe(res);
   }
 
+  // /api/call, /api/calls/<id> and /api/info (testnet), and the same three under /api/mainnet/.
+  const ENDPOINT_RE = /^\/api\/(?:(mainnet)\/)?(?:(call)|calls\/([^/]+)|(info))$/;
+
   async function handle(req, res) {
     const t0 = now();
     const ctx = { op: null, account: null, upstream: null };
@@ -424,16 +479,17 @@ export function createRelay(config, { fetchImpl = globalThis.fetch, log = (line)
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
         res.setHeader('Access-Control-Max-Age', '600');
         if (req.method === 'OPTIONS') return send(res, 204);
-        const callMatch = /^\/api\/calls\/([^/]+)$/.exec(pathname);
-        if (pathname === '/api/call') {
+        const m = ENDPOINT_RE.exec(pathname);
+        if (!m) return send(res, 404, { error: 'not found' });
+        const network = m[1] || 'testnet';
+        const lane = lanes[network];
+        if (!lane) return send(res, 503, { error: `${network} is not set up` });
+        if (m[2]) {
           if (req.method !== 'POST') return send(res, 405, { error: 'use POST' }, { Allow: 'POST, OPTIONS' });
-          return await postCall(req, res, ctx);
+          return await lane.postCall(req, res, ctx);
         }
-        if (pathname === '/api/info' || callMatch) {
-          if (req.method !== 'GET') return send(res, 405, { error: 'use GET' }, { Allow: 'GET, OPTIONS' });
-          return callMatch ? await getCall(req, res, callMatch[1]) : await getInfo(req, res);
-        }
-        return send(res, 404, { error: 'not found' });
+        if (req.method !== 'GET') return send(res, 405, { error: 'use GET' }, { Allow: 'GET, OPTIONS' });
+        return m[4] ? await lane.getInfo(req, res) : await lane.getCall(req, res, m[3]);
       }
       if (cfg.staticDir && (req.method === 'GET' || req.method === 'HEAD')) return await serveStatic(req, res, pathname);
       return send(res, 404, 'Not found');
@@ -451,16 +507,21 @@ export function createRelay(config, { fetchImpl = globalThis.fetch, log = (line)
 
   return {
     server,
-    state,
-    refreshInfo,
+    state: lanes.testnet.state,
+    refreshInfo: lanes.testnet.refreshInfo,
+    networks: {
+      testnet: { state: lanes.testnet.state, refreshInfo: lanes.testnet.refreshInfo },
+      mainnet: lanes.mainnet && { state: lanes.mainnet.state, refreshInfo: lanes.mainnet.refreshInfo },
+    },
     listen(port = cfg.port, host = cfg.host) {
       return new Promise((resolve, reject) => {
         server.once('error', reject);
         server.listen(port, host, () => {
           server.off('error', reject);
-          timers.push(setInterval(() => limiter.sweep(), MIN).unref());
-          if (cfg.keepWarmSec > 0) timers.push(setInterval(() => refreshInfo({ force: true }), cfg.keepWarmSec * 1000));
-          if (cfg.prefetchInfo) refreshInfo({ force: true });
+          timers.push(setInterval(() => active.forEach((lane) => lane.limiter.sweep()), MIN).unref());
+          // Keep-warm on testnet only: a mainnet call costs real NEAR.
+          if (cfg.keepWarmSec > 0) timers.push(setInterval(() => lanes.testnet.refreshInfo({ force: true }), cfg.keepWarmSec * 1000));
+          if (cfg.prefetchInfo) active.forEach((lane) => lane.refreshInfo({ force: true }));
           resolve(server.address());
         });
       });
@@ -487,8 +548,11 @@ if (isMain) {
   }
   const relay = createRelay(cfg);
   const addr = await relay.listen();
-  console.log(`ntk relay on http://${addr.address}:${addr.port} -> ${cfg.api}/call/${cfg.project}` +
-    `${cfg.staticDir ? `, serving ${cfg.staticDir}` : ''}${cfg.keepWarmSec ? `, keep-warm every ${cfg.keepWarmSec}s` : ''}`);
+  const mainnet = cfg.mainnet
+    ? `mainnet (/api/mainnet/) -> ${cfg.mainnet.api}/call/${cfg.mainnet.project}`
+    : `mainnet not set up${cfg.mainnetProblem ? ` (${cfg.mainnetProblem})` : ''}: /api/mainnet/ answers 503`;
+  console.log(`ntk relay on http://${addr.address}:${addr.port}: testnet (/api/) -> ${cfg.api}/call/${cfg.project}; ${mainnet}` +
+    `${cfg.staticDir ? `; serving ${cfg.staticDir}` : ''}${cfg.keepWarmSec ? `; testnet keep-warm every ${cfg.keepWarmSec}s` : ''}`);
   const quit = () => { relay.close().then(() => process.exit(0)); setTimeout(() => process.exit(0), 3000).unref(); };
   process.on('SIGINT', quit);
   process.on('SIGTERM', quit);

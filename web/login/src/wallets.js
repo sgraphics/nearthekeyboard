@@ -4,7 +4,9 @@
 // Pinning keeps the list to wallets that work on NEAR testnet today and whose
 // executor code was read for AddKey support, and keeps the CSP of /login/ to their
 // hosts (deploy/nginx/ntk.conf). Each wallet's executor script is still fetched from
-// its own address at run time and runs in a sandboxed iframe.
+// its own address at run time and runs in a sandboxed iframe. Both also serve NEAR
+// mainnet (#...&network=mainnet): the connector filters wallets only on testnet, and
+// Meteor's executor then talks to its own mainnet RPC, free.rpc.fastnear.com.
 //
 // Left out on purpose: HOT Wallet (its executor throws "HOT Wallet not supported on
 // testnet"), MyNearWallet (being retired: it "no longer approves requests from

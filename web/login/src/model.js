@@ -5,18 +5,31 @@
 //
 // The contract with the Android app:
 //   the app opens  https://ntk.tools/login#pk=<ed25519:base58>&return=ntk%3A%2F%2Fauth&network=testnet
+//                  (or network=mainnet; no network means testnet)
 //   the page ends  ntk://auth?account_id=<account>&public_key=<urlencoded pk>   (only after the key is on chain)
+//
+// Mainnet is offered only once its enclave keys are pinned in lib/networks.js
+// (which this page bundles: rebuild with node build.mjs after changing it).
+import { NETWORKS, DEFAULT_NETWORK, availableNetworks, joinNames } from '../../lib/networks.js';
 
-/** What this page asks the wallet for. */
-export const NTK_LOGIN = Object.freeze({
-  network: 'testnet',
-  // The one receiver a function-call key may name for the enclave to accept it (docs/protocol.md).
-  receiverId: 'nearthekeyboard.testnet',
-  // 0.1 NEAR in yoctoNEAR (10^23): the most the key can ever spend on fees.
-  allowanceYocto: '100000000000000000000000',
-  allowanceNear: '0.1',
-  rpc: 'https://rpc.testnet.fastnear.com',
-});
+/** What this page asks the wallet for on one network: a key for that network's NTK project owner. */
+export function loginPins(network = DEFAULT_NETWORK, networks = NETWORKS) {
+  const n = Object.hasOwn(networks, network) ? networks[network] : null;
+  if (!n) throw new Error(`not an NTK network: ${network}`);
+  return Object.freeze({
+    network: n.network,
+    // The one receiver a function-call key may name for the enclave to accept it (docs/protocol.md):
+    // the OutLayer project's owner on that network.
+    receiverId: n.owner,
+    // 0.1 NEAR in yoctoNEAR (10^23): the most the key can ever spend on fees.
+    allowanceYocto: '100000000000000000000000',
+    allowanceNear: '0.1',
+    rpc: n.rpc,
+  });
+}
+
+/** What this page asks the wallet for on the default network (testnet). */
+export const NTK_LOGIN = loginPins(DEFAULT_NETWORK);
 
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
@@ -57,26 +70,51 @@ export function parseReturnUrl(value) {
   return { ok: true, url: value };
 }
 
+/** Why this page cannot log in on a network, or null when it can (both of the network's enclave keys are pinned). */
+export function networkError(network, networks = NETWORKS) {
+  const on = availableNetworks(networks).map((n) => n.network);
+  if (on.includes(network)) return null;
+  if (!on.length) return 'NTK is not available on any NEAR network yet.';
+  const runs = `NTK runs on NEAR ${joinNames(on)}${on.length === 1 ? ' only' : ''}`;
+  if (Object.hasOwn(networks, network)) return `${runs} for now: ${network} is not available yet.`;
+  return `${runs}; the link asks for "${String(network).slice(0, 40)}".`;
+}
+
 /**
- * The request in the address fragment: `#pk=…&return=…&network=testnet`.
- * The fragment never reaches a server. Returns { ok, publicKey, returnUrl, network } or { ok: false, errors }.
+ * The request in the address fragment: `#pk=…&return=…&network=testnet` (or mainnet).
+ * The fragment never reaches a server. Returns { ok, publicKey, returnUrl, network } or
+ * { ok: false, errors, network } (network null when it is the problem).
+ * `networks` is lib/networks.js's list (replaceable for tests).
  */
-export function parseRequest(hash) {
+export function parseRequest(hash, { networks = NETWORKS } = {}) {
   const q = new URLSearchParams(String(hash || '').replace(/^#/, ''));
   const errors = [];
   const pk = parsePublicKey(q.get('pk'));
   if (!pk.ok) errors.push(pk.error);
   const ret = parseReturnUrl(q.get('return'));
   if (!ret.ok) errors.push(ret.error);
-  const network = q.get('network') || NTK_LOGIN.network;
-  if (network !== NTK_LOGIN.network) errors.push(`NTK runs on NEAR testnet only; the link asks for "${network}".`);
-  if (errors.length) return { ok: false, errors };
+  const network = q.get('network') || DEFAULT_NETWORK;
+  const wrongNetwork = networkError(network, networks);
+  if (wrongNetwork) errors.push(wrongNetwork);
+  if (errors.length) return { ok: false, errors, network: wrongNetwork ? null : network };
   return { ok: true, publicKey: pk.publicKey, returnUrl: ret.url, network };
 }
 
 const ACCOUNT_RE = /^(?=.{2,64}$)(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
 /** A NEAR account id (named, implicit or eth-implicit). */
 export const isAccountId = (s) => typeof s === 'string' && ACCOUNT_RE.test(s);
+
+/**
+ * Whether an account can be on this network. Named accounts on testnet end in .testnet and those
+ * on mainnet never do (and .near ones are mainnet's); implicit accounts exist on both. A wallet
+ * may still hold a session from the other network (Intear answers getAccounts for any network).
+ */
+export function accountOnNetwork(accountId, network) {
+  if (!isAccountId(accountId)) return false;
+  if (network === 'mainnet') return !accountId.endsWith('.testnet');
+  if (network === 'testnet') return !accountId.endsWith('.near');
+  return true;
+}
 
 /** `ed25519:Co9DWJ3t…UBcPBz`: enough of a key to compare by eye. */
 export const shortKey = (pk) => (pk.length > 30 ? `${pk.slice(0, 16)}…${pk.slice(-6)}` : pk);
