@@ -32,7 +32,7 @@ Updated 2026-11-13. What is still open is in [TODO.md](TODO.md).
 | Protocol client, end-to-end suite | `client/` | 36 of 36 checks against the live enclave (2026-11-13), synthetic typists |
 | Verify page, demo feed, web embed, privacy page | `web/` | Live at <https://ntk.tools> |
 | Relay (holds the payment key) | `relay/` | Live at `https://ntk.tools/api`; web and relay: 107 tests |
-| Android keyboard | `android/` | Works on the Android emulator: a fresh testnet account enrolled and got MATCH (`[NTK 4420c168c8]`) through the live relay; 28 unit tests, robot typist tests |
+| Android keyboard | `android/` | Signed release APK at <https://ntk.tools/app/>. Works on the Android emulator: a fresh testnet account enrolled and got MATCH (`[NTK 4420c168c8]`) through the live relay; 28 unit tests, robot typist tests |
 | Log in with a NEAR wallet | `web/login/`, `android/` | Login page live at <https://ntk.tools/login/> (NEAR Connect: Meteor, Intear). The app side works with a function-call key added from a script; not yet tried with a real wallet. The testnet faucet account also works |
 | Stamp buttons in other Android apps | `android/` | Works in Chrome on the emulator: a button over each tag opens the verify page; also "Verify NTK stamp" in the text selection menu. Not tried in the X app |
 | NEAR AI Cloud: composed or copied | — | Not started; needs an API key |
@@ -40,6 +40,31 @@ Updated 2026-11-13. What is still open is in [TODO.md](TODO.md).
 The typing data in the tests is synthetic (invented typists). It shows that
 the pipeline measures, stores, compares and signs correctly. It is not
 evidence that the matching works on real people.
+
+## Install the keyboard (Android)
+
+Download page: <https://ntk.tools/app/>. The signed APK is
+<https://ntk.tools/download/ntk-keyboard-0.2.apk> (1.0 MB, Android 7 or newer,
+tested on Android 16), SHA-256
+`2cde61ca827abe9b68f6eebd71e6512ff8b2e5c689927a76b98ff207a291e9c8`, signing
+certificate `CN=Near The Keyboard`, SHA-256
+`09:88:34:DE:9A:59:94:C0:CC:AF:0F:60:E7:4D:35:DF:16:77:D5:3F:62:5A:A1:5D:EB:6A:BD:7C:B2:87:50:65`.
+
+1. Open the APK and allow your browser to install apps when Android asks.
+2. In NTK, turn the keyboard on in system settings and switch to it.
+3. Log in with a NEAR testnet wallet (Meteor or Intear approve one transaction
+   that adds a key that can only sign NTK requests), or let NTK create a
+   testnet account.
+4. Enroll: type the three short texts.
+5. Type anywhere; after 40 keys, tap **sign** on the keyboard's strip. On a
+   match the keyboard adds `[NTK <id>]` after your text.
+6. Optional: switch on **NTK stamp buttons** under Accessibility to get a button
+   on every tag in any app. Sideloaded apps may first need **Allow restricted
+   settings** in the app's info screen.
+
+Everything runs on NEAR testnet. Without a phone, the verify page, the demo
+feed (<https://ntk.tools/feed/>) and the demo conversation
+(<https://ntk.tools/messages/>) work in any browser.
 
 ## Try it
 
