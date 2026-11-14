@@ -143,7 +143,7 @@ export const SealScene: React.FC<{look: Look; story: Story; b: Beats; label: str
 			</svg>
 			<Enclave look={look} story={story} opacity={ramp(t, b.enclave, 0.7)} sealed={sealed} codeOk={codeOk}>
 				<div style={{position: 'absolute', left: ENCLAVE_IN.map.x - STAGE.enclave.x, top: ENCLAVE_IN.map.y - STAGE.enclave.y + 3 * 50 + 6, ...smallCaps(look.ink2, 12)}}>
-					Your typing fingerprint{fill > 0.05 ? ' · 3 sessions' : ''}
+					Fingerprint
 				</div>
 			</Enclave>
 			<FingerprintMap look={look} fill={fill} fresh={fresh} />

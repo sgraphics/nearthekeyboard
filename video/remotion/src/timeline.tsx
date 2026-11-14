@@ -53,6 +53,13 @@ const cycle = z.object({at: z.number(), every: z.number().min(0.5), slide: z.num
 const animScene = <T extends z.ZodRawShape>(beats: T) =>
 	z.object({seconds: z.number().min(1), label: z.string(), phone: z.string(), captions: z.array(caption), beats: z.object(beats)});
 const n = z.number();
+// The opening: the keyboard alone under the name; keys light up as they are tapped, then Sign, the meter,
+// MATCH. `letters` are the keys tapped, in order (a space is the space bar); `words` are the few words
+// under the keyboard, with their times (seconds in the scene).
+const heroScene = animScene({title: n, keyboard: n, taps: n, tapEvery: n, sign: n, match: n}).extend({
+	letters: z.string(),
+	words: z.array(caption),
+});
 
 export const timelineSchema = z.object({
 	transition: z.number().min(0).max(2),
@@ -99,6 +106,7 @@ export const timelineSchema = z.object({
 		grain: z.number().min(0).max(1),
 	}),
 	scenes: z.object({
+		hero: heroScene,
 		problem: clipScene,
 		login: animScene({near: n, tapLogin: n, wallet: n, approve: n, keyAdded: n, keyTravel: n, keyDocked: n}),
 		enroll: clipScene,
@@ -159,7 +167,7 @@ export const LaunchComposition: React.FC = () => (
 				tagline: 'Prove you typed it by hand.',
 				site: 'ntk.tools',
 				repo: 'github.com/sgraphics/nearthekeyboard',
-				builtAt: 'Built at NEAR HACKATHON · testnet',
+				builtAt: 'Built at NEAR HACKATHON',
 			},
 			fwd: {
 				label: 'FWD',
@@ -169,10 +177,22 @@ export const LaunchComposition: React.FC = () => (
 				grain: 0.35,
 			},
 			scenes: {
+				hero: {
+					seconds: 8.5,
+					label: '',
+					phone: '',
+					captions: [],
+					beats: {title: 0, keyboard: 0.35, taps: 1.5, tapEvery: 0.13, sign: 4.6, match: 6.4},
+					letters: 'every word was mine',
+					words: [
+						{from: 1.0, to: 4.3, text: 'Type your message'},
+						{from: 4.3, to: 8.5, text: 'Prove you typed it'},
+					],
+				},
 				problem: {
 					seconds: 7.5,
-					label: 'The problem',
-					phone: 'Your phone',
+					label: '',
+					phone: '',
 					captions: [
 						{from: 0, to: 3.7, text: 'Anyone can paste AI text and call it their own.'},
 						{from: 3.7, to: 7.5, text: 'Near The Keyboard lets you prove you typed it.'},
@@ -192,8 +212,8 @@ export const LaunchComposition: React.FC = () => (
 				},
 				login: {
 					seconds: 8.5,
-					label: 'Set up',
-					phone: 'Your phone · the NTK app',
+					label: '',
+					phone: '',
 					captions: [
 						{from: 0.3, to: 4.4, text: 'Log in with your NEAR account.'},
 						{from: 4.4, to: 8.5, text: 'Your wallet adds a key that can only talk to NTK.'},
@@ -201,12 +221,12 @@ export const LaunchComposition: React.FC = () => (
 					beats: {near: 0, tapLogin: 1.2, wallet: 1.7, approve: 3.4, keyAdded: 4.0, keyTravel: 5.0, keyDocked: 6.8},
 				},
 				enroll: {
-					seconds: 12.5,
-					label: 'Set up',
-					phone: 'Your phone · NTK keyboard',
+					seconds: 11,
+					label: '',
+					phone: '',
 					captions: [
 						{from: 0.2, to: 8.1, text: 'Then type three short texts, so NTK learns how you type.'},
-						{from: 8.1, to: 12.5, text: 'Fingerprint created, sealed in the enclave.'},
+						{from: 8.1, to: 11, text: 'Fingerprint created, sealed in the enclave.'},
 					],
 					clip: {
 						src: 'clips/enroll.mp4',
@@ -226,32 +246,32 @@ export const LaunchComposition: React.FC = () => (
 							{at: 7.9, x: 0.5, y: 0.6, w: 1},
 							{at: 8.5, x: 0.5, y: 0.27, w: 1},
 						],
-						note: 'Typing in this clip: the test robot (synthetic typist)',
+						note: 'Typed by our test robot',
 					},
 				},
 				seal: {
-					seconds: 24,
-					label: 'How it works',
-					phone: 'Your phone · NTK keyboard',
+					seconds: 23,
+					label: '',
+					phone: '',
 					captions: [
 						{from: 0.3, to: 6.6, text: 'NTK measures each tap: the hold, the move to the next key, where your finger lands.'},
 						{from: 6.6, to: 11.2, text: 'The measurements are sealed on the phone. Only the enclave can open them.'},
 						{from: 11.2, to: 15.4, text: 'It runs on OutLayer, in Intel TDX. NEAR records which code may use its keys.'},
 						{from: 15.4, to: 19.4, text: 'Inside, they become your typing fingerprint.'},
-						{from: 19.4, to: 24, text: 'Nobody can read it: not us, not OutLayer, not you.'},
+						{from: 19.4, to: 23, text: 'Nobody can read it: not us, not OutLayer, not you.'},
 					],
 					beats: {enclave: 0, taps: 1.0, tapEvery: 1.25, pack: 6.6, travel: 8.8, arrive: 11.0, code: 11.4, open: 14.2, settle: 15.0, fill: 17.0, sealed: 19.4},
 				},
 				moment: {
-					seconds: 20,
-					label: 'The moment',
-					phone: 'Your phone · NTK keyboard',
+					seconds: 19.4,
+					label: '',
+					phone: '',
 					captions: [
 						{from: 0.2, to: 5.0, text: 'You answer Maya with the NTK keyboard.'},
 						{from: 5.0, to: 10.0, text: 'Type as usual, then tap Sign.'},
 						{from: 10.0, to: 13.7, text: 'The typing goes sealed to the enclave for a check.'},
 						{from: 13.7, to: 17.7, text: 'It matches: the keyboard adds the tag.'},
-						{from: 17.7, to: 20, text: 'Send.'},
+						{from: 17.7, to: 19.4, text: 'Send.'},
 					],
 					clip: {
 						src: 'clips/moment.mp4',
@@ -269,13 +289,13 @@ export const LaunchComposition: React.FC = () => (
 							{at: 17.5, x: 0.5, y: 0.63, w: 1},
 							{at: 18.3, x: 0.5, y: 0.6, w: 1},
 						],
-						note: 'Typing in this clip: the test robot (synthetic typist)',
+						note: 'Typed by our test robot',
 					},
 				},
 				stamp: {
 					seconds: 24,
-					label: 'How it works',
-					phone: 'Your phone · NTK keyboard',
+					label: '',
+					phone: '',
 					captions: [
 						{from: 0.3, to: 3.8, text: 'Sign sends the new typing, sealed, to the enclave.'},
 						{from: 3.8, to: 7.8, text: 'NEAR confirms that the key belongs to your account.'},
@@ -289,14 +309,14 @@ export const LaunchComposition: React.FC = () => (
 					},
 				},
 				verify: {
-					seconds: 34.7,
-					label: 'The check',
+					seconds: 33.2,
+					label: '',
 					phone: 'Maya’s phone',
 					captions: [
 						{from: 0.2, to: 11.6, text: 'On Maya’s phone, NTK turns the tag into a button. In any app.'},
 						{from: 11.6, to: 15.1, text: 'Maya taps it.'},
 						{from: 15.1, to: 20.6, text: 'MATCH: the stamp is genuine and the text unchanged.'},
-						{from: 20.6, to: 34.7, text: 'Anyone can check it. Change one word and it fails.'},
+						{from: 20.6, to: 33.2, text: 'Anyone can check it. Change one word and it fails.'},
 					],
 					clip: {
 						src: 'clips/verify.mp4',
@@ -308,7 +328,7 @@ export const LaunchComposition: React.FC = () => (
 							{from: 10.6, to: 39.5, speed: 12},
 							{from: 39.5, to: 44.0, speed: 1},
 							{from: 44.0, to: 48.8, speed: 6},
-							{from: 48.8, to: 57.4, speed: 1},
+							{from: 48.8, to: 55.9, speed: 1},
 						],
 						loupe: [
 							{at: 0, x: 0.5, y: 0.6, w: 1},
@@ -331,15 +351,15 @@ export const LaunchComposition: React.FC = () => (
 							{at: 31.3, x: 0.5, y: 0.27, w: 1},
 							{at: 32.0, x: 0.5, y: 0.33, w: 1},
 						],
-						note: 'Taps in this clip: the test robot',
+						note: 'Tapped by our test robot',
 					},
 					callout: {
 						at: 1.4,
 						until: 11.6,
 						title: 'The NTK button',
 						lines: [
-							'In {app}, Android draws it over every [NTK …] tag.',
-							'It comes with the NTK keyboard app. Nothing leaves the phone until you tap.',
+							'Works in {app}, and in any other app.',
+							'Installed with the NTK keyboard.',
 						],
 					},
 					cycle: {
@@ -369,7 +389,7 @@ export const LaunchComposition: React.FC = () => (
 					},
 				},
 				end: {
-					seconds: 8,
+					seconds: 6,
 					label: '',
 					phone: '',
 					captions: [],

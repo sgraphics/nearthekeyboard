@@ -1,5 +1,5 @@
-// The end card: the banner's name and the 3D keyboard, where to try it, the
-// code, and where it was built.
+// The end card: the banner's name and the 3D keyboard, where to try it, and
+// where it was built.
 import React from 'react';
 import {AbsoluteFill, Img, staticFile} from 'remotion';
 import {Mark} from '../components/Chrome';
@@ -20,16 +20,15 @@ export const EndScene: React.FC<{look: Look; story: Story; b: Beats}> = ({look, 
 				src={staticFile('brand/ntk-keyboard-light-3x.png')}
 				style={{position: 'absolute', left: 840, top: 214, width: 1040, height: (1040 * 512) / 856, ...rise(kb)}}
 			/>
-			<div style={{position: 'absolute', left: 130, top: 196, ...rise(title)}}>
+			<div style={{position: 'absolute', left: 130, top: 250, ...rise(title)}}>
 				<Mark height={40} />
 				<div style={{marginTop: 44, fontFamily: FONT, fontSize: 104, fontWeight: 700, lineHeight: 1.0, letterSpacing: '-0.01em', color: look.ink}}>
 					NEAR THE
 					<br />
 					KEYBOARD
 				</div>
-				<div style={{marginTop: 30, fontFamily: FONT, fontSize: 40, fontWeight: 200, color: look.ink}}>{story.tagline}</div>
 			</div>
-			<div style={{position: 'absolute', left: 130, top: 690, ...rise(line(0))}}>
+			<div style={{position: 'absolute', left: 130, top: 654, ...rise(line(0))}}>
 				<span
 					style={{
 						fontFamily: FONT,
@@ -45,8 +44,7 @@ export const EndScene: React.FC<{look: Look; story: Story; b: Beats}> = ({look, 
 					{story.site}
 				</span>
 			</div>
-			<div style={{position: 'absolute', left: 130, top: 778, fontFamily: FONT, fontSize: 32, fontWeight: 300, color: look.ink, ...rise(line(1))}}>{story.repo}</div>
-			<div style={{position: 'absolute', left: 130, top: 866, ...smallCaps(look.ink, 18), ...rise(line(2))}}>{story.builtAt}</div>
+			<div style={{position: 'absolute', left: 130, top: 754, ...smallCaps(look.ink, 18), ...rise(line(1))}}>{story.builtAt}</div>
 		</AbsoluteFill>
 	);
 };

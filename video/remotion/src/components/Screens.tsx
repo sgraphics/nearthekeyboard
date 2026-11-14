@@ -82,7 +82,7 @@ const StripMeter: React.FC<{look: Look; value: number}> = ({look, value}) => {
 };
 
 /** The NTK strip above the keys: the mark, a status line (or the meter while a call runs), the orange key. */
-export const Strip: React.FC<{look: Look; status: string; keyLabel: string; keyPressed?: boolean; statusDot?: string; meter?: number | null}> = ({
+export const Strip: React.FC<{look: Look; status: React.ReactNode; keyLabel: string; keyPressed?: boolean; statusDot?: string; meter?: number | null}> = ({
 	look,
 	status,
 	keyLabel,
@@ -94,7 +94,7 @@ export const Strip: React.FC<{look: Look; status: string; keyLabel: string; keyP
 		<Mark height={16} style={{position: 'absolute', left: 14, top: 18}} />
 		{meter === null ? (
 			<>
-				<div style={abs(80, 23, {width: 6, height: 6, borderRadius: 3, background: statusDot ?? look.orange})} />
+				{status ? <div style={abs(80, 23, {width: 6, height: 6, borderRadius: 3, background: statusDot ?? look.orange})} /> : null}
 				<div
 					style={abs(94, 16, {
 						width: 170,
@@ -207,9 +207,6 @@ export const LoginScreen: React.FC<{look: Look; story: Story; loggedIn: number; 
 	<>
 		<StatusBar look={look} />
 		<AppHeader look={look} page="settings" />
-		<div style={abs(22, 124, {width: 340, fontFamily: FONT, fontSize: 21, fontWeight: 200, lineHeight: 1.3, color: look.ink})}>
-			A keyboard that lets you prove you typed a text by hand. Testnet only.
-		</div>
 		<div style={abs(22, 236, {fontFamily: FONT, fontSize: 22, fontWeight: 200, color: look.ink})}>1. Keyboard</div>
 		<div style={abs(22, 270, {fontFamily: FONT, fontSize: 13.5, color: look.ink})}>NTK is on and is your keyboard.</div>
 		<div style={abs(22, 326, {fontFamily: FONT, fontSize: 22, fontWeight: 200, color: look.ink})}>2. NEAR account</div>
@@ -236,9 +233,6 @@ export const LoginScreen: React.FC<{look: Look; story: Story; loggedIn: number; 
 		</div>
 		<div style={{opacity: loggedIn}}>
 			<div style={abs(22, 360, {fontFamily: FONT, fontSize: 14.5, fontWeight: 500, color: look.ink})}>{story.account}</div>
-			<div style={abs(22, 384, {width: 290, fontFamily: FONT, fontSize: 13.5, lineHeight: 1.4, color: look.ink})}>
-				Key on this phone: a function-call key for nearthekeyboard.testnet.
-			</div>
 		</div>
 		<div style={abs(22, 478, {fontFamily: FONT, fontSize: 22, fontWeight: 200, color: look.ink})}>3. Typing fingerprint</div>
 		<div style={abs(22, 512, {fontFamily: FONT, fontSize: 13.5, color: look.ink})}>Not enrolled yet.</div>
@@ -264,9 +258,6 @@ export const WalletSheet: React.FC<{look: Look; story: Story; hidden: number; ap
 				<div style={abs(24, 26, smallCaps(look.ink2, 11))}>Your NEAR wallet</div>
 				<div style={abs(24, 52, {width: 330, fontFamily: FONT, fontSize: 21, fontWeight: 300, lineHeight: 1.25, color: look.ink})}>
 					Add a key to {story.account}?
-				</div>
-				<div style={abs(24, 118, {width: 330, fontFamily: FONT, fontSize: 13.5, lineHeight: 1.45, color: look.ink2})}>
-					A function-call key. It can only talk to nearthekeyboard.testnet (NTK).
 				</div>
 				<div
 					style={abs(24, 196, {

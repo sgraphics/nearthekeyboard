@@ -45,17 +45,12 @@ export const NearPanel: React.FC<{
 		<Panel look={look} box={b} opacity={opacity}>
 			<div style={abs(28, 22, {display: 'flex', alignItems: 'baseline', gap: 12})}>
 				<span style={smallCaps(look.ink, 16)}>NEAR</span>
-				<span style={{fontFamily: FONT, fontSize: 15, color: look.ink2}}>the chain · testnet</span>
 			</div>
 			<Thin look={look} size={30} style={abs(28, 54)}>
 				{story.account}
 			</Thin>
-			<div style={abs(28, 102, {display: 'flex', alignItems: 'center', gap: 10, fontFamily: FONT, fontSize: 16, color: look.ink2})}>
-				<Key size={24} color={look.minor} />
-				full-access key
-			</div>
 			<div
-				style={abs(18, 128, {
+				style={abs(18, 104, {
 					display: 'flex',
 					alignItems: 'center',
 					gap: 10,
@@ -69,15 +64,13 @@ export const NearPanel: React.FC<{
 				})}
 			>
 				<Key size={24} color={look.orange} stroke={2} />
-				<span>
-					function-call key · <span style={{color: look.ink2}}>only for nearthekeyboard.testnet</span>
-				</span>
+				<span>function-call key</span>
 				<span style={{opacity: keyOk, display: 'flex', alignItems: 'center', gap: 4, color: look.green, fontWeight: 500}}>
 					<Check size={22} color={look.green} stroke={2.2} /> yours
 				</span>
 			</div>
 			<div style={{opacity: codeRow}}>
-				<div style={abs(640, 26, smallCaps(look.ink2, 12))}>Code versions · outlayer.testnet</div>
+				<div style={abs(640, 26, smallCaps(look.ink2, 12))}>Active code</div>
 				<div
 					style={abs(630, 50, {
 						padding: '6px 10px',
@@ -85,18 +78,14 @@ export const NearPanel: React.FC<{
 						boxShadow: codeHi > 0 ? `inset 0 0 0 ${2 * codeHi}px ${look.orange}` : undefined,
 					})}
 				>
-					<Thin look={look} size={24}>
-						NTK enclave, active version
-					</Thin>
-					<div style={{fontFamily: FONT, fontSize: 21, fontWeight: 500, color: look.ink, marginTop: 6, letterSpacing: '0.02em'}}>{story.codeVersion}…</div>
+					<div style={{fontFamily: FONT, fontSize: 24, fontWeight: 500, color: look.ink, letterSpacing: '0.02em'}}>{story.codeVersion}…</div>
 				</div>
-				<div style={abs(640, 126, {fontFamily: FONT, fontSize: 15, color: look.ink2})}>public, rebuildable byte for byte</div>
 			</div>
 		</Panel>
 	);
 };
 /** Where the function-call key's icon sits in the NEAR panel, on the frame. */
-export const nearKeyIcon = (): [number, number] => [STAGE.near.x + 18 + 10 + 12, STAGE.near.y + 128 + 3 + 12];
+export const nearKeyIcon = (): [number, number] => [STAGE.near.x + 18 + 10 + 12, STAGE.near.y + 104 + 3 + 12];
 
 // ---- the enclave ----------------------------------------------------------
 
@@ -136,9 +125,8 @@ export const Enclave: React.FC<{look: Look; opacity: number; sealed?: number; co
 				<span style={smallCaps(look.ink, 14)}>Intel TDX</span>
 			</div>
 			<div style={abs(36, 76, {display: 'flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontSize: 15, color: look.ink2, opacity: codeOk})}>
-				runs code version {story.codeVersion}…
 				<Check size={20} color={look.green} stroke={2.2} />
-				<span style={{color: look.green, fontWeight: 500}}>as recorded on NEAR</span>
+				code {story.codeVersion}…
 			</div>
 			{children}
 		</div>
@@ -276,8 +264,7 @@ export const Dial: React.FC<{look: Look; x: number; y: number; w: number; value:
 					</text>
 				))}
 			</svg>
-			<div style={{display: 'flex', justifyContent: 'space-between', marginTop: 4, fontFamily: FONT, fontSize: 16, color: look.ink2}}>
-				<span>typing match</span>
+			<div style={{display: 'flex', justifyContent: 'flex-end', marginTop: 4, fontFamily: FONT, fontSize: 16, color: look.ink2}}>
 				<span style={{color: look.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums'}}>{readout}</span>
 			</div>
 		</div>
@@ -310,12 +297,10 @@ export const StampCard: React.FC<{look: Look; story: Story; x: number; y: number
 		})}
 	>
 		<div style={{display: 'flex', alignItems: 'baseline', gap: 12}}>
-			<span style={smallCaps(look.ink2, 12)}>Stamp</span>
 			<span style={{fontFamily: FONT, fontSize: 24, fontWeight: 500, color: look.ink}}>[NTK {story.stampId}]</span>
 		</div>
-		<div style={{fontFamily: FONT, fontSize: 14, lineHeight: 1.35, color: look.ink2, marginTop: 6, width: 340}}>
-			<div style={{whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{story.account}</div>
-			<div style={{whiteSpace: 'nowrap'}}>match {story.scorePct} % · a hash of the text, not the text</div>
+		<div style={{fontFamily: FONT, fontSize: 15, lineHeight: 1.35, color: look.ink2, marginTop: 10, width: 340, whiteSpace: 'nowrap'}}>
+			{story.scorePct} % · text hash only
 		</div>
 		<div style={abs(380, 12, {display: 'flex', alignItems: 'center', gap: 4, opacity: signed, color: look.green, fontFamily: FONT, fontSize: 15, fontWeight: 600})}>
 			<Check size={22} color={look.green} stroke={2.4} /> signed
@@ -338,7 +323,7 @@ export const StampKey: React.FC<{look: Look; x: number; y: number; opacity: numb
 		<div style={{width: 44, height: 44, borderRadius: 22, background: look.orange, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
 			<Key size={30} color={look.onOrange} stroke={2} />
 		</div>
-		{label ? <span style={{fontFamily: FONT, fontSize: 16, color: look.ink, whiteSpace: 'nowrap'}}>stamp key · only in here</span> : null}
+		{label ? <span style={{fontFamily: FONT, fontSize: 16, color: look.ink, whiteSpace: 'nowrap'}}>stamp key</span> : null}
 	</div>
 );
 
@@ -375,7 +360,6 @@ export const StoragePanel: React.FC<{look: Look; story: Story; opacity: number; 
 					Public storage
 				</Thin>
 			</div>
-			<div style={abs(24, 60, smallCaps(look.ink2, 12))}>OutLayer · anyone can read</div>
 			<div style={abs(14, 90, {width: b.w - 28, display: 'flex', flexDirection: 'column', gap: 4})}>
 				{row('e65ee28db5', 1)}
 				{row('85218caaa0', 1)}
@@ -396,16 +380,12 @@ export const ReaderPanel: React.FC<{look: Look; story: Story; opacity: number; l
 					Anyone
 				</Thin>
 			</div>
-			<div style={abs(24, 60, smallCaps(look.ink2, 12))}>{story.site} · no account needed</div>
 			<div style={abs(24, 88, {width: b.w - 48, fontFamily: FONT, fontSize: 14.5, lineHeight: 1.4, color: look.ink, opacity: Math.max(0.0001, looking)})}>
 				“{story.reply}” <span style={{whiteSpace: 'nowrap'}}>[NTK {story.stampId}]</span>
 			</div>
 			<div style={abs(24, 166, {display: 'flex', alignItems: 'center', gap: 8, opacity: match})}>
 				<span style={{fontFamily: FONT, fontSize: 30, fontWeight: 600, letterSpacing: '0.02em', color: look.green}}>MATCH</span>
 				<Check size={30} color={look.green} stroke={2.4} />
-			</div>
-			<div style={abs(24, 210, {width: b.w - 48, fontFamily: FONT, fontSize: 13.5, lineHeight: 1.3, color: look.ink2, opacity: match})}>
-				signed in the enclave · text unchanged
 			</div>
 		</Panel>
 	);
@@ -414,7 +394,7 @@ export const readerEdge = (): [number, number] => [STAGE.reader.x + STAGE.reader
 
 /** Those who cannot read the fingerprint, each stopped at the enclave's wall. */
 export const Blocked: React.FC<{look: Look; p: number}> = ({look, p}) => {
-	const who = ['us, the NTK team', 'OutLayer', 'you'];
+	const who = ['us', 'OutLayer', 'you'];
 	const x0 = STAGE.storage.x + 20;
 	const wallX = STAGE.enclave.x + STAGE.enclave.w;
 	return (
@@ -488,11 +468,8 @@ export const keyCardBadge = (): [number, number] => [KEY_CARD.x + 32 + 28, KEY_C
 
 /** The key the wallet added: what it can and cannot do, and where it lives. */
 export const KeyCard: React.FC<{look: Look; opacity: number; badge?: boolean}> = ({look, opacity, badge = true}) => {
-	const row = (label: string, value: string, y: number) => (
-		<div style={abs(120, y, {display: 'flex', alignItems: 'baseline', gap: 18})}>
-			<span style={{...smallCaps(look.ink2, 12), width: 86}}>{label}</span>
-			<span style={{fontFamily: FONT, fontSize: 19, color: look.ink, whiteSpace: 'nowrap'}}>{value}</span>
-		</div>
+	const line = (text: string, y: number) => (
+		<div style={abs(120, y, {fontFamily: FONT, fontSize: 21, color: look.ink, whiteSpace: 'nowrap'})}>{text}</div>
 	);
 	return (
 		<Panel look={look} box={KEY_CARD} opacity={opacity} style={{transform: `translateY(${(1 - opacity) * 14}px)`}}>
@@ -500,9 +477,8 @@ export const KeyCard: React.FC<{look: Look; opacity: number; badge?: boolean}> =
 				<Key size={36} color={look.onOrange} stroke={2} />
 			</div>
 			<div style={abs(120, 34, {fontFamily: FONT, fontSize: 30, fontWeight: look.titleWeight, color: look.ink})}>Function-call key</div>
-			{row('can call', 'nearthekeyboard.testnet (NTK)', 98)}
-			{row('cannot', 'send tokens, call other apps', 140)}
-			{row('kept on', 'your phone, inside the NTK app', 182)}
+			{line('Talks only to NTK', 104)}
+			{line('Cannot move tokens', 146)}
 		</Panel>
 	);
 };
@@ -523,10 +499,6 @@ export const SealedNote: React.FC<{look: Look; opacity: number}> = ({look, opaci
 		})}
 	>
 		<Lock size={30} color={look.ink} stroke={1.8} />
-		<div style={{fontFamily: FONT, fontSize: 19, lineHeight: 1.3, color: look.ink}}>
-			Stored sealed. No call ever returns it:
-			<br />
-			<span style={{color: look.ink2}}>calls get counts, or a verdict on new typing.</span>
-		</div>
+		<div style={{fontFamily: FONT, fontSize: 19, lineHeight: 1.3, color: look.ink}}>Stored sealed</div>
 	</div>
 );

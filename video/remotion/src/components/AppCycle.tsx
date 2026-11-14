@@ -139,7 +139,6 @@ const ForumScreen: React.FC<{look: Look; app: CycleConfig['apps'][number]}> = ({
 			<div style={abs(0, 120, {width: 1080, height: 140, borderBottom: `2px solid ${RULE}`})} />
 			<div style={abs(60, 152, {fontFamily: SANS, fontSize: 56, color: INK})}>←</div>
 			<div style={abs(160, 158, {fontFamily: SANS, fontSize: 44, fontWeight: 500, color: INK})}>Comments</div>
-			<Illustration x={790} y={162} />
 			<div style={abs(60, 300, {fontFamily: SANS, fontSize: 30, color: GREY})}>forum · posted 5 h ago</div>
 			<div style={abs(60, 350, {width: 960, fontFamily: SANS, fontSize: 50, fontWeight: 700, lineHeight: 1.25, color: INK})}>
 				Do people still write their own replies?
@@ -176,7 +175,6 @@ const EmailScreen: React.FC<{look: Look; app: CycleConfig['apps'][number]}> = ({
 			<StatusBar />
 			<div style={abs(60, 152, {fontFamily: SANS, fontSize: 56, color: INK})}>←</div>
 			<div style={abs(620, 160, {fontFamily: SANS, fontSize: 44, color: GREY, letterSpacing: '0.4em'})}>▢ ⌫ ✉ ⋮</div>
-			<Illustration x={60} y={262} />
 			<div style={abs(60, 340, {width: 960, fontFamily: SANS, fontSize: 56, lineHeight: 1.2, color: INK})}>Re: Thank you note</div>
 			<div style={abs(60, 440, {width: 140, height: 50, borderRadius: 10, background: '#F1F3F4', fontFamily: SANS, fontSize: 28, color: GREY, display: 'flex', alignItems: 'center', justifyContent: 'center'})}>
 				Inbox

@@ -7,7 +7,7 @@ export const WIDTH = 1920;
 export const HEIGHT = 1080;
 
 /** The scenes, in the order they play. */
-export const SCENE_ORDER = ['problem', 'login', 'enroll', 'seal', 'moment', 'stamp', 'verify', 'end'] as const;
+export const SCENE_ORDER = ['hero', 'problem', 'login', 'enroll', 'seal', 'moment', 'stamp', 'verify', 'end'] as const;
 export type SceneId = (typeof SCENE_ORDER)[number];
 
 export type ScenePlan = {id: SceneId; index: number; from: number; frames: number};

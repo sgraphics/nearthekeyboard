@@ -1,6 +1,7 @@
 // The whole video. Layers, bottom to top: the background; the phone's body;
-// the scenes (each fades in over the one before); the mark and "testnet";
-// the captions.
+// the scenes (each fades in over the one before); the mark; the captions.
+// The opening (hero) has neither phone nor mark: they come in with the scene
+// after it, and leave with the end card.
 import React from 'react';
 import {AbsoluteFill, Sequence, useCurrentFrame} from 'remotion';
 import {Captions} from './components/Captions';
@@ -9,17 +10,20 @@ import {PhoneBody, PhoneCamera} from './components/Phone';
 import {captionTrack, plan, SceneId} from './schedule';
 import {ClipScene} from './scenes/ClipScene';
 import {EndScene} from './scenes/EndScene';
+import {HeroScene} from './scenes/HeroScene';
 import {LoginScene} from './scenes/LoginScene';
 import {SealScene} from './scenes/SealScene';
 import {StampScene} from './scenes/StampScene';
 import type {Timeline} from './timeline';
 
 /** The storyboard's numbers, shown in each scene's label. */
-const NUMBER: Record<SceneId, number> = {problem: 1, login: 2, enroll: 2, seal: 3, moment: 4, stamp: 5, verify: 6, end: 7};
+const NUMBER: Record<SceneId, number> = {hero: 0, problem: 1, login: 2, enroll: 2, seal: 3, moment: 4, stamp: 5, verify: 6, end: 7};
 
 const SceneView: React.FC<{id: SceneId; t: Timeline}> = ({id, t}) => {
 	const {look, story, fwd, scenes} = t;
 	switch (id) {
+		case 'hero':
+			return <HeroScene look={look} story={story} s={scenes.hero} />;
 		case 'problem':
 		case 'enroll':
 		case 'moment':
@@ -65,7 +69,12 @@ export const Launch: React.FC<Timeline> = (t) => {
 	const {scenes, overlap} = plan(t);
 	const cues = captionTrack(t);
 	const end = scenes[scenes.length - 1];
-	const chrome = 1 - Math.max(0, Math.min(1, (frame - end.from) / Math.max(1, overlap)));
+	// the phone and the mark: in with the scene after the opening (its fade-in half), out with the end card
+	const clamp = (x: number) => Math.max(0, Math.min(1, x));
+	const half = Math.max(1, overlap / 2);
+	const afterHero = scenes[0].id === 'hero' ? scenes[1] : null;
+	const chromeIn = afterHero ? clamp((frame - (afterHero.from + half)) / half) : 1;
+	const chrome = Math.min(chromeIn, 1 - clamp((frame - end.from) / Math.max(1, overlap)));
 	return (
 		<AbsoluteFill style={{background: t.look.background}}>
 			<PhoneBody look={t.look} opacity={chrome} />

@@ -108,7 +108,7 @@ export const StampScene: React.FC<{look: Look; story: Story; b: Beats; label: st
 			<NearPanel look={look} story={story} opacity={1} keyRow={1} keyHi={keyHi} keyOk={keyOk * (1 - ramp(t, b.publish, 0.6))} codeRow={1} />
 			<Enclave look={look} story={story} opacity={1} codeOk={1}>
 				<div style={{position: 'absolute', left: ENCLAVE_IN.map.x - STAGE.enclave.x, top: ENCLAVE_IN.map.y - STAGE.enclave.y + 3 * 50 + 6, ...smallCaps(look.ink2, 12)}}>
-					Your typing fingerprint{overlay > 0 ? ' · and the new typing' : ''}
+					Fingerprint
 				</div>
 			</Enclave>
 			<FingerprintMap look={look} fill={1} overlay={overlay} overlayKeys={story.reply.toLowerCase().replace(/[^a-z]/g, '').slice(0, 24)} />
@@ -199,7 +199,7 @@ export const StampScene: React.FC<{look: Look; story: Story; b: Beats; label: st
 						whiteSpace: 'nowrap',
 					}}
 				>
-					stamp:{story.stampId} · signed
+					stamp:{story.stampId}
 				</div>
 			) : null}
 			<TapRing look={look} pt={signPt} t={t} at={b.sign} />

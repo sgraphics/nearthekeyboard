@@ -1,5 +1,5 @@
-// What stays on screen across scenes: the NTK mark and "testnet" at the top
-// right; and the scene's small label at the top left of the right side.
+// What stays on screen across scenes: the NTK mark at the top right; and the
+// scene's small label at the top left of the right side (empty labels show nothing).
 import React from 'react';
 import {Img, staticFile} from 'remotion';
 import {FONT, LABEL_Y, Look, RIGHT, smallCaps} from '../theme';
@@ -14,7 +14,6 @@ export const Chip: React.FC<{look: Look; children: React.ReactNode; style?: Reac
 
 export const TopRight: React.FC<{look: Look; opacity: number}> = ({look, opacity}) => (
 	<div style={{position: 'absolute', right: 1920 - (RIGHT.x + RIGHT.w), top: LABEL_Y - 8, display: 'flex', alignItems: 'center', gap: 22, opacity}}>
-		<Chip look={look}>testnet</Chip>
 		<Mark height={26} />
 	</div>
 );
