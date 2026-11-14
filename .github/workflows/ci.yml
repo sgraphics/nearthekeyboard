@@ -51,7 +51,11 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      # Its default package list includes "tools", which cmdline-tools 16 no longer has.
+      # Gradle downloads the SDK platform the build needs by itself.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - name: Trust check of the keyboard tree
         run: bash scripts/audit-android.sh
       - name: JVM unit tests (text rule, sealing, NEP-413, stamps)
