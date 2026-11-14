@@ -43,6 +43,7 @@ const SHOTS = [
   { name: 'login-invalid', path: '/login#pk=nope' },
   { name: 'privacy', path: '/privacy/' },
   { name: 'app', path: '/app/' },
+  { name: 'trailer', path: '/trailer/' },
 ];
 
 async function main() {
