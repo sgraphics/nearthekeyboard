@@ -1,0 +1,28 @@
+{
+  "name": "ntk-launch-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The NTK launch video as a Remotion project: scenes are React components, every element a layer, all timings and captions in src/timeline.ts.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Launch ../out/ntk-launch.mp4 && node scripts/srt.mjs",
+    "srt": "node scripts/srt.mjs",
+    "still": "remotion still Launch ../out/still.png",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.543",
+    "@remotion/fonts": "4.0.543",
+    "@remotion/zod-types": "4.0.543",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.543",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "7.0.2",
+    "@babel/parser": "7.24.1"
+  }
+}

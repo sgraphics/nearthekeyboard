@@ -41,6 +41,8 @@ add('a_capture', alice, 'the quick brown fox jumps over the lazy dog, then types
 // screen's own prompts, so the typed text fits what is asked on screen.
 add('v_enroll_1', alice, 'Yesterday I had lentil soup with fresh bread for lunch, it was warm and filling and I liked it a lot.', 601, 'compose');
 add('v_enroll_3', alice, 'A small room with a desk by the window, a lamp, two plants and a pile of books next to the bed.', 603, 'compose');
+// The launch video's SMS scene (video/remotion): the same typist answers the friend on /messages/.
+add('v_reply', alice, 'Every word of it was mine, typed on this phone by me.', 701);
 
 const out = new URL('../app/src/androidTest/assets/robot-sessions.json', import.meta.url);
 fs.mkdirSync(new URL('.', out), { recursive: true });
